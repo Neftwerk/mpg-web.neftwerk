@@ -1,16 +1,30 @@
+"use client";
+
 import Link from "next/link";
-import { AppShell } from "@/components/app-shell";
+import { useState } from "react";
+import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
 
 export default function NewCollectionPage() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
-    <AppShell title="New Collection">
-      <div className="grid gap-4 max-w-[620px]">
-        <label className="text-sm font-medium text-slate-700">Collection name</label>
+    <>
+      <MobileTopBar
+        title="Discover Artwork"
+        onMenuOpen={() => setMenuOpen(true)}
+      />
+
+      <div className="grid gap-4 mt-20 lg:mt-0max-w-[620px]">
+        <label className="text-sm font-medium text-slate-700">
+          Collection name
+        </label>
         <input
           className="w-full rounded-[10px] border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
           defaultValue="#African art"
         />
-        <label className="text-sm font-medium text-slate-700">Description</label>
+        <label className="text-sm font-medium text-slate-700">
+          Description
+        </label>
         <textarea
           className="w-full rounded-[10px] border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
           rows={4}
@@ -18,11 +32,12 @@ export default function NewCollectionPage() {
         />
         <Link
           href="/collections"
-          className="inline-flex w-fit rounded-full border border-slate-200 bg-white px-5 py-3 font-bold text-slate-900 transition hover:bg-slate-100"
+          className="btn-neumorph"
         >
           Create Collection
         </Link>
       </div>
-    </AppShell>
+      <MobileMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
+    </>
   );
 }

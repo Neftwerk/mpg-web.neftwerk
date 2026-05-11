@@ -1,8 +1,5 @@
 "use client";
-
-import { useState } from "react";
-import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
-
+import Image from "next/image";
 export function AppShell({
   title,
   children,
@@ -10,23 +7,16 @@ export function AppShell({
   title: string;
   children: React.ReactNode;
 }) {
-  const [menuOpen, setMenuOpen] = useState(false);
-
+  const onBack = () => {
+    window.history.back();
+  }
   return (
-    <>
-      {/* Mobile top bar: STICKY ← Title ≡ */}
-      <MobileTopBar title={title} onMenuOpen={() => setMenuOpen(true)} />
-
-      {/* Desktop header */}
-      <header className="hidden lg:flex items-center justify-between border-b border-slate-200 bg-slate-50/95 p-4">
+    <section className="bg-white">
+      <header className="flex items-center gap-4 ps-2 bg-white py-3 lg:px-3">
+        <Image alt='' onClick={onBack} src="/arrow.svg" width={22} height={22} />
         <h1 className="text-xl font-semibold text-slate-900">{title}</h1>
       </header>
-
-      {/* Content — pb-28 to account for bigger bottom nav */}
-      <div className="p-4 pb-28 lg:pb-4">{children}</div>
-
-      {/* Mobile slide-out menu (triggered from hamburger) */}
-      <MobileMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
-    </>
+      <div className="p-2">{children}</div>
+    </section>
   );
 }

@@ -43,12 +43,12 @@ function DesktopSidebar() {
           <h3 className="font-semibold text-[#1A3F6C]">Davina Vincent</h3>
         </div>
         <div className="flex items-center gap-3">
-          <p className="text-sm text-slate-500">
-            <span className="font-semibold text-[#1A3F6C]">23k</span>{" "}
+          <p className="text-sm text-[#D0C1BB]">
+            <span className="font-medium text-[#1A3F6C]">23k</span>{" "}
             Followers
           </p>
-          <p className="text-sm text-slate-500">
-            <span className="font-semibold text-[#1A3F6C]">3k</span> Following
+          <p className="text-sm text-[#D0C1BB]">
+            <span className="font-medium text-[#1A3F6C]">3k</span> Following
           </p>
         </div>
       </div>
@@ -58,11 +58,10 @@ function DesktopSidebar() {
           <Link
             key={item.href}
             href={item.href}
-            className={`mb-2 flex items-center gap-2 rounded-[10px] px-3 py-2 text-sm font-semibold transition ${
-              active
-                ? "bg-sky-100 text-slate-900"
-                : "text-slate-700 hover:bg-slate-100"
-            }`}
+            className={`mb-2 flex items-center gap-2 rounded-[10px] px-3 py-2 text-sm font-semibold transition ${active
+              ? "bg-sky-100 text-slate-900"
+              : "text-slate-700 hover:bg-slate-100"
+              }`}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -77,11 +76,10 @@ function DesktopSidebar() {
       })}
       <Link
         href="/settings"
-        className={`mb-2 flex items-center gap-2 rounded-[10px] px-3 py-2 text-sm font-semibold transition ${
-          pathname === "/settings"
-            ? "bg-sky-100 text-slate-900"
-            : "text-slate-700 hover:bg-slate-100"
-        }`}
+        className={`mb-2 flex items-center gap-2 rounded-[10px] px-3 py-2 text-sm font-semibold transition ${pathname === "/settings"
+          ? "bg-sky-100 text-slate-900"
+          : "text-slate-700 hover:bg-slate-100"
+          }`}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/images/settings%20button.svg" alt="" className="h-9 w-9" aria-hidden />
@@ -89,11 +87,10 @@ function DesktopSidebar() {
       </Link>
       <Link
         href="/support"
-        className={`flex items-center gap-2 rounded-[10px] px-3 py-2 text-sm font-semibold transition ${
-          pathname === "/support"
-            ? "bg-sky-100 text-slate-900"
-            : "text-slate-700 hover:bg-slate-100"
-        }`}
+        className={`flex items-center gap-2 rounded-[10px] px-3 py-2 text-sm font-semibold transition ${pathname === "/support"
+          ? "bg-sky-100 text-slate-900"
+          : "text-slate-700 hover:bg-slate-100"
+          }`}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/images/supportbutton.svg" alt="" className="h-9 w-9" aria-hidden />
@@ -133,9 +130,8 @@ function MobileBottomNav() {
                 aria-hidden
               />
               <span
-                className={`text-[13px] font-semibold leading-tight whitespace-nowrap ${
-                  active ? "text-[#38A8AB]" : "text-[#1A3F6C]"
-                }`}
+                className={`text-[13px] font-semibold leading-tight whitespace-nowrap ${active ? "text-[#38A8AB]" : "text-[#1A3F6C]"
+                  }`}
               >
                 {item.label}
               </span>
@@ -176,12 +172,11 @@ function MobileMenu({
       )}
       {/* Drawer — slides from LEFT */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-[82%] max-w-[340px] bg-[#EFEBE9] shadow-2xl transition-transform duration-300 ease-in-out ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 w-[82%] max-w-[340px] bg-[#EFEBE9] shadow-2xl transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="flex flex-col h-full px-6 pt-8 pb-6 overflow-y-auto">
-          <p className="mb-4 text-[34px] font-semibold leading-none text-slate-500/70">Menu</p>
+          {/* <p className="mb-4 text-[34px] font-semibold leading-none text-slate-500/70">Menu</p> */}
           {/* User info */}
           <div className="flex items-center gap-4 mb-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -190,23 +185,32 @@ function MobileMenu({
               alt="Davina Vincent"
               className="h-[52px] w-[52px] rounded-full object-cover border-[2px] border-[#38A8AB]"
             />
-            <h3 className="text-[20px] font-bold text-[#1A3F6C]">
+            <h3 className="text-[20px] font-semibold text-[#1A3F6C]">
               Davina Vincent
             </h3>
           </div>
           <div className="flex items-center gap-3 mb-8">
             <p className="text-[15px]">
               <span className="font-bold text-[#1A3F6C]">23k</span>{" "}
-              <span className="font-medium text-slate-500">Followers</span>
+              <span className="font-medium text-[#464646]">Followers</span>
             </p>
             <div className="h-4 border-l-[1.5px] border-dotted border-slate-400" />
             <p className="text-[15px]">
               <span className="font-bold text-[#1A3F6C]">3k</span>{" "}
-              <span className="font-medium text-slate-500">Following</span>
+              <span className="font-medium text-[#464646]">Following</span>
             </p>
           </div>
 
-          <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-300/50 to-transparent mb-8" />
+          {/* Shadow divider between profile and nav */}
+          <div
+            className="w-full mb-6 -mx-6"
+            style={{
+              height: 8,
+              width: "calc(100% + 48px)",
+              boxShadow: "inset 0px 4px 6px -2px rgba(0,0,0,0.12), inset 0px -1px 3px -1px rgba(255,255,255,0.6)",
+              background: "linear-gradient(to bottom, #DDD7D2, #EFEBE9)",
+            }}
+          />
 
           {/* Nav links */}
           <nav className="flex flex-col gap-3">
@@ -226,7 +230,7 @@ function MobileMenu({
                     className="h-[54px] w-[54px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.04)]"
                     aria-hidden
                   />
-                  <span className={`text-[17px] font-bold ${active ? "text-[#38A8AB]" : "text-[#1A3F6C]"}`}>
+                  <span className={`text-[17px] font-bold ${active ? "text-[#38A8AB]" : "text-[#11161C]"}`}>
                     {item.label}
                   </span>
                 </Link>
@@ -249,7 +253,7 @@ export function MobileTopBar({
   onMenuOpen: () => void;
 }) {
   return (
-    <header className="lg:hidden sticky top-0 z-30 flex items-center justify-between px-5 py-4 bg-[#F7F4F3]">
+    <header className="lg:hidden fixed left-0 right-0 m top-0 z-30 flex items-center justify-between px-5 py-4 bg-[#F7F4F3]">
       {/* Left: Back arrow + Title */}
       <div className="flex items-center gap-3">
         <Link href="/home" className="flex-shrink-0 flex items-center justify-center w-10 h-10 -ml-2">
@@ -279,7 +283,7 @@ export function Sidebar() {
   return (
     <>
       <DesktopSidebar />
-      <MobileBottomNav />
+      {/* <MobileBottomNav /> */}
       <MobileMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
     </>
   );

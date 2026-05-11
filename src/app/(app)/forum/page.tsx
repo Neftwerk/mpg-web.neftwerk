@@ -1,15 +1,21 @@
-import { AppShell } from "@/components/app-shell";
+"use client";
 import { ForumPostCard } from "@/components/forum/ForumPostCard";
 import { forumPosts } from "@/lib/content";
-
+import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
+import { useState } from "react";
 export default function ForumPage() {
+   const [menuOpen, setMenuOpen] = useState(false);
+  
   return (
-    <AppShell title="Forum">
-      <div className="grid forum-feed">
+    <>
+      <MobileTopBar title="Forum" onMenuOpen={() => setMenuOpen(true)} />
+      <div className="grid forum-feed mt-20 lg:mt-0">
         {forumPosts.map((post) => (
           <ForumPostCard key={post.id} post={post} />
         ))}
       </div>
-    </AppShell>
+      <MobileMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
+
+    </>
   );
 }

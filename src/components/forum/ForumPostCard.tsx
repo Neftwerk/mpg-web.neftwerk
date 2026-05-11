@@ -47,7 +47,7 @@ type Props = { post: ForumPost };
 
 export function ForumPostCard({ post }: Props) {
   return (
-    <article className="mb-4 border border-[#dbe2ea] bg-[#EEF1F6] p-4">
+    <article className="card-neumorph mb-4">
       {/* Author row */}
       <div className="mb-3 flex items-center gap-3">
         <NeftwerkAvatar />

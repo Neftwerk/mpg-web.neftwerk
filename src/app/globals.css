@@ -1,3 +1,6 @@
+/* Nunito Sans — closest free web fallback for Avenir */
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,300;0,6..12,400;0,6..12,500;0,6..12,600;0,6..12,700;0,6..12,800;0,6..12,900;1,6..12,400&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -10,19 +13,16 @@ html,
 body {
   margin: 0;
   padding: 0;
-  min-height: 100dvh;
+  min-height: 100%;
 }
 
 body {
+  min-height: 100dvh;
+  background-color: #f5f0ec;
   color: #11181c;
-  font-family: Inter, Arial, Helvetica, sans-serif;
+  font-family: 'Avenir', 'Avenir Next', 'Nunito Sans', 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f5f0ec;
-  background-image: url("/images/deco-pattern-background.svg");
-  background-repeat: repeat;
-  background-size: 360px auto;
-  background-position: top left;
 }
 
 a {
@@ -43,4 +43,42 @@ button {
 ::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.1);
   border-radius: 4px;
+}
+
+/* ─── Neumorphic pill button — Figma design system ─── */
+@layer components {
+  .btn-neumorph {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    padding: 14px 32px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #1A3F6C;
+    background-color: rgba(242, 243, 247, 1);
+    box-shadow:
+      10px 10px 14px 0px rgba(229, 222, 217, 1),
+      4px 4px 6px 0px rgba(255, 255, 255, 1) inset;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .btn-neumorph:active {
+    transform: scale(0.98);
+  }
+
+  /* ─── Neumorphic card — Figma design system ─── */
+  .card-neumorph {
+    background-color: rgba(242, 243, 247, 1);
+    border-radius: 0;
+    padding: 10px;
+    box-shadow:
+      10px 10px 14px 0px rgba(229, 222, 217, 1),
+      4px 4px 6px 0px rgba(255, 255, 255, 1) inset;
+    overflow: hidden;
+  }
+  .card-neumorph img {
+    border-radius: 0;
+  }
 }

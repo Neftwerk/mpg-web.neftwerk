@@ -24,7 +24,7 @@ export default function LinkWalletPage() {
         />
         <button
           onClick={handleLinkWallet}
-          className="inline-flex w-fit !rounded-full border border-slate-200 bg-white px-5 py-3 font-bold text-slate-900 transition hover:bg-slate-100"
+          className="btn-neumorph"
         >
           Link the wallet
         </button>

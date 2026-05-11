@@ -13,7 +13,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="min-h-[100dvh] text-[#11181c]">{children}</body>
+      <head>
+      </head>
+      <body className="lg:min-h-screen bg-[url('/images/deco.jpg')] bg-cover bg-center bg-no-repeat lg:pt-4 pb-14 text-[#11181c]">
+        {children}
+      </body>
     </html>
   );
 }
