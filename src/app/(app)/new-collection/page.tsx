@@ -3,8 +3,17 @@
 import Link from "next/link";
 import { useState } from "react";
 import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
+import { AuthGuard } from "@/components/auth/AuthGuard";
 
 export default function NewCollectionPage() {
+  return (
+    <AuthGuard>
+      <NewCollectionContent />
+    </AuthGuard>
+  );
+}
+
+function NewCollectionContent() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (

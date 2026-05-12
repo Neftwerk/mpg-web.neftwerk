@@ -2,60 +2,89 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useEffect } from "react";
+import { requestLoginOtp, initiateGoogleOAuth } from "@/lib/auth-service";
 
 export function LoginForm() {
   const router = useRouter();
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-  function onSubmit(e: FormEvent) {
+  useEffect(() => {
+    const registered = sessionStorage.getItem("neft_register_success");
+    if (registered) {
+      setSuccess("Account created successfully! Log in with your email below.");
+      sessionStorage.removeItem("neft_register_success");
+    }
+  }, []);
+
+  async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    router.push("/home");
+    setError("");
+    setLoading(true);
+
+    try {
+      const result = await requestLoginOtp({ email });
+
+      if (result.ok) {
+        // Store the email so the OTP page knows which account to verify
+        sessionStorage.setItem("neft_otp_email", email);
+        sessionStorage.setItem("neft_otp_flow", "login");
+        router.push("/login/otp");
+      } else {
+        setError(result.message || "Failed to send OTP. Please try again.");
+      }
+    } catch {
+      setError("Network error. Please check your connection.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
     <form className="flex flex-col gap-0" onSubmit={onSubmit}>
       <p className="mb-2 text-xl font-semibold text-slate-900">Welcome back</p>
-      <div className="mb-2 h-1.5 w-[9%] max-w-[72px] rounded-full bg-sky-900 log" />
+      <div className="mb-2 h-1.5 w-[9%] max-w-[72px] bg-sky-900" />
+
+      {error && (
+        <div className="mt-3 rounded-none border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
+          {error}
+        </div>
+      )}
+
+      {success && (
+        <div className="mt-3 rounded-none border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-600">
+          {success}
+        </div>
+      )}
+
       <label className="mt-5 first:mt-4 mb-2 block text-sm font-medium text-slate-600" htmlFor="login-email">
         Email
       </label>
       <input
         id="login-email"
-        className="w-full rounded-[10px] border border-slate-300 bg-white px-3 py-3 text-sm placeholder:text-slate-400 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+        className="w-full rounded-none border border-slate-300 bg-white px-3 py-3 text-sm placeholder:text-slate-400 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
         type="email"
         autoComplete="email"
         placeholder="you@example.com"
+        required
         value={email}
         onChange={(ev) => setEmail(ev.target.value)}
       />
 
-      <label className="mt-5 first:mt-4 mb-2 block text-sm font-medium text-slate-600" htmlFor="login-password">
-        Password
-      </label>
-      <input
-        id="login-password"
-        className="w-full rounded-[10px] border border-slate-300 bg-white px-3 py-3 text-sm placeholder:text-slate-400 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
-        type="password"
-        autoComplete="current-password"
-        placeholder="Enter your password"
-        value={password}
-        onChange={(ev) => setPassword(ev.target.value)}
-      />
-
-      <div className="mt-2 flex justify-end">
-        <Link href="/forgot-password" className="text-sm font-semibold text-sky-900 underline underline-offset-2 hover:text-sky-700">
-          Forgot password?
-        </Link>
-      </div>
+      <p className="mt-3 text-xs text-slate-400 leading-relaxed">
+        We&apos;ll send a one-time code to your email to log you in securely.
+      </p>
 
       <div className="mt-7 flex flex-col items-center gap-6">
         <button
           type="submit"
-          className="btn-neumorph w-[85%] max-w-[320px]"
+          disabled={loading}
+          className="btn-neumorph w-[85%] max-w-[320px] disabled:opacity-50"
         >
-          Log in
+          {loading ? "Sending code..." : "Continue with email"}
         </button>
 
         <div className="flex w-[85%] max-w-[320px] items-center gap-4">
@@ -66,6 +95,7 @@ export function LoginForm() {
 
         <button
           type="button"
+          onClick={() => initiateGoogleOAuth()}
           className="btn-neumorph w-[85%] max-w-[320px] flex items-center justify-center gap-3"
         >
           <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24">

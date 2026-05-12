@@ -3,8 +3,17 @@
 import { useState } from "react";
 import { walletAddress } from "@/lib/content";
 import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
+import { AuthGuard } from "@/components/auth/AuthGuard";
 
 export default function WalletPage() {
+  return (
+    <AuthGuard>
+      <WalletContent />
+    </AuthGuard>
+  );
+}
+
+function WalletContent() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (

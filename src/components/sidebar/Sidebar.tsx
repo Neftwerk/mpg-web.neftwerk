@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { navItems } from "@/lib/content";
 import { useState } from "react";
+import { useUser } from "@/lib/UserContext";
 
 /* ─── Bottom-nav icon map: use the Figma-exported button SVGs ─── */
 const bottomNavIconMap: Record<string, string> = {
@@ -29,6 +30,7 @@ const menuIconMap: Record<string, string> = {
 /* ---------- Desktop sidebar (hidden on mobile) ---------- */
 function DesktopSidebar() {
   const pathname = usePathname();
+  const { user } = useUser();
 
   return (
     <aside className="hidden lg:sticky lg:flex flex-col gap-4 h-fit top-0 rounded-[14px] border border-slate-200 bg-white/90 p-4">
@@ -36,11 +38,11 @@ function DesktopSidebar() {
         <div className="flex items-center gap-2 w-full">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/images/user.png"
+            src={user?.avatarUrl || "/images/user.png"}
             alt="user image"
             className="h-[50px] w-[50px] rounded-full object-cover"
           />
-          <h3 className="font-semibold text-[#1A3F6C]">Davina Vincent</h3>
+          <h3 className="font-semibold text-[#1A3F6C]">{user?.fullName || "Guest"}</h3>
         </div>
         <div className="flex items-center gap-3">
           <p className="text-sm text-[#D0C1BB]">
@@ -152,6 +154,7 @@ function MobileMenu({
   onClose: () => void;
 }) {
   const pathname = usePathname();
+  const { user } = useUser();
 
   const menuItems = [
     { href: "/home", label: "Home", icon: "home" },
@@ -181,12 +184,12 @@ function MobileMenu({
           <div className="flex items-center gap-4 mb-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/images/user.png"
-              alt="Davina Vincent"
+              src={user?.avatarUrl || "/images/user.png"}
+              alt={user?.fullName || "User"}
               className="h-[52px] w-[52px] rounded-full object-cover border-[2px] border-[#38A8AB]"
             />
             <h3 className="text-[20px] font-semibold text-[#1A3F6C]">
-              Davina Vincent
+              {user?.fullName || "Guest"}
             </h3>
           </div>
           <div className="flex items-center gap-3 mb-8">
