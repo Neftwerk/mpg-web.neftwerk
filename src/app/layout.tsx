@@ -4,6 +4,9 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Neft Mobile Web",
   description: "Web version of the Neft mobile app",
+  icons: {
+    icon: "/images/neftwerkfavicon.svg",
+  },
 };
 
 export default function RootLayout({
