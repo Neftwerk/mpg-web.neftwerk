@@ -1,0 +1,22 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle with brand gradient -->
+  <circle cx="100" cy="100" r="100" fill="url(#bg)"/>
+  <!-- User silhouette head -->
+  <circle cx="100" cy="78" r="32" fill="url(#head)"/>
+  <!-- User silhouette body -->
+  <path d="M42 170C42 139.1 67.1 114 98 114H102C132.9 114 158 139.1 158 170V200H42V170Z" fill="url(#head)"/>
+  <!-- Neftwerk hexagon accent (bottom-right) -->
+  <g transform="translate(140, 140) scale(0.35)">
+    <path d="M111.208 78.741C108.272 80.437 105.337 80.437 102.402 78.741L86.668 69.659C83.733 67.964 82.265 65.421 82.265 62.03V43.866C82.265 40.476 83.733 37.933 86.668 36.237L102.402 27.155C105.337 25.46 108.272 25.46 111.208 27.155L126.941 36.237C129.877 37.933 131.344 40.476 131.344 43.866V62.03C131.344 65.421 129.877 67.964 126.941 69.659L111.208 78.741Z" fill="#38A8AB"/>
+  </g>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="200" y2="200">
+      <stop offset="0%" stop-color="#E8E2DD"/>
+      <stop offset="100%" stop-color="#D4CCC7"/>
+    </linearGradient>
+    <linearGradient id="head" x1="100" y1="60" x2="100" y2="200">
+      <stop offset="0%" stop-color="#1A3F6C"/>
+      <stop offset="100%" stop-color="#334E57"/>
+    </linearGradient>
+  </defs>
+</svg>

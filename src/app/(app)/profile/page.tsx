@@ -30,7 +30,7 @@ function ProfileContent() {
   // Pick first few gallery items as "activity"
   const activityItems = galleryItems.slice(0, 2);
 
-  const displayName = user?.fullName || "Guest";
+  const displayName = user?.fullName || "";
   const displayBio = user?.bio || "";
   const displayEmail = user?.email || "";
 
@@ -83,7 +83,7 @@ function ProfileContent() {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={user?.avatarUrl || "/images/user.png"}
+              src={user?.avatarUrl || "/images/default-avatar.svg"}
               alt={displayName}
               className="h-[120px] w-[120px] rounded-full object-cover"
             />
