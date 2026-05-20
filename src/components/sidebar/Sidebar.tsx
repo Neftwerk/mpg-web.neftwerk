@@ -38,11 +38,11 @@ function DesktopSidebar() {
         <div className="flex items-center gap-2 w-full">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={user?.avatarUrl || "/images/user.png"}
+            src={user?.avatarUrl || "/images/default-avatar.svg"}
             alt="user image"
             className="h-[50px] w-[50px] rounded-full object-cover"
           />
-          <h3 className="font-semibold text-[#1A3F6C]">{user?.fullName || "Guest"}</h3>
+          <h3 className="font-semibold text-[#1A3F6C]">{user?.fullName || ""}</h3>
         </div>
         <div className="flex items-center gap-3">
           <p className="text-sm text-[#D0C1BB]">
@@ -184,12 +184,12 @@ function MobileMenu({
           <div className="flex items-center gap-4 mb-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={user?.avatarUrl || "/images/user.png"}
+              src={user?.avatarUrl || "/images/default-avatar.svg"}
               alt={user?.fullName || "User"}
               className="h-[52px] w-[52px] rounded-full object-cover border-[2px] border-[#38A8AB]"
             />
             <h3 className="text-[20px] font-semibold text-[#1A3F6C]">
-              {user?.fullName || "Guest"}
+              {user?.fullName || ""}
             </h3>
           </div>
           <div className="flex items-center gap-3 mb-8">

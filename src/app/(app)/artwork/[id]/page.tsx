@@ -49,7 +49,7 @@ export default function ArtworkPage({ params }: { params: Promise<Params> }) {
           <div className="h-[46px] w-[46px] rounded-full border-[2px] border-[#38A8AB] overflow-hidden flex-shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/images/user.png"
+              src="/images/default-avatar.svg"
               alt={artist}
               className="h-full w-full object-cover"
             />
