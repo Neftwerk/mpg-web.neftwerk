@@ -1,0 +1,26 @@
+# dependencies
+node_modules/
+
+# next.js build
+.next/
+out/
+
+# macOS resource forks
+._*
+.DS_Store
+
+# env
+.env
+.env.local
+.env.*.local
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo

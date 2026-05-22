@@ -3,22 +3,72 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
-import { initiateGoogleOAuth } from "@/lib/auth-service";
+import { initiateGoogleOAuth, requestLoginOtp, verifyLoginOtp, setTokens } from "@/lib/auth-service";
+import { useUser } from "@/lib/UserContext";
 
 export function LoginForm() {
   const router = useRouter();
+  const { refresh } = useUser();
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [otp, setOtp] = useState("");
+  const [step, setStep] = useState<"email" | "otp">("email");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  function onSubmit(e: FormEvent) {
+  async function handleRequestOtp(e: FormEvent) {
     e.preventDefault();
-    router.push("/home");
+    if (!email.trim()) return;
+    setLoading(true);
+    setError("");
+
+    const result = await requestLoginOtp({ email: email.trim() });
+
+    if (result.ok) {
+      setStep("otp");
+    } else {
+      setError(result.message || "Failed to send OTP. Please try again.");
+    }
+    setLoading(false);
+  }
+
+  async function handleVerifyOtp(e: FormEvent) {
+    e.preventDefault();
+    if (!otp.trim()) return;
+    setLoading(true);
+    setError("");
+
+    const result = await verifyLoginOtp({ email: email.trim(), otp: otp.trim() });
+
+    if (result.ok && result.data) {
+      // Extract tokens from the response
+      const responseData = (result.data as any)?.data || result.data;
+      const accessToken = responseData?.accessToken || responseData?.token || responseData?.access_token;
+      const refreshToken = responseData?.refreshToken || responseData?.refresh_token;
+
+      if (accessToken) {
+        setTokens(accessToken, refreshToken);
+        await refresh();
+        router.push("/home");
+      } else {
+        setError("Login succeeded but no token received.");
+      }
+    } else {
+      setError(result.message || "Invalid OTP. Please try again.");
+    }
+    setLoading(false);
   }
 
   return (
-    <form className="flex flex-col gap-0" onSubmit={onSubmit}>
+    <form className="flex flex-col gap-0" onSubmit={step === "email" ? handleRequestOtp : handleVerifyOtp}>
       <p className="mb-2 text-xl font-semibold text-slate-900">Welcome back</p>
       <div className="mb-2 h-1.5 w-[9%] max-w-[72px] rounded-full bg-sky-900 log" />
+
+      {error && (
+        <div className="mt-3 rounded-[10px] border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
+          {error}
+        </div>
+      )}
+
       <label className="mt-5 first:mt-4 mb-2 block text-sm font-medium text-slate-600" htmlFor="login-email">
         Email
       </label>
@@ -30,33 +80,48 @@ export function LoginForm() {
         placeholder="you@example.com"
         value={email}
         onChange={(ev) => setEmail(ev.target.value)}
+        disabled={step === "otp"}
       />
 
-      <label className="mt-5 first:mt-4 mb-2 block text-sm font-medium text-slate-600" htmlFor="login-password">
-        Password
-      </label>
-      <input
-        id="login-password"
-        className="w-full rounded-[10px] border border-slate-300 bg-white px-3 py-3 text-sm placeholder:text-slate-400 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
-        type="password"
-        autoComplete="current-password"
-        placeholder="Enter your password"
-        value={password}
-        onChange={(ev) => setPassword(ev.target.value)}
-      />
+      {step === "otp" && (
+        <>
+          <div className="mt-3 rounded-[10px] border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+            We sent a one-time code to <strong>{email}</strong>
+          </div>
 
-      <div className="mt-2 flex justify-end">
-        <Link href="/forgot-password" className="text-sm font-semibold text-sky-900 underline underline-offset-2 hover:text-sky-700">
-          Forgot password?
-        </Link>
-      </div>
+          <label className="mt-5 mb-2 block text-sm font-medium text-slate-600" htmlFor="login-otp">
+            Enter OTP code
+          </label>
+          <input
+            id="login-otp"
+            className="w-full rounded-[10px] border border-slate-300 bg-white px-3 py-3 text-sm text-center tracking-[0.3em] font-mono placeholder:text-slate-400 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+            type="text"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            placeholder="000000"
+            maxLength={6}
+            value={otp}
+            onChange={(ev) => setOtp(ev.target.value.replace(/\D/g, ""))}
+            autoFocus
+          />
+
+          <button
+            type="button"
+            onClick={() => { setStep("email"); setOtp(""); setError(""); }}
+            className="mt-2 text-sm text-sky-700 underline underline-offset-2 self-start"
+          >
+            ← Change email
+          </button>
+        </>
+      )}
 
       <div className="mt-7 flex flex-col items-center gap-6">
         <button
           type="submit"
-          className="btn-neumorph w-[85%] max-w-[320px]"
+          disabled={loading}
+          className="btn-neumorph w-[85%] max-w-[320px] disabled:opacity-50"
         >
-          Log in
+          {loading ? "Please wait..." : step === "email" ? "Send OTP" : "Verify & Log in"}
         </button>
 
         <div className="flex w-[85%] max-w-[320px] items-center gap-4">
