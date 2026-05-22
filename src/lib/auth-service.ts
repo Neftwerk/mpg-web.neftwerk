@@ -60,57 +60,22 @@ async function apiFetch<T = unknown>(
 
 // ─── Auth API functions ───
 
-/**
- * POST /api/auth/register
- * Register a new customer
- */
-export async function register(payload: {
-  fullName: string;
-  email: string;
-}) {
-  return apiFetch(API_ENDPOINTS.AUTH.REGISTER, {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
+export async function register(payload: { fullName: string; email: string }) {
+  return apiFetch(API_ENDPOINTS.AUTH.REGISTER, { method: "POST", body: JSON.stringify(payload) });
 }
 
-/**
- * POST /api/auth/verify-email
- * Verify email with OTP token sent after registration
- */
 export async function verifyEmail(payload: { token: string }) {
-  return apiFetch(API_ENDPOINTS.AUTH.VERIFY_EMAIL, {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
+  return apiFetch(API_ENDPOINTS.AUTH.VERIFY_EMAIL, { method: "POST", body: JSON.stringify(payload) });
 }
 
-/**
- * POST /api/auth/login/otp
- * Request OTP for login (email-based, customers only)
- */
 export async function requestLoginOtp(payload: { email: string }) {
-  return apiFetch(API_ENDPOINTS.AUTH.LOGIN_OTP_REQUEST, {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
+  return apiFetch(API_ENDPOINTS.AUTH.LOGIN_OTP_REQUEST, { method: "POST", body: JSON.stringify(payload) });
 }
 
-/**
- * POST /api/auth/login/otp/verify
- * Verify OTP and authenticate customer — returns tokens
- */
 export async function verifyLoginOtp(payload: { email: string; otp: string }) {
-  return apiFetch(API_ENDPOINTS.AUTH.LOGIN_OTP_VERIFY, {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
+  return apiFetch(API_ENDPOINTS.AUTH.LOGIN_OTP_VERIFY, { method: "POST", body: JSON.stringify(payload) });
 }
 
-/**
- * POST /api/auth/refresh
- * Refresh access token using stored refresh token
- */
 export async function refreshAccessToken() {
   const refreshToken = getRefreshToken();
   if (!refreshToken) {
@@ -119,10 +84,7 @@ export async function refreshAccessToken() {
 
   const result = await apiFetch<Record<string, unknown>>(
     API_ENDPOINTS.AUTH.REFRESH_TOKEN,
-    {
-      method: "POST",
-      body: JSON.stringify({ refreshToken }),
-    }
+    { method: "POST", body: JSON.stringify({ refreshToken }) }
   );
 
   if (result.ok) {
@@ -135,15 +97,13 @@ export async function refreshAccessToken() {
   return result;
 }
 
-/**
- * Google OAuth — redirect the browser to the backend Google endpoint.
- * The backend will handle the OAuth flow and redirect back.
- */
 export function initiateGoogleOAuth() {
-  window.location.href = API_ENDPOINTS.AUTH.GOOGLE_OAUTH;
+  // Pass current origin so backend redirects tokens to the correct port
+  const redirectUrl = encodeURIComponent(window.location.origin);
+  window.location.href = `${API_ENDPOINTS.AUTH.GOOGLE_OAUTH}?redirect=${redirectUrl}&callbackUrl=${redirectUrl}&redirect_uri=${redirectUrl}`;
 }
 
-// ─── Profile ───
+// ─── Profile & User ───
 
 export interface UserProfile {
   id: string;
@@ -151,14 +111,9 @@ export interface UserProfile {
   email: string;
   bio?: string;
   avatarUrl?: string;
-  // The API may return additional fields
   [key: string]: unknown;
 }
 
-/**
- * GET /api/auth/profile
- * Fetch the authenticated user's profile
- */
 export async function getProfile() {
   const token = getAccessToken();
   if (!token) {
@@ -167,16 +122,20 @@ export async function getProfile() {
 
   return apiFetch<UserProfile>(API_ENDPOINTS.AUTH.PROFILE, {
     method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
   });
 }
 
-/**
- * PUT /api/auth/profile
- * Update the authenticated user's profile
- */
+export async function getMe() {
+  const token = getAccessToken();
+  if (!token) return { ok: false, status: 401, data: null, message: "Not authenticated" };
+
+  return apiFetch(API_ENDPOINTS.AUTH.ME, {
+    method: "GET",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
 export async function updateProfile(payload: Partial<Pick<UserProfile, "fullName" | "bio" | "avatarUrl">>) {
   const token = getAccessToken();
   if (!token) {
@@ -185,9 +144,76 @@ export async function updateProfile(payload: Partial<Pick<UserProfile, "fullName
 
   return apiFetch<UserProfile>(API_ENDPOINTS.AUTH.PROFILE, {
     method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
     body: JSON.stringify(payload),
+  });
+}
+
+// ─── Account Management ───
+
+export async function changePassword(payload: any) {
+  const token = getAccessToken();
+  if (!token) return { ok: false, status: 401, data: null, message: "Not authenticated" };
+
+  return apiFetch(API_ENDPOINTS.AUTH.CHANGE_PASSWORD, {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function forgotPassword(payload: { email: string }) {
+  return apiFetch(API_ENDPOINTS.AUTH.FORGOT_PASSWORD, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function resetPassword(payload: any) {
+  return apiFetch(API_ENDPOINTS.AUTH.RESET_PASSWORD, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function logout() {
+  const token = getAccessToken();
+  if (token) {
+    await apiFetch(API_ENDPOINTS.AUTH.LOGOUT, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }
+  clearTokens();
+}
+
+export async function logoutAll() {
+  const token = getAccessToken();
+  if (token) {
+    await apiFetch(API_ENDPOINTS.AUTH.LOGOUT_ALL, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }
+  clearTokens();
+}
+
+export async function deactivateAccount() {
+  const token = getAccessToken();
+  if (!token) return { ok: false, status: 401, data: null, message: "Not authenticated" };
+
+  return apiFetch(API_ENDPOINTS.AUTH.DEACTIVATE, {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function deleteAccount() {
+  const token = getAccessToken();
+  if (!token) return { ok: false, status: 401, data: null, message: "Not authenticated" };
+
+  return apiFetch(API_ENDPOINTS.AUTH.DELETE_ACCOUNT, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
   });
 }

@@ -1,270 +1,157 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AuthGuard } from "@/components/auth/AuthGuard";
-import { AppShell } from "@/components/app-shell";
-import { clearTokens } from "@/lib/auth-service";
 import { useUser } from "@/lib/UserContext";
+import { logout } from "@/lib/auth-service";
 
 export default function SettingsPage() {
-  return (
-    <AuthGuard>
-      <SettingsContent />
-    </AuthGuard>
-  );
-}
-
-function SettingsContent() {
   const router = useRouter();
-  const { user } = useUser();
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const { user, loading } = useUser();
 
-  function handleLogout() {
-    clearTokens();
-    localStorage.removeItem("neft_user");
-    router.replace("/login");
-  }
+  const handleLogout = async () => {
+    await logout();
+    router.replace("/login"); // or /signup depending on auth flow
+  };
 
   return (
-    <>
-      <AppShell title="Settings">
-        <div className="max-w-[520px] mx-auto py-4 flex flex-col gap-6">
-          {/* ── Account Section ── */}
-          <div className="card-neumorph px-5 py-5">
-            <h2 className="text-[15px] font-bold text-[#1A3F6C] mb-4 uppercase tracking-wide">
-              Account
-            </h2>
+    <div className="min-h-screen bg-[#F9F9FB] pb-10">
+      {/* Top Bar */}
+      <header className="flex items-center gap-4 px-5 py-4 bg-white sticky top-0 z-10 shadow-sm">
+        <button onClick={() => window.history.back()} className="flex-shrink-0 flex items-center justify-center w-8 h-8 -ml-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/images/backarrow.svg" alt="Back" className="h-4 w-5" />
+        </button>
+        <h1 className="text-[20px] font-extrabold text-[#11181c] tracking-tight">Settings</h1>
+      </header>
 
-            {/* User info row */}
-            <div className="flex items-center gap-3 mb-5 pb-5 border-b border-slate-200/60">
+      <div className="px-5 mt-6 flex flex-col gap-6 max-w-lg mx-auto">
+        {/* ACCOUNT CARD */}
+        <div className="bg-[#F4F5F8] rounded-[20px] p-5 shadow-[4px_4px_10px_rgba(0,0,0,0.05),-4px_-4px_10px_rgba(255,255,255,0.9)]">
+          <h2 className="text-[13px] font-bold text-[#1A3F6C] tracking-wide uppercase mb-4 pl-1">
+            Account
+          </h2>
+
+          <div className="flex items-center gap-4 mb-4 pl-1">
+            <div className="rounded-full p-[3px] bg-gradient-to-br from-[#D4CCC7] to-[#E8E2DD] shadow-sm flex-shrink-0">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={user?.avatarUrl || "/images/default-avatar.svg"}
-                alt={user?.fullName || "User"}
-                className="h-[44px] w-[44px] rounded-full object-cover"
+                alt={user?.fullName || "User Avatar"}
+                className="h-[50px] w-[50px] rounded-full object-cover bg-white"
               />
-              <div className="flex-1 min-w-0">
-                <p className="text-[15px] font-semibold text-[#1A3F6C] truncate">
-                  {user?.fullName || ""}
+            </div>
+            <div className="flex flex-col">
+              {loading ? (
+                <div className="h-5 w-24 bg-slate-200 animate-pulse rounded" />
+              ) : (
+                <p className="text-[17px] font-bold text-[#1A3F6C]">
+                  {user?.fullName || "No Name Set"}
                 </p>
-                {user?.email && (
-                  <p className="text-[13px] text-slate-400 truncate">{user.email}</p>
-                )}
-              </div>
-            </div>
-
-            {/* Settings rows */}
-            <div className="flex flex-col gap-1">
-              <SettingsRow
-                label="Edit Profile"
-                icon={
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                }
-                onClick={() => router.push("/profile")}
-              />
-              <SettingsRow
-                label="Notifications"
-                icon={
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                  </svg>
-                }
-              />
-              <SettingsRow
-                label="Privacy & Security"
-                icon={
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                }
-              />
+              )}
             </div>
           </div>
 
-          {/* ── Preferences Section ── */}
-          <div className="card-neumorph px-5 py-5">
-            <h2 className="text-[15px] font-bold text-[#1A3F6C] mb-4 uppercase tracking-wide">
-              Preferences
-            </h2>
-            <div className="flex flex-col gap-1">
-              <SettingsRow
-                label="Language"
-                icon={
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
-                  </svg>
-                }
-                trailing="English"
-              />
-              <SettingsRow
-                label="Help & Support"
-                icon={
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                }
-                onClick={() => router.push("/support")}
-              />
-              <SettingsRow
-                label="About Neftwerk"
-                icon={
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                }
-              />
-            </div>
+          <div className="h-px bg-slate-200/60 my-2" />
+
+          <div className="flex flex-col">
+            <SettingsRow icon="profile" label="Edit Profile" href="/profile" />
+            <SettingsRow icon="notifications" label="Notifications" />
+            <SettingsRow icon="privacy" label="Privacy & Security" className="bg-[#EAECEF] rounded-[12px] -mx-2 px-2" />
           </div>
-
-          {/* ── Logout Button ── */}
-          <button
-            type="button"
-            onClick={() => setShowLogoutModal(true)}
-            className="w-full flex items-center justify-center gap-3 py-4 rounded-full text-[16px] font-bold text-white transition-all duration-200 active:scale-[0.97]"
-            style={{
-              background: "linear-gradient(135deg, #C0392B 0%, #E74C3C 100%)",
-              boxShadow:
-                "10px 10px 14px 0px rgba(229, 222, 217, 1), 4px 4px 6px 0px rgba(255,255,255,0.15) inset",
-            }}
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-            Log Out
-          </button>
-
-          <p className="text-center text-[12px] text-slate-400 pb-4">
-            Neftwerk v1.0
-          </p>
         </div>
-      </AppShell>
 
-      {/* ── Logout Confirmation Modal ── */}
-      {showLogoutModal && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 px-5"
-          onClick={() => setShowLogoutModal(false)}
+        {/* PREFERENCES CARD */}
+        <div className="bg-[#F4F5F8] rounded-[20px] p-5 shadow-[4px_4px_10px_rgba(0,0,0,0.05),-4px_-4px_10px_rgba(255,255,255,0.9)]">
+          <h2 className="text-[13px] font-bold text-[#1A3F6C] tracking-wide uppercase mb-2 pl-1">
+            Preferences
+          </h2>
+
+          <div className="flex flex-col">
+            <SettingsRow icon="language" label="Language" value="English" />
+            <SettingsRow icon="help" label="Help & Support" />
+            <SettingsRow icon="info" label="About Neftwerk" />
+          </div>
+        </div>
+
+        {/* LOGOUT BUTTON */}
+        <button
+          onClick={handleLogout}
+          className="mt-4 w-full py-4 rounded-[14px] bg-[#E75D51] text-white font-bold text-[16px] shadow-[0_4px_12px_rgba(231,93,81,0.3)] hover:bg-[#D54A3E] transition active:scale-[0.98]"
         >
-          <div
-            className="w-full max-w-[380px] card-neumorph p-0 overflow-hidden animate-[fadeScaleIn_0.2s_ease-out]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal header with accent */}
-            <div
-              className="px-6 pt-6 pb-4"
-              style={{
-                background: "linear-gradient(180deg, rgba(192,57,43,0.06) 0%, transparent 100%)",
-              }}
-            >
-              {/* Logout icon circle */}
-              <div className="mx-auto mb-4 flex h-[56px] w-[56px] items-center justify-center rounded-full"
-                style={{
-                  background: "linear-gradient(135deg, #C0392B 0%, #E74C3C 100%)",
-                  boxShadow: "0 4px 14px rgba(231,76,60,0.3)",
-                }}
-              >
-                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-              </div>
-
-              <h3 className="text-center text-[18px] font-bold text-[#1A3F6C]">
-                Log Out?
-              </h3>
-              <p className="text-center text-[14px] text-slate-500 mt-2 leading-relaxed">
-                Are you sure you want to log out of your account? You&apos;ll need to sign in again to access your profile.
-              </p>
-            </div>
-
-            {/* Neumorphic divider */}
-            <div
-              className="w-full"
-              style={{
-                height: 4,
-                boxShadow:
-                  "inset 0px 2px 4px -1px rgba(0,0,0,0.1), inset 0px -1px 2px -1px rgba(255,255,255,0.5)",
-                background: "linear-gradient(to bottom, #E5DED9, #F2F3F7)",
-              }}
-            />
-
-            {/* Action buttons */}
-            <div className="flex gap-3 px-6 py-5">
-              <button
-                type="button"
-                onClick={() => setShowLogoutModal(false)}
-                className="btn-neumorph flex-1 !py-3 text-[14px]"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="flex-1 py-3 rounded-full text-[14px] font-bold text-white transition-all duration-200 active:scale-[0.97]"
-                style={{
-                  background: "linear-gradient(135deg, #C0392B 0%, #E74C3C 100%)",
-                  boxShadow:
-                    "10px 10px 14px 0px rgba(229, 222, 217, 1), 4px 4px 6px 0px rgba(255,255,255,0.15) inset",
-                }}
-              >
-                Yes, Log Out
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Animation keyframe for the modal */}
-      <style jsx>{`
-        @keyframes fadeScaleIn {
-          from {
-            opacity: 0;
-            transform: scale(0.92);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-      `}</style>
-    </>
+          Logout
+        </button>
+      </div>
+    </div>
   );
 }
 
-/* ── Reusable Settings Row ── */
-function SettingsRow({
-  label,
-  icon,
-  trailing,
-  onClick,
-}: {
-  label: string;
-  icon: React.ReactNode;
-  trailing?: string;
-  onClick?: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex items-center gap-4 w-full px-2 py-3.5 rounded-xl text-left transition-colors hover:bg-[#E8E2DD]/50 active:bg-[#E8E2DD]/80 group"
-    >
-      <span className="flex-shrink-0 text-[#38A8AB]">{icon}</span>
-      <span className="flex-1 text-[15px] font-semibold text-[#11181c]">{label}</span>
-      {trailing && (
-        <span className="text-[13px] text-slate-400 mr-1">{trailing}</span>
-      )}
-      <svg
-        className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors flex-shrink-0"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={2.5}
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-      </svg>
-    </button>
+// Reusable Settings Row Component
+function SettingsRow({ icon, label, value, href, className = "" }: { icon: string, label: string, value?: string, href?: string, className?: string }) {
+  const content = (
+    <div className={`flex items-center justify-between py-3.5 transition active:opacity-70 ${className}`}>
+      <div className="flex items-center gap-3">
+        {/* Placeholder for icons, relying on text color or generic icons if SVG not available */}
+        <div className="w-5 h-5 flex items-center justify-center text-[#38A8AB]">
+          {getIcon(icon)}
+        </div>
+        <span className="text-[15px] font-semibold text-[#11181C]">{label}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        {value && <span className="text-[13px] text-slate-400 font-medium">{value}</span>}
+        <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </div>
+    </div>
   );
+
+  if (href) {
+    return <Link href={href} className="block">{content}</Link>;
+  }
+  return <div className="cursor-pointer">{content}</div>;
+}
+
+// Simple inline SVG provider for the settings icons
+function getIcon(name: string) {
+  switch (name) {
+    case "profile":
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+        </svg>
+      );
+    case "notifications":
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" />
+        </svg>
+      );
+    case "privacy":
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </svg>
+      );
+    case "language":
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="m5 8 6 6" /><path d="m4 14 6-6 2-3" /><path d="M2 5h12" /><path d="M7 2h1" /><path d="m22 22-5-10-5 10" /><path d="M14 18h6" />
+        </svg>
+      );
+    case "help":
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg>
+      );
+    case "info":
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
+        </svg>
+      );
+    default:
+      return null;
+  }
 }

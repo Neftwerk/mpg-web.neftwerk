@@ -1,34 +1,29 @@
 "use client";
 
-import { useEffect, useState, ReactNode } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getAccessToken } from "@/lib/auth-service";
+import { useUser } from "@/lib/UserContext";
 
-/**
- * Wraps pages that require authentication.
- * If the user has no access token, they are redirected to /signup.
- * Public pages (discover, forum, gallery, etc.) should NOT use this.
- */
-export function AuthGuard({ children }: { children: ReactNode }) {
+export function AuthGuard({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useUser();
   const router = useRouter();
-  const [checked, setChecked] = useState(false);
 
   useEffect(() => {
-    const token = getAccessToken();
-    if (!token) {
-      router.replace("/signup");
-    } else {
-      setChecked(true);
+    if (!loading && !user) {
+      router.replace("/login");
     }
-  }, [router]);
+  }, [user, loading, router]);
 
-  if (!checked) {
-    // Show a brief loading state while checking auth
+  if (loading) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-slate-200 border-t-[#1A3F6C]" />
+      <div className="flex items-center justify-center min-h-screen bg-[#F9F9FB]">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#1A3F6C] border-t-transparent" />
       </div>
     );
+  }
+
+  if (!user) {
+    return null; // Will redirect
   }
 
   return <>{children}</>;

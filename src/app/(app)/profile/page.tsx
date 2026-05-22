@@ -5,15 +5,11 @@ import { useState } from "react";
 import { galleryItems } from "@/lib/content";
 import { useUser } from "@/lib/UserContext";
 import { updateProfile } from "@/lib/auth-service";
-import { AuthGuard } from "@/components/auth/AuthGuard";
 
 export default function ProfilePage() {
-  return (
-    <AuthGuard>
-      <ProfileContent />
-    </AuthGuard>
-  );
+  return <ProfileContent />;
 }
+
 
 function ProfileContent() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -71,6 +67,20 @@ function ProfileContent() {
       <MobileTopBar title="Profile" onMenuOpen={() => setMenuOpen(true)} />
 
       <div className="px-5 pb-28 mt-20 lg:mt-0">
+        {/* Not signed in banner */}
+        {!loading && !user && (
+          <div className="mt-4 rounded-[14px] bg-amber-50 border border-amber-200 p-4 flex flex-col items-center gap-2">
+            <p className="text-sm font-semibold text-amber-800">You&apos;re not signed in</p>
+            <p className="text-xs text-amber-600 text-center">Sign in with Google to see and edit your profile.</p>
+            <a
+              href="/login"
+              className="mt-1 px-6 py-2 rounded-[10px] bg-[#1A3F6C] text-white text-sm font-semibold hover:bg-[#15335A] transition"
+            >
+              Go to Login
+            </a>
+          </div>
+        )}
+
         {/* Profile hero */}
         <div className="flex flex-col items-center gap-3 pt-6">
           {/* Avatar with ring */}
@@ -191,21 +201,21 @@ function ProfileContent() {
 
           <div className="grid grid-cols-2 gap-3">
             {activityItems.map((item) => (
-              <Link
-                key={item.id}
-                href={`/artwork/${item.id}`}
-                className="block card-neumorph"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={item.imageUrl}
-                  alt={item.caption}
-                  className="w-full aspect-[4/3] object-cover"
-                />
-                <p className="px-2 py-2 text-[13px] font-medium text-[#11181c]">
-                  {item.caption}
-                </p>
-              </Link>
+               <Link
+               key={item.id}
+               href={`/artwork/${item.id}`}
+               className="block card-neumorph"
+             >
+               {/* eslint-disable-next-line @next/next/no-img-element */}
+               <img
+                 src={item.imageUrl}
+                 alt={item.caption}
+                 className="w-full aspect-[4/3] object-cover"
+               />
+               <p className="px-2 py-2 text-[13px] font-medium text-[#11181c]">
+                 {item.caption}
+               </p>
+             </Link>
             ))}
           </div>
         </div>

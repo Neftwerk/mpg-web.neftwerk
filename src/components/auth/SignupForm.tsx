@@ -3,58 +3,34 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
-import { register, initiateGoogleOAuth } from "@/lib/auth-service";
+import { initiateGoogleOAuth } from "@/lib/auth-service";
 
 export function SignupForm() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
 
-  async function onSubmit(e: FormEvent) {
+  function onSubmit(e: FormEvent) {
     e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    try {
-      const result = await register({ fullName: name, email });
-
-      if (result.ok) {
-        // No OTP for registration — go straight to login
-        sessionStorage.setItem("neft_register_success", "true");
-        router.push("/login");
-      } else {
-        setError(result.message || "Registration failed. Please try again.");
-      }
-    } catch {
-      setError("Network error. Please check your connection.");
-    } finally {
-      setLoading(false);
-    }
+    router.push("/home");
   }
 
   return (
     <form className="flex flex-col gap-0" onSubmit={onSubmit}>
       <p className="mb-2 text-xl font-semibold text-slate-900">Create your account</p>
-      <div className="mb-2 h-1.5 w-[9%] max-w-[72px] bg-sky-900" />
-
-      {error && (
-        <div className="mt-3 rounded-none border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
-          {error}
-        </div>
-      )}
+      <div className="mb-2 h-1.5 w-[9%] max-w-[72px]  bg-sky-900" />
 
       <label className="mt-5 first:mt-4 mb-2 block text-sm font-medium text-slate-600" htmlFor="signup-name">
         Full name
       </label>
       <input
         id="signup-name"
-        className="w-full rounded-none border border-slate-300 bg-white px-3 py-3 text-sm placeholder:text-slate-400 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+        className="w-full  border border-slate-300 bg-white px-3 py-3 text-sm placeholder:text-slate-400 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
         type="text"
         autoComplete="name"
         placeholder="As you would like it to appear"
-        required
         value={name}
         onChange={(ev) => setName(ev.target.value)}
       />
@@ -64,22 +40,46 @@ export function SignupForm() {
       </label>
       <input
         id="signup-email"
-        className="w-full rounded-none border border-slate-300 bg-white px-3 py-3 text-sm placeholder:text-slate-400 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+        className="w-full  border border-slate-300 bg-white px-3 py-3 text-sm placeholder:text-slate-400 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
         type="email"
         autoComplete="email"
         placeholder="you@example.com"
-        required
         value={email}
         onChange={(ev) => setEmail(ev.target.value)}
+      />
+
+      <label className="mt-5 first:mt-4 mb-2 block text-sm font-medium text-slate-600" htmlFor="signup-password">
+        Password
+      </label>
+      <input
+        id="signup-password"
+        className="w-full  border border-slate-300 bg-white px-3 py-3 text-sm placeholder:text-slate-400 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+        type="password"
+        autoComplete="new-password"
+        placeholder="Create a password"
+        value={password}
+        onChange={(ev) => setPassword(ev.target.value)}
+      />
+
+      <label className="mt-5 first:mt-4 mb-2 block text-sm font-medium text-slate-600" htmlFor="signup-confirm">
+        Confirm password
+      </label>
+      <input
+        id="signup-confirm"
+        className="w-full  border border-slate-300 bg-white px-3 py-3 text-sm placeholder:text-slate-400 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+        type="password"
+        autoComplete="new-password"
+        placeholder="Re-enter your password"
+        value={confirm}
+        onChange={(ev) => setConfirm(ev.target.value)}
       />
 
       <div className="mt-7 flex flex-col items-center gap-6">
         <button
           type="submit"
-          disabled={loading}
-          className="btn-neumorph w-[85%] max-w-[320px] disabled:opacity-50"
+          className="btn-neumorph w-[85%] max-w-[320px]"
         >
-          {loading ? "Creating account..." : "Create account"}
+          Create account
         </button>
 
         <div className="flex w-[85%] max-w-[320px] items-center gap-4">

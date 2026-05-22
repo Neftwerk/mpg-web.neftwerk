@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Providers } from "./providers";
 
 export const metadata: Metadata = {
   title: "Neft Mobile Web",
@@ -19,7 +20,7 @@ export default function RootLayout({
       <head>
       </head>
       <body className="lg:min-h-screen bg-[url('/images/deco.jpg')] bg-cover bg-center bg-no-repeat lg:pt-4 pb-14 text-[#11181c]">
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
