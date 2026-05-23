@@ -48,10 +48,10 @@ export default function ScanQRPage() {
         <div className="relative mt-8 mb-20 w-[280px] h-[280px]">
           
           {/* Corner Brackets */}
-          <div className="absolute -top-6 -left-6 w-16 h-16 border-t-[1.5px] border-l-[1.5px] border-[#8a9b9e]/70 rounded-tl-[20px]" />
-          <div className="absolute -top-6 -right-6 w-16 h-16 border-t-[1.5px] border-r-[1.5px] border-[#8a9b9e]/70 rounded-tr-[20px]" />
-          <div className="absolute -bottom-6 -left-6 w-16 h-16 border-b-[1.5px] border-l-[1.5px] border-[#8a9b9e]/70 rounded-bl-[20px]" />
-          <div className="absolute -bottom-6 -right-6 w-16 h-16 border-b-[1.5px] border-r-[1.5px] border-[#8a9b9e]/70 rounded-br-[20px]" />
+          <div className="absolute -top-6 -left-6 w-16 h-16 border-t-[1.5px] border-l-[1.5px] border-[#8a9b9e]/70" />
+          <div className="absolute -top-6 -right-6 w-16 h-16 border-t-[1.5px] border-r-[1.5px] border-[#8a9b9e]/70" />
+          <div className="absolute -bottom-6 -left-6 w-16 h-16 border-b-[1.5px] border-l-[1.5px] border-[#8a9b9e]/70" />
+          <div className="absolute -bottom-6 -right-6 w-16 h-16 border-b-[1.5px] border-r-[1.5px] border-[#8a9b9e]/70" />
 
           {/* Circle Cutout / Camera View */}
           <div className="w-full h-full rounded-full border-[6px] border-[#7d8c8e] overflow-hidden bg-white/50 shadow-inner relative flex items-center justify-center z-10">

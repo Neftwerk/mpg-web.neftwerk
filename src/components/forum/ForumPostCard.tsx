@@ -73,14 +73,14 @@ export function ForumPostCard({ post }: Props) {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            className="inline-flex h-9 w-9 items-center justify-center text-slate-900 transition hover:bg-slate-100 rounded-full"
+            className="inline-flex h-9 w-9 items-center justify-center text-slate-900 transition hover:bg-slate-100"
             aria-label="Like"
           >
             <HeartOutlineIcon />
           </button>
           <button
             type="button"
-            className="inline-flex h-9 w-9 items-center justify-center text-slate-900 transition hover:bg-slate-100 rounded-full"
+            className="inline-flex h-9 w-9 items-center justify-center text-slate-900 transition hover:bg-slate-100"
             aria-label="Comment"
           >
             <ChatOutlineIcon />

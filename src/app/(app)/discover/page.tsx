@@ -21,7 +21,7 @@ export default function DiscoverPage() {
         {/* Search */}
         <div className="relative mb-8">
           <input
-            className="w-full rounded-[10px] border border-slate-200 bg-white/60 pl-4 pr-10 py-3 text-[15px] placeholder:text-[#888] outline-none transition focus:border-[#4D91A7] focus:ring-1 focus:ring-[#4D91A7]/20 shadow-sm"
+            className="w-full border border-slate-200 bg-white/60 pl-4 pr-10 py-3 text-[15px] placeholder:text-[#888] outline-none transition focus:border-[#4D91A7] focus:ring-1 focus:ring-[#4D91A7]/20 shadow-sm"
             placeholder="Search anything"
           />
           <svg

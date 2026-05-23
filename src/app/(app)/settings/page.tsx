@@ -27,7 +27,7 @@ export default function SettingsPage() {
 
       <div className="px-5 mt-6 flex flex-col gap-6 max-w-lg mx-auto">
         {/* ACCOUNT CARD */}
-        <div className="bg-[#F4F5F8] rounded-[20px] p-5 shadow-[4px_4px_10px_rgba(0,0,0,0.05),-4px_-4px_10px_rgba(255,255,255,0.9)]">
+        <div className="bg-[#F4F5F8] p-5 shadow-[4px_4px_10px_rgba(0,0,0,0.05),-4px_-4px_10px_rgba(255,255,255,0.9)]">
           <h2 className="text-[13px] font-bold text-[#1A3F6C] tracking-wide uppercase mb-4 pl-1">
             Account
           </h2>
@@ -43,7 +43,7 @@ export default function SettingsPage() {
             </div>
             <div className="flex flex-col">
               {loading ? (
-                <div className="h-5 w-24 bg-slate-200 animate-pulse rounded" />
+                <div className="h-5 w-24 bg-slate-200 animate-pulse" />
               ) : (
                 <p className="text-[17px] font-bold text-[#1A3F6C]">
                   {user?.fullName || "No Name Set"}
@@ -57,12 +57,12 @@ export default function SettingsPage() {
           <div className="flex flex-col">
             <SettingsRow icon="profile" label="Edit Profile" href="/profile" />
             <SettingsRow icon="notifications" label="Notifications" />
-            <SettingsRow icon="privacy" label="Privacy & Security" className="bg-[#EAECEF] rounded-[12px] -mx-2 px-2" />
+            <SettingsRow icon="privacy" label="Privacy & Security" className="bg-[#EAECEF] -mx-2 px-2" />
           </div>
         </div>
 
         {/* PREFERENCES CARD */}
-        <div className="bg-[#F4F5F8] rounded-[20px] p-5 shadow-[4px_4px_10px_rgba(0,0,0,0.05),-4px_-4px_10px_rgba(255,255,255,0.9)]">
+        <div className="bg-[#F4F5F8] p-5 shadow-[4px_4px_10px_rgba(0,0,0,0.05),-4px_-4px_10px_rgba(255,255,255,0.9)]">
           <h2 className="text-[13px] font-bold text-[#1A3F6C] tracking-wide uppercase mb-2 pl-1">
             Preferences
           </h2>
@@ -77,7 +77,7 @@ export default function SettingsPage() {
         {/* LOGOUT BUTTON */}
         <button
           onClick={handleLogout}
-          className="mt-4 w-full py-4 rounded-[14px] bg-[#E75D51] text-white font-bold text-[16px] shadow-[0_4px_12px_rgba(231,93,81,0.3)] hover:bg-[#D54A3E] transition active:scale-[0.98]"
+          className="mt-4 w-full py-4 bg-[#E75D51] text-white font-bold text-[16px] shadow-[0_4px_12px_rgba(231,93,81,0.3)] hover:bg-[#D54A3E] transition active:scale-[0.98]"
         >
           Logout
         </button>

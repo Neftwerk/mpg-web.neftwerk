@@ -33,7 +33,7 @@ function DesktopSidebar() {
   const { user } = useUser();
 
   return (
-    <aside className="hidden lg:sticky lg:flex flex-col gap-4 h-fit top-0 rounded-[14px] border border-slate-200 bg-white/90 p-4">
+    <aside className="hidden lg:sticky lg:flex flex-col gap-4 h-fit top-0 border border-slate-200 bg-white/90 p-4">
       <div className="flex flex-col gap-2 justify-center">
         <div className="flex items-center gap-2 w-full">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -60,7 +60,7 @@ function DesktopSidebar() {
           <Link
             key={item.href}
             href={item.href}
-            className={`mb-2 flex items-center gap-2 rounded-[10px] px-3 py-2 text-sm font-semibold transition ${active
+            className={`mb-2 flex items-center gap-2 px-3 py-2 text-sm font-semibold transition ${active
               ? "bg-sky-100 text-slate-900"
               : "text-slate-700 hover:bg-slate-100"
               }`}
@@ -78,7 +78,7 @@ function DesktopSidebar() {
       })}
       <Link
         href="/settings"
-        className={`mb-2 flex items-center gap-2 rounded-[10px] px-3 py-2 text-sm font-semibold transition ${pathname === "/settings"
+        className={`mb-2 flex items-center gap-2 px-3 py-2 text-sm font-semibold transition ${pathname === "/settings"
           ? "bg-sky-100 text-slate-900"
           : "text-slate-700 hover:bg-slate-100"
           }`}
@@ -89,7 +89,7 @@ function DesktopSidebar() {
       </Link>
       <Link
         href="/support"
-        className={`flex items-center gap-2 rounded-[10px] px-3 py-2 text-sm font-semibold transition ${pathname === "/support"
+        className={`flex items-center gap-2 px-3 py-2 text-sm font-semibold transition ${pathname === "/support"
           ? "bg-sky-100 text-slate-900"
           : "text-slate-700 hover:bg-slate-100"
           }`}
@@ -194,12 +194,12 @@ function MobileMenu({
           </div>
           <div className="flex items-center gap-3 mb-8">
             <p className="text-[15px]">
-              <span className="font-bold text-[#1A3F6C]">23k</span>{" "}
+              <span className="font-bold text-[#1A3F6C]">0k</span>{" "}
               <span className="font-medium text-[#464646]">Followers</span>
             </p>
             <div className="h-4 border-l-[1.5px] border-dotted border-slate-400" />
             <p className="text-[15px]">
-              <span className="font-bold text-[#1A3F6C]">3k</span>{" "}
+              <span className="font-bold text-[#1A3F6C]">0k</span>{" "}
               <span className="font-medium text-[#464646]">Following</span>
             </p>
           </div>
