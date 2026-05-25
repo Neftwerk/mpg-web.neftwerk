@@ -5,6 +5,7 @@ import { useState } from "react";
 import { galleryItems } from "@/lib/content";
 import { useUser } from "@/lib/UserContext";
 import { updateProfile } from "@/lib/auth-service";
+import { NeftwerkImage } from "@/components/NeftwerkImage";
 
 export default function ProfilePage() {
   return <ProfileContent />;
@@ -194,8 +195,7 @@ function ProfileContent() {
                href={`/artwork/${item.id}`}
                className="block card-neumorph"
              >
-               {/* eslint-disable-next-line @next/next/no-img-element */}
-               <img
+               <NeftwerkImage
                  src={item.imageUrl}
                  alt={item.caption}
                  className="w-full aspect-[4/3] object-cover"

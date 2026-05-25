@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
+import { NeftwerkImage } from "@/components/NeftwerkImage";
 
 export default function DiscoverPage() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -44,18 +45,15 @@ export default function DiscoverPage() {
         <h3 className="text-[16px] font-bold text-[#1A3F6C] mb-3">Popular artworks</h3>
         <div className="grid grid-cols-3 gap-3 mb-8">
           <Link href="/discover-artwork/1" className="card-neumorph">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/fav14.png" alt="Fancy Free" className="w-full aspect-square object-cover" onError={(e) => { e.currentTarget.src = "https://picsum.photos/seed/pop1/400/400" }} />
+            <NeftwerkImage src="/images/fav14.png" alt="Fancy Free" className="w-full aspect-square object-cover" onError={(e) => { e.currentTarget.src = "https://picsum.photos/seed/pop1/400/400" }} />
             <p className="px-1 py-2 text-[11px] font-medium text-[#464646] truncate">Fancy Free</p>
           </Link>
           <Link href="/discover-artwork/2" className="card-neumorph">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/fav15.png" alt="Totem #13" className="w-full aspect-square object-cover" onError={(e) => { e.currentTarget.src = "https://picsum.photos/seed/pop2/400/400" }} />
+            <NeftwerkImage src="/images/fav15.png" alt="Totem #13" className="w-full aspect-square object-cover" onError={(e) => { e.currentTarget.src = "https://picsum.photos/seed/pop2/400/400" }} />
             <p className="px-1 py-2 text-[11px] font-medium text-[#464646] truncate">Totem #13</p>
           </Link>
           <Link href="/discover-artwork/3" className="card-neumorph">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/art2.png" alt="Ashley" className="w-full aspect-square object-cover" onError={(e) => { e.currentTarget.src = "https://picsum.photos/seed/pop3/400/400" }} />
+            <NeftwerkImage src="/images/art2.png" alt="Ashley" className="w-full aspect-square object-cover" onError={(e) => { e.currentTarget.src = "https://picsum.photos/seed/pop3/400/400" }} />
             <p className="px-1 py-2 text-[11px] font-medium text-[#464646] truncate">Ashley</p>
           </Link>
         </div>
@@ -64,8 +62,7 @@ export default function DiscoverPage() {
         <h3 className="text-[16px] font-bold text-[#1A3F6C] mb-3">Discover new works</h3>
         <div className="mb-8">
           <Link href="/discover-artwork/4" className="block card-neumorph">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/discover.png" alt="Do not turn this artwork into a NFT" className="w-full object-cover aspect-[2/1]" onError={(e) => { e.currentTarget.src = "https://picsum.photos/seed/nft/800/400" }} />
+            <NeftwerkImage src="/images/discover.png" alt="Do not turn this artwork into a NFT" className="w-full object-cover aspect-[2/1]" onError={(e) => { e.currentTarget.src = "https://picsum.photos/seed/nft/800/400" }} />
             <p className="px-2 py-2 text-[13px] font-medium text-[#464646]">Do not turn this artwork into a NFT</p>
           </Link>
         </div>
@@ -74,18 +71,15 @@ export default function DiscoverPage() {
         <h3 className="text-[16px] font-bold text-[#1A3F6C] mb-3">Linked marketplaces</h3>
         <div className="flex flex-col gap-3">
           <Link href="/discover-artwork/5" className="block card-neumorph">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/fav18.png" alt="FUtility III" className="w-full object-cover aspect-[2/1]" onError={(e) => { e.currentTarget.src = "https://picsum.photos/seed/futility/800/400" }} />
+            <NeftwerkImage src="/images/fav18.png" alt="FUtility III" className="w-full object-cover aspect-[2/1]" onError={(e) => { e.currentTarget.src = "https://picsum.photos/seed/futility/800/400" }} />
             <p className="px-2 py-2 text-[13px] font-medium text-[#464646]">FUtility III</p>
           </Link>
           <div className="grid grid-cols-2 gap-3">
             <Link href="/discover-artwork/6" className="card-neumorph">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/images/art3.png" alt="Womb Hole #8" className="w-full aspect-[4/3] object-cover" onError={(e) => { e.currentTarget.src = "https://picsum.photos/seed/womb/400/300" }} />
+              <NeftwerkImage src="/images/art3.png" alt="Womb Hole #8" className="w-full aspect-[4/3] object-cover" onError={(e) => { e.currentTarget.src = "https://picsum.photos/seed/womb/400/300" }} />
             </Link>
             <Link href="/discover-artwork/7" className="card-neumorph">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/images/art1.png" alt="Girl with a pearl earring" className="w-full aspect-[4/3] object-cover" onError={(e) => { e.currentTarget.src = "https://picsum.photos/seed/girl/400/300" }} />
+              <NeftwerkImage src="/images/art1.png" alt="Girl with a pearl earring" className="w-full aspect-[4/3] object-cover" onError={(e) => { e.currentTarget.src = "https://picsum.photos/seed/girl/400/300" }} />
             </Link>
           </div>
         </div>

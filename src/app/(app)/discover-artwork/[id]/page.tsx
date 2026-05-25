@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
+import { NeftwerkImage } from "@/components/NeftwerkImage";
 
 type Params = { id: string };
 
@@ -32,8 +33,7 @@ export default function DiscoverArtworkPage({
       <div className="p-5 pb-36 mt-20 lg:mt-0">
         {/* Artwork Image Container */}
         <div className="card-neumorph p-3 bg-white mb-6">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <NeftwerkImage
             src={imageUrl}
             alt={title}
             className="w-full object-cover aspect-[4/3]"

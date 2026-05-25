@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { galleryItems } from "@/lib/content";
 import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
+import { NeftwerkImage } from "@/components/NeftwerkImage";
 
 export default function GalleryPage() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -33,8 +34,7 @@ export default function GalleryPage() {
                 href={`/artwork/${item.id}`}
                 className="block card-neumorph"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <NeftwerkImage
                   src={item.imageUrl}
                   alt={item.caption}
                   className="w-full object-cover"
@@ -54,8 +54,7 @@ export default function GalleryPage() {
                 href={`/artwork/${item.id}`}
                 className="block card-neumorph"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <NeftwerkImage
                   src={item.imageUrl}
                   alt={item.caption}
                   className="w-full object-cover"

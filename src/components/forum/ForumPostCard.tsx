@@ -1,4 +1,5 @@
 import type { ForumPost } from "@/lib/content";
+import { NeftwerkImage } from "@/components/NeftwerkImage";
 
 function HeartOutlineIcon() {
   return (
@@ -61,8 +62,7 @@ export function ForumPostCard({ post }: Props) {
       <p className="mb-3 text-sm leading-6 text-[#11181c]">{post.body}</p>
 
       {/* Post image */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
+      <NeftwerkImage
         className="mb-3 w-full bg-slate-100 object-cover"
         src={post.imageUrl}
         alt={`Image shared by ${post.author}`}

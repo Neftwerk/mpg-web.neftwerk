@@ -1,4 +1,3 @@
-/* Nunito Sans — closest free web fallback for Avenir */
 @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,300;0,6..12,400;0,6..12,500;0,6..12,600;0,6..12,700;0,6..12,800;0,6..12,900;1,6..12,400&display=swap');
 
 @tailwind base;
@@ -17,10 +16,9 @@ body {
 }
 
 body {
-  min-height: 100dvh;
   background-color: #f5f0ec;
+  font-family: 'Avenir Next', 'Avenir', 'Nunito Sans', sans-serif;
   color: #11181c;
-  font-family: 'Avenir', 'Avenir Next', 'Nunito Sans', 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -30,55 +28,101 @@ a {
   text-decoration: none;
 }
 
-input,
-textarea,
-button {
-  font: inherit;
+/* Force zero rounded corners globally for standard Tailwind items if any */
+* {
+  border-radius: 0 !important;
 }
 
-/* Scrollbar — subtle on mobile */
+/* Scrollbar — subtle */
 ::-webkit-scrollbar {
-  width: 4px;
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f5f0ec;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 4px;
+  background: rgba(26, 63, 108, 0.2);
+  border-radius: 0 !important;
 }
 
-/* ─── Neumorphic pill button — Figma design system ─── */
-@layer components {
-  .btn-neumorph {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 0;
-    padding: 14px 32px;
-    font-size: 15px;
-    font-weight: 700;
-    color: #1A3F6C;
-    background-color: rgba(242, 243, 247, 1);
-    box-shadow:
-      10px 10px 14px 0px rgba(229, 222, 217, 1),
-      4px 4px 6px 0px rgba(255, 255, 255, 1) inset;
-    border: none;
-    cursor: pointer;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-  }
-  .btn-neumorph:active {
-    transform: scale(0.98);
-  }
+/* Neumorphism Classes */
+.card-neumorph {
+  background: #f5f0ec;
+  border-radius: 0 !important;
+  box-shadow: 6px 6px 12px rgba(229, 222, 217, 1), -6px -6px 12px rgba(255, 255, 255, 1);
+}
 
-  /* ─── Neumorphic card — Figma design system ─── */
-  .card-neumorph {
-    background-color: rgba(242, 243, 247, 1);
-    border-radius: 0;
-    padding: 10px;
-    box-shadow:
-      10px 10px 14px 0px rgba(229, 222, 217, 1),
-      4px 4px 6px 0px rgba(255, 255, 255, 1) inset;
-    overflow: hidden;
-  }
-  .card-neumorph img {
-    border-radius: 0;
-  }
+.card-neumorph-inset {
+  background: #f5f0ec;
+  border-radius: 0 !important;
+  box-shadow: inset 4px 4px 8px rgba(229, 222, 217, 1), inset -4px -4px 8px rgba(255, 255, 255, 1);
+}
+
+.btn-neumorph {
+  background: #f5f0ec;
+  border-radius: 0 !important;
+  border: none;
+  box-shadow: 4px 4px 8px rgba(229, 222, 217, 1), -4px -4px 8px rgba(255, 255, 255, 1);
+  color: #1A3F6C;
+  font-weight: 600;
+  transition: box-shadow 0.15s ease, transform 0.1s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 8px 16px;
+}
+.btn-neumorph:active {
+  box-shadow: inset 3px 3px 7px rgba(229, 222, 217, 1), inset -3px -3px 7px rgba(255, 255, 255, 1);
+  transform: scale(0.97);
+}
+
+/* Active style for active nav item - inset neumorphic shadow + left border 3px solid #1A3F6C */
+.nav-item-active {
+  background: #f5f0ec;
+  border-radius: 0 !important;
+  border-left: 3px solid #1A3F6C !important;
+  box-shadow: inset 4px 4px 8px rgba(229, 222, 217, 1), inset -4px -4px 8px rgba(255, 255, 255, 1);
+  color: #1A3F6C;
+  font-weight: 600;
+}
+
+.input-neumorph {
+  background: #f5f0ec;
+  border-radius: 0 !important;
+  border: none;
+  border-bottom: 2px solid #1A3F6C;
+  box-shadow: inset 2px 2px 5px rgba(229, 222, 217, 1), inset -2px -2px 5px rgba(255, 255, 255, 1);
+  outline: none;
+  color: #11181c;
+  padding: 8px 12px;
+}
+.input-neumorph:focus {
+  border-bottom: 2px solid #1A3F6C;
+  box-shadow: inset 3px 3px 7px rgba(229, 222, 217, 1), inset -3px -3px 7px rgba(255, 255, 255, 1);
+}
+
+label.field-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #1A3F6C;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.table-row-hover:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.status-badge {
+  border-radius: 0 !important;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  display: inline-block;
 }
