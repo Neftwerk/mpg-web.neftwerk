@@ -2,33 +2,33 @@
 
 import React from "react";
 import Link from "next/link";
-import { ForumPostEditor } from "@/components/admin/ForumPostEditor";
+import { GalleryOnboardingWizard } from "@/components/admin/GalleryOnboardingWizard";
 import { ArrowLeft } from "lucide-react";
 
-export default function NewForumPostPage() {
+export default function NewGalleryOnboardingPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-2">
         <Link
-          href="/forum"
+          href="/admin/galleries"
           className="flex items-center gap-1 text-xs font-bold uppercase tracking-widest text-[#1A3F6C] hover:underline self-start"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Back to Feed</span>
+          <span>Back to Directory</span>
         </Link>
         <div>
           <h2 className="text-2xl font-black text-[#11181c] uppercase tracking-wider">
-            Compose Editorial Article
+            New Gallery Partner Onboarding
           </h2>
           <p className="text-xs font-bold uppercase tracking-widest text-[#1A3F6C]/70">
-            Publish announcements, developer updates, and spotlights directly to community feeds
+            Establish legal entities, payouts, public profile credentials, and compliance review
           </p>
         </div>
       </div>
 
-      {/* Editor workspace */}
-      <ForumPostEditor />
+      {/* Stepper Wizard component */}
+      <GalleryOnboardingWizard />
     </div>
   );
 }

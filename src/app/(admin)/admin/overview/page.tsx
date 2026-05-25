@@ -100,28 +100,28 @@ export default function OverviewPage() {
           label="Galleries Pending Review"
           value={7}
           linkLabel="Review Queue →"
-          linkHref="/galleries"
+          linkHref="/admin/galleries"
           alert={true}
         />
         <StatCard
           label="Open Primary Sales"
           value={12}
           linkLabel="View Sales →"
-          linkHref="/sales"
+          linkHref="/admin/sales"
         />
         <StatCard label="Unclaimed Claims" value={34} />
         <StatCard
           label="Failed Mints"
           value={2}
           linkLabel="Resolve →"
-          linkHref="/sales"
+          linkHref="/admin/sales"
           alert={true}
         />
         <StatCard
           label="Forum Comment Reports"
           value={5}
           linkLabel="Moderate →"
-          linkHref="/forum"
+          linkHref="/admin/forum"
           alert={true}
         />
         <div className="card-neumorph p-5 flex flex-col justify-between min-h-[120px]">
@@ -155,7 +155,7 @@ export default function OverviewPage() {
               Recent Operations Audit Trail
             </h3>
             <Link
-              href="/audit"
+              href="/admin/audit"
               className="text-xs font-bold uppercase tracking-wider text-[#1A3F6C] hover:underline"
             >
               Full Log →
@@ -201,17 +201,17 @@ export default function OverviewPage() {
           </h3>
 
           <div className="card-neumorph p-6 flex flex-col gap-4">
-            <Link href="/galleries/new" className="btn-neumorph w-full gap-2 p-3 font-bold text-sm">
+            <Link href="/admin/galleries/new" className="btn-neumorph w-full gap-2 p-3 font-bold text-sm">
               <PlusCircle className="w-4 h-4" />
               <span>Onboard New Gallery</span>
             </Link>
 
-            <Link href="/forum/new" className="btn-neumorph w-full gap-2 p-3 font-bold text-sm">
+            <Link href="/admin/forum/new" className="btn-neumorph w-full gap-2 p-3 font-bold text-sm">
               <PlusCircle className="w-4 h-4" />
               <span>Compose Forum Post</span>
             </Link>
 
-            <Link href="/reports" className="btn-neumorph w-full gap-2 p-3 font-bold text-sm">
+            <Link href="/admin/reports" className="btn-neumorph w-full gap-2 p-3 font-bold text-sm">
               <FileText className="w-4 h-4" />
               <span>Export System Report</span>
             </Link>

@@ -112,7 +112,7 @@ export default function GalleriesListPage() {
       render: (row) => (
         <div className="flex items-center gap-2">
           <Link
-            href={`/galleries/${row.id}`}
+            href={`/admin/galleries/${row.id}`}
             className="btn-neumorph px-2 py-1 text-xs flex items-center gap-1 font-bold"
           >
             <Eye className="w-3.5 h-3.5" />
@@ -137,7 +137,7 @@ export default function GalleriesListPage() {
         </div>
 
         <Link
-          href="/galleries/new"
+          href="/admin/galleries/new"
           className="btn-neumorph py-2.5 px-4 font-bold text-sm gap-2 flex items-center self-start sm:self-auto"
         >
           <PlusCircle className="w-4.5 h-4.5" />

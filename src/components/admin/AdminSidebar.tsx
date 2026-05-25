@@ -34,38 +34,38 @@ const SIDEBAR_GROUPS: SidebarGroup[] = [
   {
     label: "OPERATIONS",
     items: [
-      { name: "Overview", href: "/overview", icon: LayoutDashboard },
-      { name: "Galleries", href: "/galleries", icon: Image },
-      { name: "Collections", href: "/collections", icon: FolderOpen },
-      { name: "Artworks", href: "/artworks", icon: Palette },
+      { name: "Overview", href: "/admin/overview", icon: LayoutDashboard },
+      { name: "Galleries", href: "/admin/galleries", icon: Image },
+      { name: "Collections", href: "/admin/collections", icon: FolderOpen },
+      { name: "Artworks", href: "/admin/artworks", icon: Palette },
     ],
   },
   {
     label: "COMMERCE",
     items: [
-      { name: "Primary Sales & Mints", href: "/sales", icon: BadgeDollarSign },
+      { name: "Primary Sales & Mints", href: "/admin/sales", icon: BadgeDollarSign },
     ],
   },
   {
     label: "CONTENT",
     items: [
-      { name: "Forum & Editorial", href: "/forum", icon: MessageSquare },
+      { name: "Forum & Editorial", href: "/admin/forum", icon: MessageSquare },
     ],
   },
   {
     label: "PLATFORM",
     items: [
-      { name: "Users & Collectors", href: "/users", icon: Users },
-      { name: "Chain & Contracts", href: "/chain", icon: Cpu },
+      { name: "Users & Collectors", href: "/admin/users", icon: Users },
+      { name: "Chain & Contracts", href: "/admin/chain", icon: Cpu },
     ],
   },
   {
     label: "SYSTEM",
     items: [
-      { name: "Admins", href: "/admins", icon: ShieldAlert },
-      { name: "Audit Log", href: "/audit", icon: History },
-      { name: "Reports", href: "/reports", icon: FileBarChart2 },
-      { name: "Settings", href: "/settings", icon: SettingsIcon },
+      { name: "Admins", href: "/admin/admins", icon: ShieldAlert },
+      { name: "Audit Log", href: "/admin/audit", icon: History },
+      { name: "Reports", href: "/admin/reports", icon: FileBarChart2 },
+      { name: "Settings", href: "/admin/settings", icon: SettingsIcon },
     ],
   },
 ];

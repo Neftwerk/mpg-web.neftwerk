@@ -67,7 +67,7 @@ export default function GalleryDetailPage() {
       {/* Header */}
       <div className="flex flex-col gap-2">
         <Link
-          href="/galleries"
+          href="/admin/galleries"
           className="flex items-center gap-1 text-xs font-bold uppercase tracking-widest text-[#1A3F6C] hover:underline self-start"
         >
           <ArrowLeft className="w-3.5 h-3.5" />

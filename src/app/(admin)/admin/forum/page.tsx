@@ -216,7 +216,7 @@ export default function ForumPage() {
       header: "Actions",
       render: (row) => (
         <Link
-          href={`/forum/${row.id}`}
+          href={`/admin/forum/${row.id}`}
           className="btn-neumorph px-2.5 py-1 text-xs font-bold flex items-center gap-1"
         >
           <Eye className="w-3.5 h-3.5" />
@@ -335,7 +335,7 @@ export default function ForumPage() {
         </div>
 
         <Link
-          href="/forum/new"
+          href="/admin/forum/new"
           className="btn-neumorph py-2.5 px-4 font-bold text-sm gap-2 flex items-center self-start sm:self-auto"
         >
           <PlusCircle className="w-4.5 h-4.5" />
