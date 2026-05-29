@@ -1,13 +1,16 @@
 "use client";
 
+import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/lib/UserContext";
 import { logout } from "@/lib/auth-service";
+import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
 
 export default function SettingsPage() {
   const router = useRouter();
   const { user, loading } = useUser();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -15,19 +18,18 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F9F9FB] pb-10">
-      {/* Top Bar */}
-      <header className="flex items-center gap-4 px-5 py-4 bg-white sticky top-0 z-10 shadow-sm">
-        <button onClick={() => window.history.back()} className="flex-shrink-0 flex items-center justify-center w-8 h-8 -ml-2">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/images/backarrow.svg" alt="Back" className="h-4 w-5" />
-        </button>
-        <h1 className="text-[20px] font-extrabold text-[#11181c] tracking-tight">Settings</h1>
+    <>
+      {/* Sticky top bar */}
+      <MobileTopBar title="Settings" onMenuOpen={() => setMenuOpen(true)} />
+
+      {/* Desktop header */}
+      <header className="hidden lg:flex items-center justify-between border-b border-slate-200 bg-slate-50/95 p-4 mt-20 lg:mt-0">
+        <h1 className="text-xl font-semibold text-slate-900">Settings</h1>
       </header>
 
-      <div className="px-5 mt-6 flex flex-col gap-6 max-w-lg mx-auto">
+      <div className="px-5 pb-28 mt-20 lg:mt-6 flex flex-col gap-6 max-w-lg mx-auto">
         {/* ACCOUNT CARD */}
-        <div className="bg-[#F4F5F8] p-5 shadow-[4px_4px_10px_rgba(0,0,0,0.05),-4px_-4px_10px_rgba(255,255,255,0.9)]">
+        <div className="card-neumorph p-5">
           <h2 className="text-[13px] font-bold text-[#1A3F6C] tracking-wide uppercase mb-4 pl-1">
             Account
           </h2>
@@ -62,7 +64,7 @@ export default function SettingsPage() {
         </div>
 
         {/* PREFERENCES CARD */}
-        <div className="bg-[#F4F5F8] p-5 shadow-[4px_4px_10px_rgba(0,0,0,0.05),-4px_-4px_10px_rgba(255,255,255,0.9)]">
+        <div className="card-neumorph p-5">
           <h2 className="text-[13px] font-bold text-[#1A3F6C] tracking-wide uppercase mb-2 pl-1">
             Preferences
           </h2>
@@ -77,12 +79,14 @@ export default function SettingsPage() {
         {/* LOGOUT BUTTON */}
         <button
           onClick={handleLogout}
-          className="mt-4 w-full py-4 bg-[#E75D51] text-white font-bold text-[16px] shadow-[0_4px_12px_rgba(231,93,81,0.3)] hover:bg-[#D54A3E] transition active:scale-[0.98]"
+          className="btn-neumorph mt-4 w-full py-4 text-rose-600 font-extrabold uppercase tracking-widest active:scale-[0.98]"
         >
           Logout
         </button>
       </div>
-    </div>
+
+      <MobileMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
+    </>
   );
 }
 

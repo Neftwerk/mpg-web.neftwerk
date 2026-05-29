@@ -39,7 +39,8 @@ export function ArtworkCard({ artwork, onEdit, onViewOnChain }: ArtworkCardProps
         <NeftwerkImage
           src={artwork.imageUrl}
           alt={artwork.title}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          className="w-full h-full"
+          imgClassName="transition-transform duration-300 group-hover:scale-105"
         />
 
         {/* Dynamic Overlay Actions on Hover */}

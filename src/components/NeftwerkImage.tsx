@@ -5,17 +5,15 @@ import React, { useState, useEffect, useRef } from "react";
 interface NeftwerkImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   src: string;
   alt: string;
-  className?: string;
-  wrapperClassName?: string;
-  aspectRatio?: string; // e.g. "aspect-[4/3]"
+  className?: string; // Applied to parent wrapper to preserve figma layout, margins, aspect ratio
+  imgClassName?: string; // Optional custom styling for the <img> itself
 }
 
 export function NeftwerkImage({
   src,
   alt,
   className = "",
-  wrapperClassName = "",
-  aspectRatio = "",
+  imgClassName = "",
   ...props
 }: NeftwerkImageProps) {
   const [loaded, setLoaded] = useState(false);
@@ -29,7 +27,7 @@ export function NeftwerkImage({
   }, [src]);
 
   return (
-    <div className={`relative overflow-hidden rounded-none ${aspectRatio} ${wrapperClassName}`}>
+    <div className={`relative overflow-hidden rounded-none ${className}`}>
       {/* Super Simple Skeleton Loading State (Strictly sharp-edged, minimal) */}
       {!loaded && (
         <div className="absolute inset-0 bg-[#e5e2dd] animate-pulse rounded-none flex items-center justify-center z-10">
@@ -45,7 +43,7 @@ export function NeftwerkImage({
         ref={imgRef}
         src={src}
         alt={alt}
-        className={`${className} rounded-none transition-opacity duration-150 ${
+        className={`w-full h-full object-cover transition-opacity duration-150 ${imgClassName} ${
           loaded ? "opacity-100" : "opacity-0"
         }`}
         onLoad={() => setLoaded(true)}

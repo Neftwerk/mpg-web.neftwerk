@@ -8,7 +8,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#f5f0ec] text-[#11181c] flex flex-col font-sans relative overflow-x-hidden">
+    <div className="admin-dashboard min-h-screen bg-[#f5f0ec] text-[#11181c] flex flex-col font-sans relative overflow-x-hidden">
       {/* Sidebar - fixed on desktop, toggleable overlay on mobile */}
       <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 

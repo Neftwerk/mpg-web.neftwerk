@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { galleryItems } from "@/lib/content";
 import { useUser } from "@/lib/UserContext";
 import { updateProfile } from "@/lib/auth-service";
@@ -11,11 +11,11 @@ export default function ProfilePage() {
   return <ProfileContent />;
 }
 
-
 function ProfileContent() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const { user, loading, refresh } = useUser();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Edit form state
   const [editName, setEditName] = useState("");
@@ -63,30 +63,98 @@ function ProfileContent() {
     setSaving(false);
   }
 
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate size (keep it under 1.5MB to avoid heavy database payload)
+    if (file.size > 1.5 * 1024 * 1024) {
+      alert("Image is too large. Please select an image smaller than 1.5MB.");
+      return;
+    }
+
+    setSaving(true);
+    setSaveError("");
+    setSaveSuccess("");
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64Data = reader.result as string;
+      const result = await updateProfile({
+        avatarUrl: base64Data,
+      });
+
+      if (result.ok) {
+        setSaveSuccess("Profile picture updated!");
+        await refresh();
+        setTimeout(() => {
+          setSaveSuccess("");
+        }, 1500);
+      } else {
+        setSaveError(result.message || "Failed to upload avatar.");
+      }
+      setSaving(false);
+    };
+    reader.onerror = () => {
+      setSaveError("Error reading file.");
+      setSaving(false);
+    };
+    reader.readAsDataURL(file);
+  };
+
   return (
     <>
       <MobileTopBar title="Profile" onMenuOpen={() => setMenuOpen(true)} />
 
       <div className="px-5 pb-28 mt-20 lg:mt-0">
-
-
         {/* Profile hero */}
         <div className="flex flex-col items-center gap-3 pt-6">
-          {/* Avatar with ring */}
+          {/* Avatar with ring - hoverable and clickable */}
           <div
-            className="rounded-full p-[4px]"
+            onClick={handleAvatarClick}
+            className="rounded-full p-[4px] cursor-pointer relative group transition duration-200 hover:scale-105"
             style={{
               background: "linear-gradient(135deg, #D4CCC7, #E8E2DD)",
               boxShadow: "0 4px 14px rgba(0,0,0,0.08)",
             }}
+            title="Click to change profile picture"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={user?.avatarUrl || "/images/default-avatar.svg"}
               alt={displayName}
-              className="h-[120px] w-[120px] rounded-full object-cover"
+              className="h-[120px] w-[120px] rounded-full object-cover group-hover:opacity-85 transition-opacity"
             />
+            {/* Small camera/edit icon overlay on hover */}
+            <div className="absolute inset-1 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2 2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                <circle cx="12" cy="13" r="4" />
+              </svg>
+            </div>
+            
+            {/* Micro loading overlay while uploading */}
+            {saving && (
+              <div className="absolute inset-1 rounded-full bg-black/60 flex items-center justify-center">
+                <span className="text-[10px] uppercase tracking-widest font-black text-white animate-pulse">
+                  Saving
+                </span>
+              </div>
+            )}
           </div>
+
+          {/* Hidden file input */}
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleAvatarChange}
+            accept="image/*"
+            className="hidden"
+          />
 
           {loading ? (
             <div className="h-6 w-32 bg-slate-200 animate-pulse mt-1" />
@@ -136,6 +204,36 @@ function ProfileContent() {
                   {saveSuccess}
                 </div>
               )}
+
+              {/* Avatar Selector inside Modal */}
+              <div className="flex flex-col items-center mb-6">
+                <div
+                  onClick={handleAvatarClick}
+                  className="rounded-full p-[3px] cursor-pointer relative group transition"
+                  style={{
+                    background: "linear-gradient(135deg, #D4CCC7, #E8E2DD)",
+                    boxShadow: "0 4px 10px rgba(0,0,0,0.06)",
+                  }}
+                  title="Click to change profile picture"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={user?.avatarUrl || "/images/default-avatar.svg"}
+                    alt="Current Avatar"
+                    className="h-[80px] w-[80px] rounded-full object-cover group-hover:opacity-80"
+                  />
+                  <div className="absolute inset-0 rounded-full bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center">
+                    <span className="text-[9px] text-white font-extrabold uppercase tracking-wide">Edit</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAvatarClick}
+                  className="text-xs font-bold text-[#1A3F6C] hover:underline mt-2 uppercase tracking-widest"
+                >
+                  Change Photo
+                </button>
+              </div>
 
               <label className="block text-sm font-medium text-slate-600 mb-2">
                 Full name

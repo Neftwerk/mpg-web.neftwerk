@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Pin, Eye, Calendar, Upload, FileText, CheckCircle2, ChevronRight } from "lucide-react";
+import { Pin, Eye, Calendar, Upload, FileText, ChevronRight } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 
 interface EditorProps {
@@ -13,6 +13,7 @@ interface EditorProps {
 export function ForumPostEditor({ postId, initialData }: EditorProps) {
   const router = useRouter();
   const [showPreview, setShowPreview] = useState(false);
+  const coverImageInputRef = useRef<HTMLInputElement>(null);
 
   // Form parameters
   const [title, setTitle] = useState(initialData?.title || "");
@@ -25,7 +26,39 @@ export function ForumPostEditor({ postId, initialData }: EditorProps) {
   const [status, setStatus] = useState<"DRAFT" | "SCHEDULED" | "PUBLISHED">(initialData?.status || "DRAFT");
   const [scheduleDate, setScheduleDate] = useState(initialData?.scheduleDate || "");
   const [pinned, setPinned] = useState(initialData?.pinned || false);
-  const [coverImage, setCoverImage] = useState(initialData?.coverImage || "");
+  const [coverImage, setCoverImage] = useState(initialData?.coverImage || initialData?.imageUrl || "");
+
+  // Live Simulator interactive states matching mobile client
+  const [liked, setLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(25);
+  const [showComments, setShowComments] = useState(false);
+  const [commentsList, setCommentsList] = useState<{ author: string; text: string }[]>([
+    {
+      author: "Ricardo Nabholz",
+      text: "I am excited to own this new work from Veronica Ceci's brilliant Keeping House Series",
+    }
+  ]);
+  const [commentText, setCommentText] = useState("");
+
+  const handleCommentSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!commentText.trim()) return;
+    setCommentsList((prev) => [
+      ...prev,
+      { author: "You", text: commentText.trim() },
+    ]);
+    setCommentText("");
+  };
+
+  const handleLikeToggle = () => {
+    if (liked) {
+      setLiked(false);
+      setLikesCount((prev) => prev - 1);
+    } else {
+      setLiked(true);
+      setLikesCount((prev) => prev + 1);
+    }
+  };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,12 +151,49 @@ export function ForumPostEditor({ postId, initialData }: EditorProps) {
         {/* Cover image upload box */}
         <div>
           <label className="field-label">Header Cover Image</label>
-          <div className="card-neumorph p-4 border border-dashed border-[#1A3F6C]/20 flex flex-col items-center justify-center gap-2">
-            <Upload className="w-6 h-6 text-[#1A3F6C] opacity-75" />
-            <span className="text-[10px] font-bold">Recommended sizes: 1200x630px JPG/PNG</span>
-            <button type="button" className="btn-neumorph text-[10px] font-black py-1 px-3 mt-1">
-              Select Cover Media
-            </button>
+          <input
+            type="file"
+            ref={coverImageInputRef}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                const url = URL.createObjectURL(file);
+                setCoverImage(url);
+              }
+            }}
+            accept="image/*"
+            className="hidden"
+          />
+          <div className="bg-white p-4 border border-dashed border-[#1A3F6C]/20 flex flex-col items-center justify-center gap-3 relative">
+            {coverImage ? (
+              <div className="relative w-full h-36 bg-slate-100 overflow-hidden border border-black/10">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={coverImage}
+                  alt="Header preview"
+                  className="w-full h-full object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => setCoverImage("")}
+                  className="absolute top-2 right-2 px-2 py-1 bg-black text-white text-[9px] font-black uppercase tracking-wider hover:bg-black/80"
+                >
+                  Remove
+                </button>
+              </div>
+            ) : (
+              <>
+                <Upload className="w-6 h-6 text-[#1A3F6C] opacity-75" />
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Recommended sizes: 1200x630px JPG/PNG</span>
+                <button
+                  type="button"
+                  onClick={() => coverImageInputRef.current?.click()}
+                  className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-white bg-[#1A3F6C] hover:bg-[#1A3F6C]/90 active:scale-[0.97] transition-all border border-black shadow-[3px_3px_0px_rgba(0,0,0,0.15)]"
+                >
+                  Select Cover Media
+                </button>
+              </>
+            )}
           </div>
         </div>
 
@@ -239,60 +309,174 @@ export function ForumPostEditor({ postId, initialData }: EditorProps) {
             </button>
           </div>
 
-          {/* Simulated Article Layout */}
-          <article className="space-y-4 text-left">
-            {/* Header image banner block */}
-            <div className="w-full aspect-[2/1] bg-black/5 flex items-center justify-center text-slate-400 border border-black/5">
-              <span className="text-[10px] font-bold uppercase tracking-widest">
-                [ Header Image Banner Placement ]
-              </span>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center border-b border-black/5 pb-2">
+            Mobile Client Feed Preview
+          </p>
+
+          {/* Interactive Mobile Post Card Replication */}
+          <article className="card-neumorph p-5 text-left bg-white border border-black/5">
+            {/* Author row */}
+            <div className="mb-3 flex items-center gap-3">
+              {/* Neftwerk Avatar Badge */}
+              <div className="grid h-11 w-11 place-items-center rounded-full bg-[#1A3F6C] flex-shrink-0 border-2 border-[#38A8AB]">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M4 20V4h4l8 12V4h4v16h-4L8 8v12H4z" fill="white" />
+                </svg>
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="text-[15px] font-bold text-[#1A3F6C]">Neftwerk News</h3>
+                <p className="mt-0.5 text-xs text-slate-400">Just now</p>
+              </div>
             </div>
 
-            {/* Metadata info */}
-            <div className="flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-widest text-[#1A3F6C]/60">
-              <span>By Adaeze Nwosu</span>
-              <span>•</span>
-              <span>{new Date().toISOString().split("T")[0]}</span>
-            </div>
-
-            {/* Simulated Title */}
-            <h1 className="text-xl font-extrabold text-[#11181c] leading-tight uppercase tracking-wider">
-              {title || "Enter article headline..."}
-            </h1>
-
-            {/* Tags preview */}
-            <div className="flex flex-wrap gap-1.5 pt-1">
-              {tags
-                .split(",")
-                .filter(Boolean)
-                .map((tag: string) => (
-                  <span
-                    key={tag}
-                    className="text-[9px] font-extrabold bg-[#1A3F6C]/10 text-[#1A3F6C] px-2 py-0.5"
-                  >
-                    #{tag.trim()}
-                  </span>
-                ))}
-            </div>
-
-            {/* Excerpt panel */}
-            {excerpt && (
-              <div
-                className="card-neumorph-inset p-3 bg-black/[0.01] italic border border-black/5"
-                style={{
-                  boxShadow: "inset 2px 2px 5px rgba(229,222,217,0.7), inset -2px -2px 5px rgba(255,255,255,1)",
-                }}
-              >
-                <p className="text-xs font-bold text-[#11181c]/70 leading-relaxed">
-                  &ldquo;{excerpt}&rdquo;
+            {/* Post text / headline & content */}
+            <div className="mb-3">
+              {title && (
+                <h4 className="text-[15px] font-black text-[#1A3F6C] leading-snug tracking-wide uppercase mb-1">
+                  {title}
+                </h4>
+              )}
+              {excerpt && (
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 leading-relaxed">
+                  {excerpt}
                 </p>
+              )}
+              <p className="text-sm leading-6 text-[#11181c] whitespace-pre-wrap font-medium">
+                {body || "Start writing inside the body editor..."}
+              </p>
+            </div>
+
+            {/* Tags preview as inline hashtags */}
+            {tags && (
+              <div className="flex flex-wrap gap-1.5 mb-3">
+                {tags
+                  .split(",")
+                  .filter(Boolean)
+                  .map((tag: string) => (
+                    <span
+                      key={tag}
+                      className="text-xs font-extrabold text-[#38A8AB] hover:underline cursor-pointer"
+                    >
+                      #{tag.trim()}
+                    </span>
+                  ))}
               </div>
             )}
 
-            {/* Body contents rendered (simplified viewer) */}
-            <div className="text-xs text-[#11181c] leading-relaxed font-medium space-y-3 whitespace-pre-wrap border-t border-black/5 pt-4">
-              {body || "Start writing inside the body editor..."}
+            {/* Main cover image with robust widescreen container layout */}
+            {coverImage ? (
+              <div className="mb-3 w-full bg-slate-100 border border-black/5 overflow-hidden relative aspect-[16/9]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={coverImage}
+                  alt="Post Cover Preview"
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              </div>
+            ) : (
+              <div className="mb-3 w-full h-32 bg-slate-50 flex flex-col items-center justify-center border border-dashed border-black/10 p-4">
+                <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">
+                  No Cover Media Selected
+                </span>
+              </div>
+            )}
+
+            {/* Actions row — heart + comment on left, Likes count on right */}
+            <div className="flex items-center justify-between border-t border-black/5 pt-2">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleLikeToggle}
+                  className="inline-flex h-9 w-9 items-center justify-center text-slate-900 transition hover:bg-slate-100/10 active:scale-95"
+                  aria-label="Like"
+                >
+                  {liked ? (
+                    <svg width={24} height={24} viewBox="0 0 24 24" fill="#E11D48" aria-hidden="true">
+                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                    </svg>
+                  ) : (
+                    <svg width={24} height={24} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path
+                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                        stroke="#1A3F6C"
+                        strokeWidth="1.75"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowComments(!showComments)}
+                  className="inline-flex h-9 w-9 items-center justify-center text-slate-900 transition hover:bg-slate-100/10 active:scale-95"
+                  aria-label="Comment"
+                >
+                  <svg width={22} height={22} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path
+                      d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"
+                      stroke="#1A3F6C"
+                      strokeWidth="1.75"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+              </div>
+              <span className="text-sm font-bold text-[#38A8AB]">{likesCount} Likes</span>
             </div>
+
+            {/* Comments Toggle Link */}
+            <div className="flex flex-col items-start mt-2">
+              <button
+                type="button"
+                onClick={() => setShowComments(!showComments)}
+                className="text-[10px] font-bold text-slate-400 hover:underline uppercase tracking-wider"
+              >
+                {showComments ? "Hide Comments" : `View all ${commentsList.length} comments`}
+              </button>
+            </div>
+
+            {/* Comments Section */}
+            {showComments ? (
+              <div className="mt-4 pt-4 border-t border-black/5 space-y-3">
+                <div className="space-y-2">
+                  {commentsList.map((c, idx) => (
+                    <div key={idx} className="p-3 bg-[#f5f0ec]/45 border border-black/5 card-neumorph text-xs">
+                      <span className="font-extrabold text-[#11181c] block text-[10px] uppercase tracking-wider mb-1">
+                        {c.author}
+                      </span>
+                      <p className="text-slate-700 leading-relaxed font-medium">{c.text}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Comment input form */}
+                <form onSubmit={handleCommentSubmit} className="flex gap-2 pt-2">
+                  <input
+                    type="text"
+                    placeholder="Write a comment..."
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    className="flex-1 input-neumorph py-1.5 px-3 focus:ring-1 focus:ring-[#1A3F6C]/10 bg-slate-50 text-[11px]"
+                  />
+                  <button
+                    type="submit"
+                    className="btn-neumorph px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-[#1A3F6C] shrink-0 border border-black"
+                  >
+                    Post
+                  </button>
+                </form>
+              </div>
+            ) : (
+              /* Top comment preview */
+              commentsList.length > 0 && (
+                <p className="mt-2 text-xs leading-5 text-slate-600 font-medium">
+                  <span className="font-bold text-[#11181c] mr-1">{commentsList[0].author}</span>
+                  {commentsList[0].text}
+                </p>
+              )
+            )}
           </article>
         </div>
       )}
