@@ -5,8 +5,10 @@ import React, { useState, useEffect, useRef } from "react";
 interface NeftwerkImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   src: string;
   alt: string;
-  className?: string; // Applied to parent wrapper to preserve figma layout, margins, aspect ratio
-  imgClassName?: string; // Optional custom styling for the <img> itself
+  className?: string;
+  imgClassName?: string;
+  /** Hero / above-the-fold images — eager load with high fetch priority. */
+  priority?: boolean;
 }
 
 export function NeftwerkImage({
@@ -14,26 +16,30 @@ export function NeftwerkImage({
   alt,
   className = "",
   imgClassName = "",
+  priority = false,
+  loading,
+  fetchPriority,
   ...props
 }: NeftwerkImageProps) {
   const [loaded, setLoaded] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
 
-  // Check if image is already cached and loaded
   useEffect(() => {
-    if (imgRef.current && imgRef.current.complete) {
+    setLoaded(false);
+    if (imgRef.current?.complete) {
       setLoaded(true);
     }
   }, [src]);
 
+  const resolvedLoading = loading ?? (priority ? "eager" : "lazy");
+  const resolvedFetchPriority = fetchPriority ?? (priority ? "high" : "auto");
+
   return (
     <div className={`relative overflow-hidden rounded-none ${className}`}>
-      {/* Super Simple Skeleton Loading State (Strictly sharp-edged, minimal) */}
       {!loaded && (
         <div className="absolute inset-0 bg-[#e0ddd8] animate-pulse rounded-none z-10" />
       )}
 
-      {/* Actual Image with no-lazy-loading defaults */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         ref={imgRef}
@@ -43,10 +49,9 @@ export function NeftwerkImage({
           loaded ? "opacity-100" : "opacity-0"
         }`}
         onLoad={() => setLoaded(true)}
-        // Pre-fetch priority by default for important artworks
-        fetchPriority="high"
-        // Avoid browser default lazy-load delay unless requested
-        loading={props.loading || "eager"}
+        loading={resolvedLoading}
+        fetchPriority={resolvedFetchPriority}
+        decoding="async"
         {...props}
       />
     </div>

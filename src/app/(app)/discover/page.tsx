@@ -1,29 +1,106 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { fetchAllPublicArtworks, ArtworkItem } from "@/lib/gallery-service";
 import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
+import { GalleryGridSkeleton, SkeletonBar } from "@/components/Skeletons";
+import { GalleryArtworkCard } from "@/components/artwork/GalleryArtworkCard";
 import { NeftwerkImage } from "@/components/NeftwerkImage";
+
+function DiscoverSectionsSkeleton() {
+  return (
+    <>
+      <SkeletonBar className="h-4 w-36 mb-3" />
+      <div className="grid grid-cols-3 gap-3 mb-8">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div key={index} className="card-neumorph">
+            <SkeletonBar className="w-full aspect-square" />
+            <SkeletonBar className="h-3 w-3/4 mx-1 my-2" />
+          </div>
+        ))}
+      </div>
+
+      <SkeletonBar className="h-4 w-40 mb-3" />
+      <div className="card-neumorph mb-8">
+        <SkeletonBar className="w-full aspect-[2/1]" />
+        <SkeletonBar className="h-3 w-2/3 mx-2 my-2" />
+      </div>
+
+      <GalleryGridSkeleton count={6} />
+    </>
+  );
+}
 
 export default function DiscoverPage() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [artworks, setArtworks] = useState<ArtworkItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const items = await fetchAllPublicArtworks();
+        setArtworks(items);
+      } catch (e) {
+        setError((e as Error).message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  const popularArtworks = useMemo(
+    () =>
+      [...artworks]
+        .sort((a, b) => b.listPriceCents - a.listPriceCents)
+        .slice(0, 3),
+    [artworks],
+  );
+
+  const newWork = useMemo(() => artworks[0] ?? null, [artworks]);
+
+  const filteredArtworks = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return artworks;
+
+    return artworks.filter((item) => {
+      const haystack = [
+        item.title,
+        item.galleryName,
+        item.collectionName,
+        item.description,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return haystack.includes(query);
+    });
+  }, [artworks, search]);
+
+  const leftItems = filteredArtworks.filter((_, index) => index % 2 === 0);
+  const rightItems = filteredArtworks.filter((_, index) => index % 2 === 1);
+  const isSearching = search.trim().length > 0;
 
   return (
     <>
-      {/* Sticky top bar */}
       <MobileTopBar title="Discover" onMenuOpen={() => setMenuOpen(true)} />
 
-      {/* Desktop header */}
       <header className="hidden lg:flex items-center justify-between border-b border-slate-200 bg-slate-50/95 p-4 mt-20 lg:mt-0">
         <h1 className="text-xl font-semibold text-slate-900">Discover</h1>
       </header>
 
       <div className="p-4 pb-28 lg:pb-4 mt-20 lg:mt-0">
-        {/* Search */}
         <div className="relative mb-8">
           <input
             className="w-full border border-slate-200 bg-white/60 pl-4 pr-10 py-3 text-[15px] placeholder:text-[#888] outline-none transition focus:border-[#4D91A7] focus:ring-1 focus:ring-[#4D91A7]/20 shadow-sm"
-            placeholder="Search anything"
+            placeholder="Search artworks"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
           />
           <svg
             className="absolute right-4 top-1/2 -translate-y-1/2 text-[#888]"
@@ -41,48 +118,103 @@ export default function DiscoverPage() {
           </svg>
         </div>
 
-        {/* Popular artworks */}
-        <h3 className="text-[16px] font-bold text-[#1A3F6C] mb-3">Popular artworks</h3>
-        <div className="grid grid-cols-3 gap-3 mb-8">
-          <Link href="/discover-artwork/1" className="card-neumorph">
-            <NeftwerkImage src="/images/fav14.png" alt="Fancy Free" className="w-full aspect-square object-cover" onError={(e) => { e.currentTarget.src = "https://picsum.photos/seed/pop1/400/400" }} />
-            <p className="px-1 py-2 text-[11px] font-medium text-[#464646] truncate">Fancy Free</p>
-          </Link>
-          <Link href="/discover-artwork/2" className="card-neumorph">
-            <NeftwerkImage src="/images/fav15.png" alt="Totem #13" className="w-full aspect-square object-cover" onError={(e) => { e.currentTarget.src = "https://picsum.photos/seed/pop2/400/400" }} />
-            <p className="px-1 py-2 text-[11px] font-medium text-[#464646] truncate">Totem #13</p>
-          </Link>
-          <Link href="/discover-artwork/3" className="card-neumorph">
-            <NeftwerkImage src="/images/art2.png" alt="Ashley" className="w-full aspect-square object-cover" onError={(e) => { e.currentTarget.src = "https://picsum.photos/seed/pop3/400/400" }} />
-            <p className="px-1 py-2 text-[11px] font-medium text-[#464646] truncate">Ashley</p>
-          </Link>
-        </div>
+        {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
 
-        {/* Discover new works */}
-        <h3 className="text-[16px] font-bold text-[#1A3F6C] mb-3">Discover new works</h3>
-        <div className="mb-8">
-          <Link href="/discover-artwork/4" className="block card-neumorph">
-            <NeftwerkImage src="/images/discover.png" alt="Do not turn this artwork into a NFT" className="w-full object-cover aspect-[2/1]" onError={(e) => { e.currentTarget.src = "https://picsum.photos/seed/nft/800/400" }} />
-            <p className="px-2 py-2 text-[13px] font-medium text-[#464646]">Do not turn this artwork into a NFT</p>
-          </Link>
-        </div>
+        {loading && <DiscoverSectionsSkeleton />}
 
-        {/* Linked marketplaces */}
-        <h3 className="text-[16px] font-bold text-[#1A3F6C] mb-3">Linked marketplaces</h3>
-        <div className="flex flex-col gap-3">
-          <Link href="/discover-artwork/5" className="block card-neumorph">
-            <NeftwerkImage src="/images/fav18.png" alt="FUtility III" className="w-full object-cover aspect-[2/1]" onError={(e) => { e.currentTarget.src = "https://picsum.photos/seed/futility/800/400" }} />
-            <p className="px-2 py-2 text-[13px] font-medium text-[#464646]">FUtility III</p>
-          </Link>
-          <div className="grid grid-cols-2 gap-3">
-            <Link href="/discover-artwork/6" className="card-neumorph">
-              <NeftwerkImage src="/images/art3.png" alt="Womb Hole #8" className="w-full aspect-[4/3] object-cover" onError={(e) => { e.currentTarget.src = "https://picsum.photos/seed/womb/400/300" }} />
-            </Link>
-            <Link href="/discover-artwork/7" className="card-neumorph">
-              <NeftwerkImage src="/images/art1.png" alt="Girl with a pearl earring" className="w-full aspect-[4/3] object-cover" onError={(e) => { e.currentTarget.src = "https://picsum.photos/seed/girl/400/300" }} />
-            </Link>
+        {!loading && !isSearching && artworks.length === 0 && (
+          <div className="text-center py-16">
+            <p className="font-bold text-sm uppercase tracking-wider text-[#334E57]/60">
+              No artworks available yet.
+            </p>
+            <p className="text-xs text-slate-400 mt-1">
+              Check back soon — new pieces are being curated.
+            </p>
           </div>
-        </div>
+        )}
+
+        {!loading && !isSearching && popularArtworks.length > 0 && (
+          <>
+            <h3 className="text-[16px] font-bold text-[#1A3F6C] mb-3">
+              Popular artworks
+            </h3>
+            <div className="grid grid-cols-3 gap-3 mb-8">
+              {popularArtworks.map((item, index) => (
+                <Link
+                  key={item.id}
+                  href={`/artwork/${item.id}`}
+                  className="card-neumorph"
+                >
+                  <NeftwerkImage
+                    src={item.mediaUrl}
+                    alt={item.title}
+                    className="w-full aspect-square object-cover"
+                    priority={index === 0}
+                  />
+                  <p className="px-1 py-2 text-[11px] font-medium text-[#464646] truncate">
+                    {item.title}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </>
+        )}
+
+        {!loading && !isSearching && newWork && (
+          <>
+            <h3 className="text-[16px] font-bold text-[#1A3F6C] mb-3">
+              Discover new works
+            </h3>
+            <div className="mb-8">
+              <Link href={`/artwork/${newWork.id}`} className="block card-neumorph">
+                <NeftwerkImage
+                  src={newWork.mediaUrl}
+                  alt={newWork.title}
+                  className="w-full object-cover aspect-[2/1]"
+                />
+                <p className="px-2 py-2 text-[13px] font-medium text-[#464646]">
+                  {newWork.title}
+                </p>
+              </Link>
+            </div>
+          </>
+        )}
+
+        {!loading && isSearching && filteredArtworks.length === 0 && (
+          <div className="text-center py-16">
+            <p className="font-bold text-sm uppercase tracking-wider text-[#334E57]/60">
+              No artworks match your search.
+            </p>
+            <p className="text-xs text-slate-400 mt-1">
+              Try a different title or gallery name.
+            </p>
+          </div>
+        )}
+
+        {!loading && filteredArtworks.length > 0 && (
+          <>
+            <h3 className="text-[16px] font-bold text-[#1A3F6C] mb-3">
+              {isSearching ? "Search results" : "All artworks"}
+            </h3>
+            <div className="grid grid-cols-2 gap-3 items-start">
+              <div className="flex flex-col gap-3">
+                {leftItems.map((item, index) => (
+                  <GalleryArtworkCard
+                    key={item.id}
+                    item={item}
+                    priority={!isSearching && index === 0}
+                  />
+                ))}
+              </div>
+
+              <div className="flex flex-col gap-3">
+                {rightItems.map((item) => (
+                  <GalleryArtworkCard key={item.id} item={item} />
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       <MobileMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
