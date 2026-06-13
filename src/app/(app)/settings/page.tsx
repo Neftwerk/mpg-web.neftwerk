@@ -85,7 +85,7 @@ export default function SettingsPage() {
             </div>
             <div className="flex flex-col">
               {loading ? (
-                <div className="h-5 w-24 bg-slate-200 animate-pulse" />
+                <div className="h-5 w-24 bg-[#e0ddd8] animate-pulse" />
               ) : (
                 <p className="text-[17px] font-bold text-[#1A3F6C]">
                   {user?.fullName || "No Name Set"}

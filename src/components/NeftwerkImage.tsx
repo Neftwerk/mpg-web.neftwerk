@@ -30,11 +30,7 @@ export function NeftwerkImage({
     <div className={`relative overflow-hidden rounded-none ${className}`}>
       {/* Super Simple Skeleton Loading State (Strictly sharp-edged, minimal) */}
       {!loaded && (
-        <div className="absolute inset-0 bg-[#e5e2dd] animate-pulse rounded-none flex items-center justify-center z-10">
-          <span className="text-[10px] uppercase tracking-widest font-black text-[#1A3F6C]/20 select-none">
-            Loading
-          </span>
-        </div>
+        <div className="absolute inset-0 bg-[#e0ddd8] animate-pulse rounded-none z-10" />
       )}
 
       {/* Actual Image with no-lazy-loading defaults */}

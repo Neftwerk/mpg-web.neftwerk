@@ -70,8 +70,8 @@ function WalletContent() {
         <div className="bg-white border border-[#BAC4C8] text-center py-6 px-4 mb-2">
           {loading ? (
             <div className="space-y-3">
-              <div className="h-4 w-24 bg-slate-200 animate-pulse mx-auto rounded" />
-              <div className="h-8 w-40 bg-slate-200 animate-pulse mx-auto rounded" />
+              <div className="h-4 w-24 bg-[#e0ddd8] animate-pulse mx-auto" />
+              <div className="h-8 w-40 bg-[#e0ddd8] animate-pulse mx-auto" />
             </div>
           ) : walletAddress ? (
             <>
