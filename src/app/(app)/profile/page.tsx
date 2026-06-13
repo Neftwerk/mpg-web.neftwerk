@@ -1,11 +1,12 @@
 "use client";
 import Link from "next/link";
 import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
-import { useState, useRef } from "react";
-import { galleryItems } from "@/lib/content";
+import { useState, useRef, useEffect } from "react";
+import { fetchAllPublicArtworks, ArtworkItem } from "@/lib/gallery-service";
 import { useUser } from "@/lib/UserContext";
 import { updateProfile } from "@/lib/auth-service";
 import { NeftwerkImage } from "@/components/NeftwerkImage";
+import { ProfileSkeleton, ActivityGridSkeleton } from "@/components/Skeletons";
 
 export default function ProfilePage() {
   return <ProfileContent />;
@@ -24,8 +25,16 @@ function ProfileContent() {
   const [saveError, setSaveError] = useState("");
   const [saveSuccess, setSaveSuccess] = useState("");
 
-  // Pick first few gallery items as "activity"
-  const activityItems = galleryItems.slice(0, 2);
+  // Fetch recent artworks for "activity"
+  const [activityItems, setActivityItems] = useState<ArtworkItem[]>([]);
+  const [activityLoading, setActivityLoading] = useState(true);
+
+  useEffect(() => {
+    fetchAllPublicArtworks()
+      .then((items) => setActivityItems(items.slice(0, 2)))
+      .catch(() => {})
+      .finally(() => setActivityLoading(false));
+  }, []);
 
   const displayName = user?.fullName || "";
   const displayBio = user?.bio || "";
@@ -112,6 +121,9 @@ function ProfileContent() {
 
       <div className="px-5 pb-28 mt-20 lg:mt-0">
         {/* Profile hero */}
+        {loading ? (
+          <ProfileSkeleton />
+        ) : (
         <div className="flex flex-col items-center gap-3 pt-6">
           {/* Avatar with ring - hoverable and clickable */}
           <div
@@ -156,15 +168,11 @@ function ProfileContent() {
             className="hidden"
           />
 
-          {loading ? (
-            <div className="h-6 w-32 bg-slate-200 animate-pulse mt-1" />
-          ) : (
-            <h2 className="text-[22px] font-bold text-[#1A3F6C] mt-1">
-              {displayName}
-            </h2>
-          )}
+          <h2 className="text-[22px] font-bold text-[#1A3F6C] mt-1">
+            {displayName}
+          </h2>
 
-          {displayEmail && !loading && (
+          {displayEmail && (
             <p className="text-[13px] text-slate-400 -mt-1">{displayEmail}</p>
           )}
 
@@ -172,11 +180,11 @@ function ProfileContent() {
             <p className="max-w-[320px] text-center text-[14px] leading-relaxed text-[#333]">
               {displayBio}
             </p>
-          ) : !loading ? (
+          ) : (
             <p className="max-w-[320px] text-center text-[13px] leading-relaxed text-slate-400 italic">
               No bio yet — tap Edit profile to add one.
             </p>
-          ) : null}
+          )}
 
           {/* Edit profile button */}
           <button
@@ -187,6 +195,7 @@ function ProfileContent() {
             Edit profile
           </button>
         </div>
+        )}
 
         {/* ─── Edit Profile Modal ─── */}
         {editing && (
@@ -286,24 +295,30 @@ function ProfileContent() {
             <div className="flex-1 border-t-[1.5px] border-dotted border-[#C4BCB6]" />
           </div>
 
+          {activityLoading ? (
+            <ActivityGridSkeleton count={2} />
+          ) : activityItems.length > 0 ? (
           <div className="grid grid-cols-2 gap-3">
             {activityItems.map((item) => (
                <Link
-               key={item.id}
-               href={`/artwork/${item.id}`}
-               className="block card-neumorph"
-             >
+                key={item.id}
+                href={`/artwork/${item.id}`}
+                className="block card-neumorph"
+              >
                <NeftwerkImage
-                 src={item.imageUrl}
-                 alt={item.caption}
+                 src={item.mediaUrl}
+                 alt={item.title}
                  className="w-full aspect-[4/3] object-cover"
                />
                <p className="px-2 py-2 text-[13px] font-medium text-[#11181c]">
-                 {item.caption}
+                 {item.title}
                </p>
              </Link>
             ))}
           </div>
+          ) : (
+            <p className="text-xs text-slate-400 text-center">No recent activity.</p>
+          )}
         </div>
       </div>
 

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
 import { AuthGuard } from "@/components/auth/AuthGuard";
+import { NotificationSkeleton } from "@/components/Skeletons";
 import {
   getNotifications,
   markNotificationAsRead,
@@ -164,13 +165,8 @@ function NotificationsContent() {
 
         {/* Loading */}
         {loading && (
-          <div className="space-y-3 mt-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="card-neumorph animate-pulse p-4">
-                <div className="h-3 w-3/4 bg-slate-200 rounded mb-2" />
-                <div className="h-3 w-1/2 bg-slate-200 rounded" />
-              </div>
-            ))}
+          <div className="mt-4">
+            <NotificationSkeleton count={4} />
           </div>
         )}
 
