@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState, useRef } from "react";
 import { initiateGoogleOAuth, requestLoginOtp, verifyLoginOtp, setTokens } from "@/lib/auth-service";
 import { useUser } from "@/lib/UserContext";
 
 export function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect");
   const { refresh } = useUser();
   const [email, setEmail] = useState("");
   const [code, setCode] = useState(["", "", "", "", "", ""]);
@@ -98,7 +100,7 @@ export function LoginForm() {
       if (accessToken) {
         setTokens(accessToken, refreshToken);
         await refresh();
-        router.push("/home");
+        router.push(redirectTo?.startsWith("/") ? redirectTo : "/home");
       } else {
         setError("Login succeeded but no token received.");
       }

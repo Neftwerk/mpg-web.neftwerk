@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 
 function textForSuccess(kind?: string) {
+  if (kind === "artwork") return "Your artwork purchase is complete";
   if (kind === "card") return "Your credit card has been linked successfully";
   if (kind === "bank") return "Your bank has been linked successfully";
   return "Your wallet has been linked successfully";

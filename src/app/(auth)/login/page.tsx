@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { LoginForm } from "@/components/auth/LoginForm";
 
@@ -10,7 +11,9 @@ export default function LoginPage() {
   return (
     <AuthShell title="Log in">
       <div className="auth-card">
-        <LoginForm />
+        <Suspense fallback={<p className="text-sm text-slate-500">Loading…</p>}>
+          <LoginForm />
+        </Suspense>
       </div>
     </AuthShell>
   );

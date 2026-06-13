@@ -1,6 +1,7 @@
 // Neftwerk API Configuration
 
-export const API_BASE_URL = "https://backendneftwerk-staging.up.railway.app";
+export const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export const API_ENDPOINTS = {
   AUTH: {
@@ -65,6 +66,8 @@ export const API_ENDPOINTS = {
     COLLECTION: (collectionId: string) => `${API_BASE_URL}/api/public/collections/${collectionId}`,
     /** GET /api/public/collections/:collectionId/artworks */
     COLLECTION_ARTWORKS: (collectionId: string) => `${API_BASE_URL}/api/public/collections/${collectionId}/artworks`,
+    /** GET /api/public/artworks?page=&limit= */
+    ARTWORKS: `${API_BASE_URL}/api/public/artworks`,
     /** GET /api/public/artworks/:artworkId */
     ARTWORK: (artworkId: string) => `${API_BASE_URL}/api/public/artworks/${artworkId}`,
   },
@@ -72,6 +75,8 @@ export const API_ENDPOINTS = {
   PAYMENTS: {
     /** POST /api/payments/session */
     SESSION: `${API_BASE_URL}/api/payments/session`,
+    /** POST /api/payments/checkout/link */
+    CHECKOUT_LINK: `${API_BASE_URL}/api/payments/checkout/link`,
     /** POST /api/payments/bank-auth-link */
     BANK_AUTH_LINK: `${API_BASE_URL}/api/payments/bank-auth-link`,
     /** GET  /api/payments/customer */

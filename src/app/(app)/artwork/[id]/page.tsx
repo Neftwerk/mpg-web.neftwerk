@@ -5,6 +5,8 @@ import { fetchPublicArtwork, ArtworkDetail } from "@/lib/gallery-service";
 import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
 import { NeftwerkImage } from "@/components/NeftwerkImage";
 import { ArtworkDetailSkeleton } from "@/components/Skeletons";
+import { ArtworkPriceBuy } from "@/components/artwork/ArtworkPriceBuy";
+import { formatListPrice } from "@/lib/format";
 
 type Params = { id: string };
 
@@ -39,25 +41,18 @@ export default function ArtworkPage({ params }: { params: Promise<Params> }) {
     artwork?.description ??
     "This piece reimagines a familiar motif through contemporary materials and scale.";
   const imageUrl = artwork?.mediaUrl ?? "/images/art1.png";
-  const priceDollars = artwork?.listPriceCents
-    ? (artwork.listPriceCents / 100).toLocaleString("en-US", {
-        style: "currency",
-        currency: "USD",
-      })
-    : null;
+  const priceLabel = formatListPrice(artwork?.listPriceCents);
   const royaltyPercent = artwork?.royaltyBps
-    ? (artwork.royaltyBps / 100).toFixed(1) + "%"
+    ? `${(artwork.royaltyBps / 100).toFixed(1)}%`
     : null;
 
   return (
     <>
-      {/* Sticky top bar */}
       <MobileTopBar
         title="Artwork Details"
         onMenuOpen={() => setMenuOpen(true)}
       />
 
-      {/* Desktop header */}
       <header className="hidden lg:flex items-center justify-between border-b border-slate-200 bg-slate-50/95 p-4 mt-20 lg:mt-0">
         <h1 className="text-xl font-semibold text-slate-900">
           Artwork Details
@@ -70,19 +65,19 @@ export default function ArtworkPage({ params }: { params: Promise<Params> }) {
         {!loading && !artwork && (
           <div className="text-center py-16">
             <p className="font-bold text-sm uppercase tracking-wider text-[#334E57]/60">
-              Artwork not found.
+              {error ?? "Artwork not found."}
             </p>
           </div>
         )}
 
         {!loading && artwork && (
           <>
-            {/* Artwork Image Container */}
             <div className="card-neumorph p-3 bg-white mb-6">
               <NeftwerkImage
                 src={imageUrl}
                 alt={title}
                 className="w-full object-cover aspect-[4/3]"
+                priority
                 onError={(e) => {
                   e.currentTarget.src =
                     "https://picsum.photos/seed/fallback/800/600";
@@ -90,12 +85,10 @@ export default function ArtworkPage({ params }: { params: Promise<Params> }) {
               />
             </div>
 
-            {/* Title */}
             <h2 className="text-[19px] font-bold text-[#1A3F6C] mb-4">
               {title}
             </h2>
 
-            {/* Artist */}
             <div className="flex items-center gap-4 mb-6">
               <div className="h-[46px] w-[46px] rounded-full border-[2px] border-[#38A8AB] overflow-hidden flex-shrink-0">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -110,14 +103,40 @@ export default function ArtworkPage({ params }: { params: Promise<Params> }) {
               </p>
             </div>
 
-            {/* Token Details Box */}
+            <section className="card-neumorph p-5 mb-6 bg-white">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-[#334E57]/60 mb-3">
+                Purchase
+              </h3>
+
+              {artwork.galleryName && (
+                <p className="text-[14px] text-[#616161] mb-1">
+                  Gallery:{" "}
+                  <span className="font-semibold text-[#1A3F6C]">
+                    {artwork.galleryName}
+                  </span>
+                </p>
+              )}
+
+              {artwork.collection && (
+                <p className="text-[14px] text-[#616161] mb-4">
+                  Collection:{" "}
+                  <span className="font-semibold text-[#1A3F6C]">
+                    {artwork.collection.name}
+                  </span>
+                </p>
+              )}
+
+              <ArtworkPriceBuy
+                artworkId={artwork.id}
+                listPriceCents={artwork.listPriceCents}
+              />
+            </section>
+
             <div className="bg-[#F8FAFB] border border-[#BAC4C8] p-5 mb-6 flex items-center justify-between">
-              <div className="flex flex-col items-start gap-1 flex-[0.8]">
-                <span className="text-[14px] text-[#464646]">
-                  {priceDollars ? "Price" : "Token ID"}
-                </span>
+              <div className="flex flex-col items-start gap-1 flex-1">
+                <span className="text-[14px] text-[#464646]">Price</span>
                 <span className="text-[20px] font-medium text-[#1A3F6C] mt-1">
-                  {priceDollars || "—"}
+                  {priceLabel}
                 </span>
               </div>
               <div className="h-12 w-px bg-[#BAC4C8] opacity-60" />
@@ -129,28 +148,8 @@ export default function ArtworkPage({ params }: { params: Promise<Params> }) {
                   {royaltyPercent || "—"}
                 </span>
               </div>
-              <div className="h-12 w-px bg-[#BAC4C8] opacity-60" />
-              <div className="flex flex-col items-end gap-1 flex-[0.8]">
-                <span className="text-[14px] text-[#464646]">Blockchain</span>
-                <span className="text-[20px] font-medium text-[#1A3F6C] mt-1">
-                  Stellar
-                </span>
-              </div>
             </div>
 
-            {/* Collection info */}
-            {artwork.collection && (
-              <div className="mb-4">
-                <span className="text-xs font-bold uppercase tracking-widest text-[#334E57]/60">
-                  Collection
-                </span>
-                <p className="text-[15px] font-medium text-[#1A3F6C]">
-                  {artwork.collection.name}
-                </p>
-              </div>
-            )}
-
-            {/* Description */}
             <h3 className="text-[17px] font-medium text-[#1A3F6C] mb-3">
               Description
             </h3>
@@ -161,15 +160,17 @@ export default function ArtworkPage({ params }: { params: Promise<Params> }) {
         )}
       </div>
 
-      {/* Fixed bottom button */}
-      <div className="fixed bottom-6 left-0 right-0 z-30 flex justify-center px-4 pointer-events-none">
-        <button
-          type="button"
-          className="btn-neumorph w-[85%] pointer-events-auto"
-        >
-          Add to collection
-        </button>
-      </div>
+      {artwork && (
+        <div className="fixed bottom-6 left-0 right-0 z-30 flex justify-center px-4 pointer-events-none">
+          <div className="w-[85%] max-w-md pointer-events-auto card-neumorph px-4 py-3 bg-white/95 backdrop-blur-sm">
+            <ArtworkPriceBuy
+              artworkId={artwork.id}
+              listPriceCents={artwork.listPriceCents}
+              galleryName={artwork.galleryName}
+            />
+          </div>
+        </div>
+      )}
 
       <MobileMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
     </>

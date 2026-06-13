@@ -32,7 +32,6 @@ function extractTokensFromUrl(): boolean {
     url.searchParams.get("refresh_token");
 
   if (accessToken) {
-    console.log("[UserContext] Found OAuth tokens in URL, storing...");
     setTokens(accessToken, refreshToken || undefined);
     // Clean the URL so tokens aren't visible
     url.searchParams.delete("accessToken");
@@ -55,7 +54,6 @@ function extractTokensFromUrl(): boolean {
       hashParams.get("refreshToken") ||
       hashParams.get("refresh_token");
     if (hashToken) {
-      console.log("[UserContext] Found OAuth tokens in URL hash, storing...");
       setTokens(hashToken, hashRefresh || undefined);
       window.history.replaceState({}, "", window.location.pathname);
       return true;
@@ -71,7 +69,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(async () => {
     const token = getAccessToken();
-    console.log("[UserContext] refresh() called. Token exists:", !!token);
 
     if (!token) {
       setUser(null);
@@ -80,19 +77,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
 
     let result = await getProfile();
-    console.log("[UserContext] getProfile() response:", JSON.stringify(result, null, 2));
 
-    // If unauthorized, try to refresh the token once
     if (!result.ok && (result.status === 401 || result.status === 403)) {
-      console.log("[UserContext] Token expired or invalid, attempting refresh...");
       const refreshRes = await refreshAccessToken();
 
       if (refreshRes.ok) {
-        console.log("[UserContext] Token refreshed successfully, retrying profile fetch...");
         result = await getProfile();
-        console.log("[UserContext] Retry getProfile() response:", JSON.stringify(result, null, 2));
       } else {
-        console.log("[UserContext] Token refresh failed. Clearing tokens.");
         clearTokens();
         setUser(null);
         setLoading(false);
@@ -122,10 +113,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
         profile.avatarUrl = profile.profilePicture || profile.avatar || profile.picture || profile.photoUrl || profile.image || "";
       }
 
-      console.log("[UserContext] Final profile set:", profile);
       setUser(profile);
     } else {
-      console.log("[UserContext] Failed to load profile:", result.message);
       setUser(null);
     }
     setLoading(false);
@@ -140,7 +129,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
   // Listen for auth state changes (same-tab via custom event, cross-tab via storage)
   useEffect(() => {
     const handleAuthChange = () => {
-      console.log("[UserContext] Auth state changed, re-fetching profile...");
       refresh();
     };
 
