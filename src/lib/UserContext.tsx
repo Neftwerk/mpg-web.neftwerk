@@ -131,11 +131,30 @@ export function UserProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
+  // Initial mount: check URL for OAuth tokens, then fetch profile
   useEffect(() => {
-    // First, check URL for OAuth callback tokens
     extractTokensFromUrl();
-    // Then fetch profile
     refresh();
+  }, [refresh]);
+
+  // Listen for auth state changes (same-tab via custom event, cross-tab via storage)
+  useEffect(() => {
+    const handleAuthChange = () => {
+      console.log("[UserContext] Auth state changed, re-fetching profile...");
+      refresh();
+    };
+
+    // Same-tab: fired by setTokens() / clearTokens()
+    window.addEventListener("neft-auth-change", handleAuthChange);
+    // Cross-tab: fired when another tab modifies localStorage
+    window.addEventListener("storage", (e) => {
+      if (e.key === "neft_access_token") handleAuthChange();
+    });
+
+    return () => {
+      window.removeEventListener("neft-auth-change", handleAuthChange);
+      window.removeEventListener("storage", handleAuthChange);
+    };
   }, [refresh]);
 
   return (

@@ -3,6 +3,8 @@
 import React from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Bell, Menu, LogOut } from "lucide-react";
+import { useUser } from "@/lib/UserContext";
+import { logout as authLogout, clearTokens } from "@/lib/auth-service";
 
 interface AdminTopbarProps {
   onMenuToggle: () => void;
@@ -11,6 +13,7 @@ interface AdminTopbarProps {
 export function AdminTopbar({ onMenuToggle }: AdminTopbarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { user, loading } = useUser();
 
   // Generate breadcrumbs from pathname
   const pathSegments = pathname.split("/").filter(Boolean);
@@ -21,8 +24,24 @@ export function AdminTopbar({ onMenuToggle }: AdminTopbarProps) {
       .replace(/\b\w/g, (char) => char.toUpperCase());
   });
 
-  // Handle Logout by clearing the mock cookie
-  const handleLogout = () => {
+  // Derive display values from the authenticated user
+  const displayName = user?.fullName || user?.name as string || "Admin";
+  const userRole = (user?.role as string)?.replace(/_/g, " ")?.toUpperCase() || "ADMIN";
+  const initials = displayName
+    .split(" ")
+    .filter(Boolean)
+    .map((w: string) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2) || "AD";
+
+  // Handle Logout — clear tokens, clear session cookie, redirect
+  const handleLogout = async () => {
+    try {
+      await authLogout();
+    } catch {
+      clearTokens();
+    }
     document.cookie = "session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
     router.push("/login");
     router.refresh();
@@ -86,17 +105,17 @@ export function AdminTopbar({ onMenuToggle }: AdminTopbarProps) {
           <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-600"></span>
         </button>
 
-        {/* User Info */}
+        {/* User Info — dynamically shows the logged-in admin's data */}
         <div className="flex items-center gap-2 border-l border-black/10 pl-4">
           <div className="w-7 h-7 bg-[#1A3F6C] text-[#f5f0ec] font-bold text-xs flex items-center justify-center">
-            AN
+            {loading ? "··" : initials}
           </div>
           <div className="hidden lg:block text-left leading-none">
             <span className="text-xs font-bold block text-[#11181c]">
-              Adaeze Nwosu
+              {loading ? "Loading…" : displayName}
             </span>
             <span className="text-[9px] font-bold tracking-wider text-[#1A3F6C]">
-              SUPER ADMIN
+              {loading ? "—" : userRole}
             </span>
           </div>
         </div>

@@ -19,18 +19,24 @@ export function setTokens(accessToken: string, refreshToken?: string) {
   if (refreshToken) {
     localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
   }
+  // Notify UserProvider that auth state changed (same-tab)
+  window.dispatchEvent(new Event("neft-auth-change"));
 }
 
 export function clearTokens() {
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
+  // Notify UserProvider that auth state changed (same-tab)
+  window.dispatchEvent(new Event("neft-auth-change"));
 }
 
-// ─── Generic fetch wrapper ───
-async function apiFetch<T = unknown>(
+// ─── Generic fetch wrapper (exported for use by other services) ───
+export type ApiResponse<T = unknown> = { ok: boolean; status: number; data: T; message?: string };
+
+export async function apiFetch<T = unknown>(
   url: string,
   options: RequestInit = {}
-): Promise<{ ok: boolean; status: number; data: T; message?: string }> {
+): Promise<ApiResponse<T>> {
   try {
     const res = await fetch(url, {
       ...options,
@@ -56,6 +62,24 @@ async function apiFetch<T = unknown>(
     const message = err instanceof Error ? err.message : "Network error";
     return { ok: false, status: 0, data: {} as T, message };
   }
+}
+
+/** Convenience wrapper: apiFetch with Bearer token auto-attached */
+export async function authedFetch<T = unknown>(
+  url: string,
+  options: Omit<RequestInit, "headers"> & { headers?: Record<string, string> } = {}
+): Promise<ApiResponse<T>> {
+  const token = getAccessToken();
+  if (!token) {
+    return { ok: false, status: 401, data: {} as T, message: "Not authenticated" };
+  }
+  return apiFetch<T>(url, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      ...(options.headers || {}),
+    },
+  });
 }
 
 // ─── Auth API functions ───
@@ -205,6 +229,7 @@ export async function deactivateAccount() {
   return apiFetch(API_ENDPOINTS.AUTH.DEACTIVATE, {
     method: "PUT",
     headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ confirmation: "DEACTIVATE" }),
   });
 }
 
@@ -215,5 +240,6 @@ export async function deleteAccount() {
   return apiFetch(API_ENDPOINTS.AUTH.DELETE_ACCOUNT, {
     method: "DELETE",
     headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ confirmation: "DELETE" }),
   });
 }

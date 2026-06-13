@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/lib/UserContext";
-import { logout } from "@/lib/auth-service";
+import { logout, deactivateAccount, deleteAccount } from "@/lib/auth-service";
 import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
 
 export default function SettingsPage() {
@@ -12,9 +12,49 @@ export default function SettingsPage() {
   const { user, loading } = useUser();
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // Account action modals
+  const [showDeactivate, setShowDeactivate] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
+  const [deactivateConfirm, setDeactivateConfirm] = useState("");
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionError, setActionError] = useState("");
+
   const handleLogout = async () => {
     await logout();
-    router.replace("/login"); // or /signup depending on auth flow
+    router.replace("/login");
+  };
+
+  const handleDeactivate = async () => {
+    if (deactivateConfirm !== "DEACTIVATE") {
+      setActionError('Please type "DEACTIVATE" to confirm.');
+      return;
+    }
+    setActionLoading(true);
+    setActionError("");
+    const res = await deactivateAccount();
+    if (res.ok) {
+      router.replace("/login");
+    } else {
+      setActionError(res.message || "Failed to deactivate account.");
+    }
+    setActionLoading(false);
+  };
+
+  const handleDelete = async () => {
+    if (deleteConfirm !== "DELETE") {
+      setActionError('Please type "DELETE" to confirm.');
+      return;
+    }
+    setActionLoading(true);
+    setActionError("");
+    const res = await deleteAccount();
+    if (res.ok) {
+      router.replace("/login");
+    } else {
+      setActionError(res.message || "Failed to delete account.");
+    }
+    setActionLoading(false);
   };
 
   return (
@@ -58,7 +98,7 @@ export default function SettingsPage() {
 
           <div className="flex flex-col">
             <SettingsRow icon="profile" label="Edit Profile" href="/profile" />
-            <SettingsRow icon="notifications" label="Notifications" />
+            <SettingsRow icon="notifications" label="Notifications" href="/notifications" />
             <SettingsRow icon="privacy" label="Privacy & Security" className="bg-[#EAECEF] -mx-2 px-2" />
           </div>
         </div>
@@ -76,6 +116,55 @@ export default function SettingsPage() {
           </div>
         </div>
 
+        {/* DANGER ZONE */}
+        <div className="card-neumorph p-5 border border-red-100">
+          <h2 className="text-[13px] font-bold text-red-500 tracking-wide uppercase mb-2 pl-1">
+            Danger Zone
+          </h2>
+
+          <div className="flex flex-col gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setShowDeactivate(true);
+                setActionError("");
+                setDeactivateConfirm("");
+              }}
+              className="text-left py-3 px-1 text-[15px] font-semibold text-amber-600 hover:bg-amber-50/50 transition flex items-center justify-between"
+            >
+              <span className="flex items-center gap-3">
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" /><line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+                </svg>
+                Deactivate Account
+              </span>
+              <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setShowDelete(true);
+                setActionError("");
+                setDeleteConfirm("");
+              }}
+              className="text-left py-3 px-1 text-[15px] font-semibold text-red-600 hover:bg-red-50/50 transition flex items-center justify-between"
+            >
+              <span className="flex items-center gap-3">
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+                Delete Account Permanently
+              </span>
+              <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
         {/* LOGOUT BUTTON */}
         <button
           onClick={handleLogout}
@@ -84,6 +173,94 @@ export default function SettingsPage() {
           Logout
         </button>
       </div>
+
+      {/* ─── Deactivate Modal ─── */}
+      {showDeactivate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-[400px] bg-[#F2F3F7] p-6 shadow-xl">
+            <h3 className="text-lg font-bold text-amber-600 mb-2">Deactivate Account</h3>
+            <p className="text-sm text-slate-600 mb-4">
+              Your account will be deactivated and you will be logged out.
+              You can contact support to reactivate later.
+            </p>
+            <p className="text-xs text-slate-500 mb-3">
+              Type <span className="font-bold text-amber-600">DEACTIVATE</span> to confirm:
+            </p>
+            {actionError && (
+              <div className="rounded-none border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600 mb-3">
+                {actionError}
+              </div>
+            )}
+            <input
+              className="w-full border border-slate-300 bg-white px-3 py-3 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100 mb-4"
+              value={deactivateConfirm}
+              onChange={(e) => setDeactivateConfirm(e.target.value)}
+              placeholder="DEACTIVATE"
+            />
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowDeactivate(false)}
+                className="flex-1 py-3 text-sm font-medium text-slate-600 border border-slate-300 bg-white hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeactivate}
+                disabled={actionLoading || deactivateConfirm !== "DEACTIVATE"}
+                className="flex-1 py-3 text-sm font-bold text-white bg-amber-600 hover:bg-amber-700 disabled:opacity-50"
+              >
+                {actionLoading ? "Processing..." : "Deactivate"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Delete Modal ─── */}
+      {showDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-[400px] bg-[#F2F3F7] p-6 shadow-xl">
+            <h3 className="text-lg font-bold text-red-600 mb-2">Delete Account</h3>
+            <p className="text-sm text-slate-600 mb-4">
+              This action is <span className="font-bold text-red-600">irreversible</span>.
+              Your account and all data will be permanently deleted.
+            </p>
+            <p className="text-xs text-slate-500 mb-3">
+              Type <span className="font-bold text-red-600">DELETE</span> to confirm:
+            </p>
+            {actionError && (
+              <div className="rounded-none border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600 mb-3">
+                {actionError}
+              </div>
+            )}
+            <input
+              className="w-full border border-slate-300 bg-white px-3 py-3 text-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100 mb-4"
+              value={deleteConfirm}
+              onChange={(e) => setDeleteConfirm(e.target.value)}
+              placeholder="DELETE"
+            />
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowDelete(false)}
+                className="flex-1 py-3 text-sm font-medium text-slate-600 border border-slate-300 bg-white hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={actionLoading || deleteConfirm !== "DELETE"}
+                className="flex-1 py-3 text-sm font-bold text-white bg-red-600 hover:bg-red-700 disabled:opacity-50"
+              >
+                {actionLoading ? "Processing..." : "Delete Forever"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <MobileMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
     </>

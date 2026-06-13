@@ -6,43 +6,6 @@ export const navItems = [
   { href: "/profile", label: "Profile", icon: "profile" as const },
 ];
 
-export type ForumPost = {
-  id: string;
-  author: string;
-  timeAgo: string;
-  body: string;
-  imageUrl: string;
-  likes: number;
-  commentsCount: number;
-  topComment?: { author: string; text: string };
-};
-
-export const forumPosts: ForumPost[] = [
-  {
-    id: "1",
-    author: "Neftwerk News",
-    timeAgo: "1 hour ago",
-    body: "FUtility III, Veronica Ceci, Still from a performance at The Contemporary Museum Austin Texas.",
-    imageUrl: "/images/profile2.png",
-    likes: 25,
-    commentsCount: 5,
-    topComment: {
-      author: "Ricardo Nabholz",
-      text: "I am excited to own this new work from Veronica Ceci's brilliant Keeping House Series",
-    },
-  },
-  {
-    id: "2",
-    author: "Neftwerk News",
-    timeAgo: "2 hours ago",
-    body: "René Magritte's 1929 painting \"Treachery of Images\" continues to challenge how we see representation in art.",
-    imageUrl: "/images/fav1.png",
-    likes: 42,
-    commentsCount: 12,
-    topComment: { author: "MiamiCollector", text: "See you there!" },
-  },
-];
-
 export const galleryItems = [
   { id: "1", caption: "Girl with a pearl earring as Wura", imageUrl: "/images/art1.png", artist: "Paul Ayihawu", description: "Informed by his painting practice, Paul Ayihawu's \"Girl with a Pearl Earring as Wura\" is part of a series of works that replaces Western painting archetypes with black faces, absorbing the dominate traditions of painting and re-presenting them as celebrations of African culture." },
   { id: "2", caption: "Emma", imageUrl: "/images/art2.png", artist: "Unknown Artist", description: "A striking portrait exploring identity and heritage." },

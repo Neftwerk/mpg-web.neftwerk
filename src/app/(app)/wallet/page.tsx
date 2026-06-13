@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { walletAddress } from "@/lib/content";
 import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
 import { AuthGuard } from "@/components/auth/AuthGuard";
+import { useUser } from "@/lib/UserContext";
 
 export default function WalletPage() {
   return (
@@ -15,6 +15,29 @@ export default function WalletPage() {
 
 function WalletContent() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { user, loading } = useUser();
+  const [copied, setCopied] = useState(false);
+
+  const walletAddress = (user as any)?.walletAddress || "";
+
+  const handleCopy = async () => {
+    if (!walletAddress) return;
+    try {
+      await navigator.clipboard.writeText(walletAddress);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback
+      const ta = document.createElement("textarea");
+      ta.value = walletAddress;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   return (
     <>
@@ -33,8 +56,6 @@ function WalletContent() {
         <div className="relative mb-6">
           <select className="w-full appearance-none bg-white border border-slate-200 px-4 py-3.5 text-[15px] font-medium text-[#11181c] outline-none focus:border-[#4D91A7] focus:ring-1 focus:ring-[#4D91A7]/20 pr-10">
             <option>My Pocket Gallery Wallet</option>
-            <option>Credit card - 1234</option>
-            <option>Bank - 6789</option>
           </select>
           {/* Dropdown chevron */}
           <svg
@@ -45,27 +66,49 @@ function WalletContent() {
           </svg>
         </div>
 
-        {/* Balance card */}
+        {/* Balance / Wallet card */}
         <div className="bg-white border border-[#BAC4C8] text-center py-6 px-4 mb-2">
-          <p className="text-sm text-[#464646] mb-2">Wallet balance</p>
-          <h2 className="text-[28px] font-bold text-[#1A3F6C] mb-5">USD$ 38,056</h2>
-          <div className="flex items-center justify-center gap-3">
-            <p className="text-sm text-[#1A3F6C] font-medium truncate max-w-[280px] underline underline-offset-2">
-              {walletAddress}
-            </p>
-            <button
-              type="button"
-              className="flex-shrink-0 p-1 transition active:scale-95"
-              aria-label="Copy address"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/images/copybutton.svg"
-                alt="Copy"
-                className="h-[20px] w-[20px]"
-              />
-            </button>
-          </div>
+          {loading ? (
+            <div className="space-y-3">
+              <div className="h-4 w-24 bg-slate-200 animate-pulse mx-auto rounded" />
+              <div className="h-8 w-40 bg-slate-200 animate-pulse mx-auto rounded" />
+            </div>
+          ) : walletAddress ? (
+            <>
+              <p className="text-sm text-[#464646] mb-2">Wallet Address</p>
+              <div className="flex items-center justify-center gap-3">
+                <p className="text-sm text-[#1A3F6C] font-medium truncate max-w-[280px] underline underline-offset-2">
+                  {walletAddress}
+                </p>
+                <button
+                  type="button"
+                  onClick={handleCopy}
+                  className="flex-shrink-0 p-1 transition active:scale-95"
+                  aria-label="Copy address"
+                >
+                  {copied ? (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38A8AB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  ) : (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src="/images/copybutton.svg"
+                      alt="Copy"
+                      className="h-[20px] w-[20px]"
+                    />
+                  )}
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-[#464646] mb-3">No wallet linked</p>
+              <p className="text-xs text-slate-400">
+                Link a wallet address in your profile to see it here.
+              </p>
+            </>
+          )}
         </div>
 
         {/* Action buttons */}

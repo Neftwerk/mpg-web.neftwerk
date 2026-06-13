@@ -21,4 +21,62 @@ export const API_ENDPOINTS = {
     DEACTIVATE: `${API_BASE_URL}/api/auth/deactivate-self`,
     DELETE_ACCOUNT: `${API_BASE_URL}/api/auth/delete-self`,
   },
+
+  FORUM: {
+    /** GET  /api/forum/posts?page=&limit=&tags=&search=&isPinned=&sortBy=&sortOrder= */
+    LIST_POSTS: `${API_BASE_URL}/api/forum/posts`,
+    /** GET  /api/forum/posts/:slug */
+    POST_BY_SLUG: (slug: string) => `${API_BASE_URL}/api/forum/posts/${slug}`,
+    /** GET  /api/forum/posts/:postId/comments?page=&limit=&parentId=&flat= */
+    POST_COMMENTS: (postId: string) => `${API_BASE_URL}/api/forum/posts/${postId}/comments`,
+    /** POST /api/forum/posts/:postId/comments  { body, parentId? } */
+    ADD_COMMENT: (postId: string) => `${API_BASE_URL}/api/forum/posts/${postId}/comments`,
+    /** PUT  /api/forum/comments/:commentId  { body } */
+    EDIT_COMMENT: (commentId: string) => `${API_BASE_URL}/api/forum/comments/${commentId}`,
+    /** DELETE /api/forum/comments/:commentId */
+    DELETE_COMMENT: (commentId: string) => `${API_BASE_URL}/api/forum/comments/${commentId}`,
+    /** POST /api/forum/posts/:postId/react  { reaction: "like"|"dislike" } */
+    REACT_POST: (postId: string) => `${API_BASE_URL}/api/forum/posts/${postId}/react`,
+    /** POST /api/forum/comments/:commentId/react  { reaction: "like"|"dislike" } */
+    REACT_COMMENT: (commentId: string) => `${API_BASE_URL}/api/forum/comments/${commentId}/react`,
+    /** POST /api/forum/comments/:commentId/report  { reason } */
+    REPORT_COMMENT: (commentId: string) => `${API_BASE_URL}/api/forum/comments/${commentId}/report`,
+  },
+
+  NOTIFICATIONS: {
+    /** GET    /api/notifications?page=&limit=&unreadOnly= */
+    LIST: `${API_BASE_URL}/api/notifications`,
+    /** PATCH  /api/notifications/:id/read */
+    READ: (id: string) => `${API_BASE_URL}/api/notifications/${id}/read`,
+    /** PATCH  /api/notifications/read-all */
+    READ_ALL: `${API_BASE_URL}/api/notifications/read-all`,
+    /** DELETE /api/notifications/:id */
+    DELETE: (id: string) => `${API_BASE_URL}/api/notifications/${id}`,
+    /** DELETE /api/notifications */
+    DELETE_ALL: `${API_BASE_URL}/api/notifications`,
+  },
+
+  PUBLIC: {
+    /** GET /api/public/galleries/:galleryId */
+    GALLERY: (galleryId: string) => `${API_BASE_URL}/api/public/galleries/${galleryId}`,
+    /** GET /api/public/galleries/:galleryId/collections */
+    GALLERY_COLLECTIONS: (galleryId: string) => `${API_BASE_URL}/api/public/galleries/${galleryId}/collections`,
+    /** GET /api/public/collections/:collectionId */
+    COLLECTION: (collectionId: string) => `${API_BASE_URL}/api/public/collections/${collectionId}`,
+    /** GET /api/public/collections/:collectionId/artworks */
+    COLLECTION_ARTWORKS: (collectionId: string) => `${API_BASE_URL}/api/public/collections/${collectionId}/artworks`,
+    /** GET /api/public/artworks/:artworkId */
+    ARTWORK: (artworkId: string) => `${API_BASE_URL}/api/public/artworks/${artworkId}`,
+  },
+
+  PAYMENTS: {
+    /** POST /api/payments/session */
+    SESSION: `${API_BASE_URL}/api/payments/session`,
+    /** POST /api/payments/bank-auth-link */
+    BANK_AUTH_LINK: `${API_BASE_URL}/api/payments/bank-auth-link`,
+    /** GET  /api/payments/customer */
+    CUSTOMER: `${API_BASE_URL}/api/payments/customer`,
+    /** GET  /api/payments/history */
+    HISTORY: `${API_BASE_URL}/api/payments/history`,
+  },
 };
