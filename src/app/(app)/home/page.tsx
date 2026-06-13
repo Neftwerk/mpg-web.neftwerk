@@ -16,7 +16,7 @@ export default function HomeScreen() {
   return (
     <div
       className="flex flex-col min-h-[100dvh] w-full bg-cover bg-center bg-no-repeat overflow-hidden"
-      style={{ backgroundImage: "url('../../../../public/deco.jpg')" }}
+      style={{ backgroundImage: "url('/images/deco-pattern-background.svg')" }}
     >
       <HomeHeader onQrPress={() => router.push("/scan-qr")} />
 
