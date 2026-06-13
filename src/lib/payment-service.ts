@@ -1,5 +1,10 @@
 import { API_ENDPOINTS } from "./api";
 import { authedFetch, getAccessToken } from "./auth-service";
+import { authenticateSocketFiForPurchase } from "./socketfi-auth";
+import {
+  getSocketFiWalletAddress,
+  getStoredSocketFiSession,
+} from "./socketfi-session";
 
 interface CheckoutLinkData {
   checkoutLink?: string;
@@ -13,7 +18,8 @@ export async function startArtworkCheckout(opts: {
   artworkId: string;
   listPriceCents: number;
   returnPath?: string;
-}): Promise<{ ok: boolean; message?: string }> {
+  onStatus?: (status: string) => void;
+}): Promise<{ ok: boolean; message?: string; cancelled?: boolean }> {
   if (typeof window === "undefined") {
     return { ok: false, message: "Checkout is only available in the browser" };
   }
@@ -22,14 +28,29 @@ export async function startArtworkCheckout(opts: {
     return { ok: false, message: "This artwork is not available for purchase yet." };
   }
 
-  const token = getAccessToken();
   const returnPath = opts.returnPath ?? `/artwork/${opts.artworkId}`;
 
+  opts.onStatus?.("Connecting wallet…");
+  const socketfiResult = await authenticateSocketFiForPurchase();
+  if (!socketfiResult.ok) {
+    return {
+      ok: false,
+      cancelled: socketfiResult.cancelled,
+      message: socketfiResult.message,
+    };
+  }
+
+  const token = getAccessToken();
   if (!token) {
     window.location.href = `/login?redirect=${encodeURIComponent(returnPath)}`;
     return { ok: false, message: "Sign in to continue checkout." };
   }
 
+  const walletAddress = getSocketFiWalletAddress(
+    socketfiResult.session ?? getStoredSocketFiSession(),
+  );
+
+  opts.onStatus?.("Starting checkout…");
   const sessionRes = await authedFetch<{ data?: SessionData }>(
     API_ENDPOINTS.PAYMENTS.SESSION,
     {
@@ -62,6 +83,7 @@ export async function startArtworkCheckout(opts: {
         externalId: `artwork:${opts.artworkId}`,
         successUrl: `${origin}/link-success?kind=artwork`,
         cancelUrl: `${origin}${returnPath}`,
+        ...(walletAddress && { walletAddress }),
       }),
     },
   );

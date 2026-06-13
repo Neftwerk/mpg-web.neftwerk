@@ -21,6 +21,7 @@ export function ArtworkPriceBuy({
 }: ArtworkPriceBuyProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<string | null>(null);
   const priceLabel = formatListPrice(listPriceCents);
   const canBuy = listPriceCents > 0;
 
@@ -29,16 +30,28 @@ export function ArtworkPriceBuy({
     setError(null);
     setLoading(true);
 
-    const result = await startArtworkCheckout({
-      artworkId,
-      listPriceCents,
-      returnPath: `/artwork/${artworkId}`,
-    });
+    try {
+      const result = await startArtworkCheckout({
+        artworkId,
+        listPriceCents,
+        returnPath: `/artwork/${artworkId}`,
+        onStatus: setStatus,
+      });
 
-    if (!result.ok && result.message) {
-      setError(result.message);
+      if (!result.ok && !result.cancelled && result.message) {
+        setError(result.message);
+      }
+    } catch (err) {
+      console.error("[Buy] checkout failed:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again.",
+      );
+    } finally {
+      setStatus(null);
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -71,7 +84,7 @@ export function ArtworkPriceBuy({
             compact ? "!px-4 !py-2 text-[13px]" : "!px-8"
           }`}
         >
-          {loading ? "Loading…" : compact ? "Buy" : "Buy now"}
+          {loading ? status ?? "Loading…" : "Buy now"}
         </button>
       </div>
 

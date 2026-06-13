@@ -1,4 +1,5 @@
 import { API_ENDPOINTS } from "./api";
+import { clearStoredSocketFiSession } from "./socketfi-session";
 
 // ─── Token storage helpers ───
 const ACCESS_TOKEN_KEY = "neft_access_token";
@@ -26,6 +27,7 @@ export function setTokens(accessToken: string, refreshToken?: string) {
 export function clearTokens() {
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
+  clearStoredSocketFiSession();
   // Notify UserProvider that auth state changed (same-tab)
   window.dispatchEvent(new Event("neft-auth-change"));
 }
