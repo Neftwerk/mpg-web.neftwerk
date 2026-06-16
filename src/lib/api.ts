@@ -84,4 +84,11 @@ export const API_ENDPOINTS = {
     /** GET  /api/payments/history */
     HISTORY: `${API_BASE_URL}/api/payments/history`,
   },
+
+  SALES: {
+    /** POST /api/sales/checkout */
+    CHECKOUT: `${API_BASE_URL}/api/sales/checkout`,
+    /** GET /api/sales/mine */
+    MINE: `${API_BASE_URL}/api/sales/mine`,
+  },
 };

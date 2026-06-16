@@ -19,7 +19,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
       </head>
-      <body className="lg:min-h-screen bg-[url('/images/deco-pattern-background.svg')] bg-cover bg-center bg-no-repeat lg:pt-4 pb-14 text-[#11181c]">
+      <body className="lg:min-h-screen bg-[url('/images/deco.jpg')] bg-cover bg-center bg-no-repeat lg:pt-4 pb-14 text-[#11181c]">
         <Providers>{children}</Providers>
       </body>
     </html>

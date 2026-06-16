@@ -1,17 +1,22 @@
 import { API_ENDPOINTS } from "./api";
 import { authedFetch, getAccessToken } from "./auth-service";
-import { authenticateSocketFiForPurchase } from "./socketfi-auth";
-import {
-  getSocketFiWalletAddress,
-  getStoredSocketFiSession,
-} from "./socketfi-session";
 
 interface CheckoutLinkData {
   checkoutLink?: string;
+  link?: string;
 }
 
 interface SessionData {
   sessionKey?: string;
+}
+
+interface SaleCheckoutData {
+  saleId: string;
+  artworkId: string;
+  amountCents: number;
+  paymentMethod: "card" | "bank";
+  externalId: string;
+  status: "pending" | "paid" | "failed" | "refunded";
 }
 
 export async function startArtworkCheckout(opts: {
@@ -30,25 +35,35 @@ export async function startArtworkCheckout(opts: {
 
   const returnPath = opts.returnPath ?? `/artwork/${opts.artworkId}`;
 
-  opts.onStatus?.("Connecting wallet…");
-  const socketfiResult = await authenticateSocketFiForPurchase();
-  if (!socketfiResult.ok) {
-    return {
-      ok: false,
-      cancelled: socketfiResult.cancelled,
-      message: socketfiResult.message,
-    };
-  }
-
   const token = getAccessToken();
   if (!token) {
     window.location.href = `/login?redirect=${encodeURIComponent(returnPath)}`;
     return { ok: false, message: "Sign in to continue checkout." };
   }
 
-  const walletAddress = getSocketFiWalletAddress(
-    socketfiResult.session ?? getStoredSocketFiSession(),
+  opts.onStatus?.("Starting checkout…");
+  const saleRes = await authedFetch<{ data?: SaleCheckoutData }>(
+    API_ENDPOINTS.SALES.CHECKOUT,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        artworkId: opts.artworkId,
+        paymentMethod: "card", // card/bank via Coinflow hosted checkout
+      }),
+    },
   );
+
+  if (!saleRes.ok) {
+    return {
+      ok: false,
+      message: saleRes.message ?? "Could not start checkout.",
+    };
+  }
+
+  const sale = saleRes.data?.data;
+  if (!sale) {
+    return { ok: false, message: "Sale information is unavailable." };
+  }
 
   opts.onStatus?.("Starting checkout…");
   const sessionRes = await authedFetch<{ data?: SessionData }>(
@@ -78,12 +93,13 @@ export async function startArtworkCheckout(opts: {
       method: "POST",
       headers: { "x-coinflow-session-key": sessionKey },
       body: JSON.stringify({
-        subtotalCents: opts.listPriceCents,
+        subtotalCents: sale.amountCents,
         blockchain: "stellar",
-        externalId: `artwork:${opts.artworkId}`,
-        successUrl: `${origin}/link-success?kind=artwork`,
+        externalId: sale.externalId,
+        successUrl: `${origin}/link-success?kind=artwork&saleId=${encodeURIComponent(
+          sale.saleId,
+        )}`,
         cancelUrl: `${origin}${returnPath}`,
-        ...(walletAddress && { walletAddress }),
       }),
     },
   );
@@ -95,7 +111,8 @@ export async function startArtworkCheckout(opts: {
     };
   }
 
-  const checkoutLink = linkRes.data?.data?.checkoutLink;
+  const checkoutLink =
+    linkRes.data?.data?.checkoutLink ?? linkRes.data?.data?.link;
   if (!checkoutLink) {
     return { ok: false, message: "Checkout link unavailable." };
   }
