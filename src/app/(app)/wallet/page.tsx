@@ -1,216 +1,162 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
-import { authenticateSocketFi } from "@/lib/socketfi-auth";
-import { fetchUsdTokenBalance } from "@/lib/socketfi-balance";
+import { NeftwerkImage } from "@/components/NeftwerkImage";
+import { GalleryGridSkeleton } from "@/components/Skeletons";
+import { useUser } from "@/lib/UserContext";
 import {
-  getSocketFiWalletAddress,
-  getStoredSocketFiSession,
-} from "@/lib/socketfi-session";
-import type { SocketFiSession } from "@socketfi/react";
+  fetchOwnedAssets,
+  type OwnedAsset,
+  type OwnedAssetMintStatus,
+} from "@/lib/wallet-service";
+
+function mintStatusLabel(status: OwnedAssetMintStatus): string {
+  switch (status) {
+    case "minted":
+      return "Minted";
+    case "queued":
+      return "Minting";
+    case "failed":
+      return "Mint failed";
+    default:
+      return "Owned";
+  }
+}
+
+function OwnedAssetCard({ asset }: { asset: OwnedAsset }) {
+  const acquiredDate = new Date(asset.acquiredAt).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  return (
+    <article className="card-neumorph overflow-hidden">
+      <Link href={`/artwork/${asset.artworkId}`} className="block">
+        <NeftwerkImage
+          src={asset.mediaUrl}
+          alt={asset.title}
+          className="w-full object-cover"
+        />
+      </Link>
+
+      <div className="px-3 py-3 space-y-2">
+        <div className="flex items-start justify-between gap-2">
+          <Link href={`/artwork/${asset.artworkId}`} className="block min-w-0">
+            <p className="text-[13px] font-medium text-[#11181c] line-clamp-2">
+              {asset.title}
+            </p>
+          </Link>
+          <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider bg-[#1A3F6C]/10 text-[#1A3F6C] px-2 py-0.5">
+            {mintStatusLabel(asset.mintStatus)}
+          </span>
+        </div>
+
+        {asset.artistName && (
+          <p className="text-[11px] text-[#334E57]/70 truncate">{asset.artistName}</p>
+        )}
+
+        <div className="flex items-center justify-between gap-2 text-[11px] text-[#334E57]/60">
+          <span className="truncate">{asset.collectionName ?? "Collection"}</span>
+          <span className="shrink-0">{acquiredDate}</span>
+        </div>
+      </div>
+    </article>
+  );
+}
 
 export default function WalletPage() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [session, setSession] = useState<SocketFiSession | null>(null);
-  const [balanceLabel, setBalanceLabel] = useState<string | null>(null);
-  const [balanceVisible, setBalanceVisible] = useState(false);
+  const [assets, setAssets] = useState<OwnedAsset[]>([]);
   const [loading, setLoading] = useState(true);
-  const [fetchingBalance, setFetchingBalance] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-
-  const walletAddress = getSocketFiWalletAddress(session);
-
-  const loadBalance = useCallback(async (activeSession: SocketFiSession) => {
-    setError(null);
-    const result = await fetchUsdTokenBalance(activeSession);
-
-    if (result.ok) {
-      setBalanceLabel(result.balanceLabel);
-    } else if (!result.silent && result.message) {
-      setBalanceLabel(null);
-      setError(result.message);
-    } else {
-      setBalanceLabel(null);
-    }
-  }, []);
+  const { user, loading: userLoading } = useUser();
 
   useEffect(() => {
-    setSession(getStoredSocketFiSession());
-    setLoading(false);
-  }, []);
+    if (userLoading) return;
 
-  const handleShowBalance = async () => {
-    setFetchingBalance(true);
-    setError(null);
+    if (!user) {
+      setAssets([]);
+      setLoading(false);
+      return;
+    }
 
-    let activeSession = session ?? getStoredSocketFiSession();
+    let cancelled = false;
 
-    if (!activeSession) {
-      const authResult = await authenticateSocketFi("wallet");
-      if (!authResult.ok) {
-        if (!authResult.cancelled && authResult.message) {
-          setError(authResult.message);
+    fetchOwnedAssets()
+      .then((items) => {
+        if (!cancelled) setAssets(items);
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Could not load your collection.");
         }
-        setFetchingBalance(false);
-        return;
-      }
-      activeSession = authResult.session;
-      setSession(activeSession);
-    }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
 
-    await loadBalance(activeSession);
-    setBalanceVisible(true);
-    setFetchingBalance(false);
-  };
-
-  const handleHideBalance = () => {
-    setBalanceVisible(false);
-    setError(null);
-  };
-
-  const handleCopy = async () => {
-    if (!walletAddress) return;
-
-    try {
-      await navigator.clipboard.writeText(walletAddress);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      const ta = document.createElement("textarea");
-      ta.value = walletAddress;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand("copy");
-      document.body.removeChild(ta);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
+    return () => {
+      cancelled = true;
+    };
+  }, [user, userLoading]);
 
   return (
     <>
       <MobileTopBar title="Wallet" onMenuOpen={() => setMenuOpen(true)} />
 
       <header className="hidden lg:flex items-center justify-between border-b border-slate-200 bg-slate-50/95 p-4">
-        <h1 className="text-xl font-semibold text-slate-900">Wallet</h1>
+        <div>
+          <h1 className="text-xl font-semibold text-slate-900">Wallet</h1>
+          <p className="text-sm text-slate-500 mt-1">
+            Artworks you purchased or claimed
+          </p>
+        </div>
       </header>
 
-      <div className="p-5 mt-20 lg:mt-0 pb-28 lg:pb-4">
-        {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
+      <div className="p-4 pb-36 mt-20 lg:mt-0 lg:pb-4">
+        <p className="lg:hidden text-sm text-[#616161] mb-4">
+          Artworks you purchased or claimed
+        </p>
 
-        <p className="text-sm text-[#616161] mb-2">Wallet</p>
-        <div className="relative mb-6">
-          <select
-            className="w-full appearance-none bg-white border border-slate-200 px-4 py-3.5 text-[15px] font-medium text-[#11181c] outline-none focus:border-[#4D91A7] focus:ring-1 focus:ring-[#4D91A7]/20 pr-10"
-            defaultValue="mpg"
-          >
-            <option value="mpg">My Pocket Gallery Wallet</option>
-          </select>
-          <svg
-            className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-          >
-            <path
-              d="M6 9l6 6 6-6"
-              stroke="#1A3F6C"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </div>
-
-        <div className="bg-white border border-[#BAC4C8] text-center py-6 px-4 mb-2">
-          {loading || fetchingBalance ? (
-            <div className="space-y-3">
-              <div className="h-4 w-24 bg-[#e0ddd8] animate-pulse mx-auto" />
-              <div className="h-8 w-40 bg-[#e0ddd8] animate-pulse mx-auto" />
-            </div>
-          ) : balanceVisible && balanceLabel ? (
-            <>
-              <p className="text-sm text-[#464646] mb-2">USD Balance</p>
-              <p className="text-[28px] font-semibold text-[#1A3F6C] mb-4">
-                {balanceLabel}
-              </p>
-              {walletAddress && (
-                <>
-                  <p className="text-sm text-[#464646] mb-2">Wallet Address</p>
-                  <div className="flex items-center justify-center gap-3">
-                    <p className="text-sm text-[#1A3F6C] font-medium truncate max-w-[280px] underline underline-offset-2">
-                      {walletAddress}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={handleCopy}
-                      className="flex-shrink-0 p-1 transition active:scale-95"
-                      aria-label="Copy address"
-                    >
-                      {copied ? (
-                        <svg
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="#38A8AB"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                      ) : (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src="/images/copybutton.svg"
-                          alt="Copy"
-                          className="h-[20px] w-[20px]"
-                        />
-                      )}
-                    </button>
-                  </div>
-                </>
-              )}
-            </>
-          ) : balanceVisible ? (
-            <>
-              <p className="text-sm text-[#464646] mb-2">USD Balance</p>
-              <p className="text-[28px] font-semibold text-[#1A3F6C]">$0.00</p>
-            </>
-          ) : (
-            <>
-              <p className="text-sm text-[#464646] mb-3">Balance hidden</p>
-              <p className="text-xs text-slate-400">
-                Tap Show balance to authenticate and view your USD balance.
-              </p>
-            </>
-          )}
-        </div>
-
-        <div className="flex flex-col items-center gap-5 mt-8">
-          {balanceVisible ? (
-            <button
-              type="button"
-              onClick={handleHideBalance}
-              className="btn-neumorph w-[85%]"
+        {!userLoading && !user && (
+          <div className="card-neumorph p-6 text-center space-y-4">
+            <p className="text-sm text-[#464646]">
+              Sign in to see artworks you bought or claimed.
+            </p>
+            <Link
+              href="/login?redirect=/wallet"
+              className="btn-neumorph inline-block !px-8"
             >
-              Hide balance
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={handleShowBalance}
-              disabled={fetchingBalance}
-              className="btn-neumorph w-[85%] disabled:opacity-50"
-            >
-              {fetchingBalance ? "Loading…" : "Show balance"}
-            </button>
-          )}
-        </div>
+              Sign in
+            </Link>
+          </div>
+        )}
+
+        {user && error && <p className="text-sm text-red-600 mb-4">{error}</p>}
+
+        {user && loading && <GalleryGridSkeleton count={4} />}
+
+        {user && !loading && !error && assets.length === 0 && (
+          <div className="card-neumorph p-6 text-center space-y-4">
+            <p className="text-sm text-[#464646]">
+              You do not own any artworks yet.
+            </p>
+            <Link href="/gallery" className="btn-neumorph inline-block !px-8">
+              Browse gallery
+            </Link>
+          </div>
+        )}
+
+        {user && !loading && assets.length > 0 && (
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-4">
+            {assets.map((asset) => (
+              <OwnedAssetCard key={asset.saleId} asset={asset} />
+            ))}
+          </div>
+        )}
       </div>
 
       <MobileMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
