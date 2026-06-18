@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { formatListPrice } from "@/lib/format";
 import { startArtworkCheckout } from "@/lib/payment-service";
+import { CoinflowCheckoutModal } from "@/components/payments/CoinflowCheckoutModal";
+import { LinkSuccessModal } from "@/components/LinkSuccessModal";
 
 interface ArtworkPriceBuyProps {
   artworkId: string;
@@ -22,6 +24,8 @@ export function ArtworkPriceBuy({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
+  const [checkoutLink, setCheckoutLink] = useState<string | null>(null);
+  const [purchaseComplete, setPurchaseComplete] = useState(false);
   const priceLabel = formatListPrice(listPriceCents);
   const canBuy = listPriceCents > 0;
 
@@ -40,6 +44,11 @@ export function ArtworkPriceBuy({
 
       if (!result.ok && !result.cancelled && result.message) {
         setError(result.message);
+        return;
+      }
+
+      if (result.checkoutLink) {
+        setCheckoutLink(result.checkoutLink);
       }
     } catch (err) {
       console.error("[Buy] checkout failed:", err);
@@ -93,6 +102,22 @@ export function ArtworkPriceBuy({
           {error}
         </p>
       )}
+
+      <CoinflowCheckoutModal
+        isOpen={Boolean(checkoutLink)}
+        checkoutUrl={checkoutLink}
+        onClose={() => setCheckoutLink(null)}
+        onSuccess={() => {
+          setCheckoutLink(null);
+          setPurchaseComplete(true);
+        }}
+      />
+
+      <LinkSuccessModal
+        isOpen={purchaseComplete}
+        onClose={() => setPurchaseComplete(false)}
+        kind="artwork"
+      />
     </div>
   );
 }

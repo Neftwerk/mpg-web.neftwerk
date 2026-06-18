@@ -90,5 +90,25 @@ export const API_ENDPOINTS = {
     CHECKOUT: `${API_BASE_URL}/api/sales/checkout`,
     /** GET /api/sales/mine */
     MINE: `${API_BASE_URL}/api/sales/mine`,
+    /** POST /api/sales/:saleId/mint-prep */
+    MINT_PREP: (saleId: string) => `${API_BASE_URL}/api/sales/${saleId}/mint-prep`,
+    /** POST /api/sales/:saleId/mint-submit */
+    MINT_SUBMIT: (saleId: string) => `${API_BASE_URL}/api/sales/${saleId}/mint-submit`,
+  },
+
+  CHAIN: {
+    /** GET /api/chain/config */
+    CONFIG: `${API_BASE_URL}/api/chain/config`,
+  },
+
+  STORAGE: {
+    /** POST /api/storage/upload/image — multipart field: file */
+    UPLOAD_IMAGE: `${API_BASE_URL}/api/storage/upload/image`,
+    /** GET /api/storage/presign/:key */
+    PRESIGN: (key: string) =>
+      `${API_BASE_URL}/api/storage/presign/${key
+        .split("/")
+        .map(encodeURIComponent)
+        .join("/")}`,
   },
 };

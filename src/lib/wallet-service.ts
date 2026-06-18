@@ -1,7 +1,12 @@
 import { API_ENDPOINTS } from "./api";
 import { authedFetch } from "./auth-service";
 
-export type OwnedAssetMintStatus = "not_started" | "queued" | "minted" | "failed";
+export type OwnedAssetMintStatus =
+  | "not_started"
+  | "awaiting_collector"
+  | "queued"
+  | "minted"
+  | "failed";
 
 export interface OwnedAsset {
   saleId: string;
