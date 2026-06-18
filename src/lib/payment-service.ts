@@ -24,7 +24,13 @@ export async function startArtworkCheckout(opts: {
   listPriceCents: number;
   returnPath?: string;
   onStatus?: (status: string) => void;
-}): Promise<{ ok: boolean; message?: string; cancelled?: boolean }> {
+}): Promise<{
+  ok: boolean;
+  message?: string;
+  cancelled?: boolean;
+  checkoutLink?: string;
+  saleId?: string;
+}> {
   if (typeof window === "undefined") {
     return { ok: false, message: "Checkout is only available in the browser" };
   }
@@ -65,6 +71,17 @@ export async function startArtworkCheckout(opts: {
     return { ok: false, message: "Sale information is unavailable." };
   }
 
+  if (!sale.amountCents || sale.amountCents <= 0) {
+    return {
+      ok: false,
+      message: "This artwork has no valid checkout price. Please refresh and try again.",
+    };
+  }
+
+  if (process.env.NODE_ENV === "development") {
+    console.debug("[checkout] sale amountCents:", sale.amountCents);
+  }
+
   opts.onStatus?.("Starting checkout…");
   const sessionRes = await authedFetch<{ data?: SessionData }>(
     API_ENDPOINTS.PAYMENTS.SESSION,
@@ -96,10 +113,10 @@ export async function startArtworkCheckout(opts: {
         subtotalCents: sale.amountCents,
         blockchain: "stellar",
         externalId: sale.externalId,
-        successUrl: `${origin}/link-success?kind=artwork&saleId=${encodeURIComponent(
+        successUrl: `${origin}/checkout-success?kind=artwork&saleId=${encodeURIComponent(
           sale.saleId,
         )}`,
-        cancelUrl: `${origin}${returnPath}`,
+        cancelUrl: `${origin}/checkout-cancel`,
       }),
     },
   );
@@ -117,6 +134,15 @@ export async function startArtworkCheckout(opts: {
     return { ok: false, message: "Checkout link unavailable." };
   }
 
-  window.location.href = checkoutLink;
-  return { ok: true };
+  if (process.env.NODE_ENV === "development") {
+    try {
+      const parsed = new URL(checkoutLink);
+      const cents = parsed.searchParams.get("cents");
+      console.debug("[checkout] Coinflow link cents param:", cents ?? "(missing)");
+    } catch {
+      console.debug("[checkout] Coinflow link:", checkoutLink);
+    }
+  }
+
+  return { ok: true, checkoutLink, saleId: sale.saleId };
 }

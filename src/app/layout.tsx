@@ -16,10 +16,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
       </head>
-      <body className="lg:min-h-screen bg-[url('/images/deco.jpg')] bg-cover bg-center bg-no-repeat lg:pt-4 pb-14 text-[#11181c]">
+      <body
+        suppressHydrationWarning
+        className="lg:min-h-screen bg-[url('/images/deco.jpg')] bg-cover bg-center bg-no-repeat lg:pt-4 pb-14 text-[#11181c]"
+      >
         <Providers>{children}</Providers>
       </body>
     </html>

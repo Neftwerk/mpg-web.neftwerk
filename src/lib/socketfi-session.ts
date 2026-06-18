@@ -68,6 +68,55 @@ export function getSocketFiWalletAddress(session: SocketFiSession | null): strin
   return collectAddressCandidates(session)[0];
 }
 
+function normalizeCollectorPubkeyHex(value: string): string | undefined {
+  const hex = value.replace(/^0x/i, "").toLowerCase();
+  if (/^04[0-9a-f]{128}$/.test(hex)) return hex;
+  return undefined;
+}
+
+/** 65-byte uncompressed P-256 public key (04 + 128 hex) for ARTS-1 collector_sig. */
+export function getSocketFiCollectorPubkey(session: SocketFiSession | null): string | undefined {
+  if (!session) return undefined;
+
+  const wallet = session.wallet as Record<string, unknown> | undefined;
+  const profile = session.userProfile as Record<string, unknown> | undefined;
+  const root = session as Record<string, unknown>;
+  const credential =
+    profile?.credential && typeof profile.credential === "object"
+      ? (profile.credential as Record<string, unknown>)
+      : undefined;
+  const passkey =
+    profile?.passkey && typeof profile.passkey === "object"
+      ? (profile.passkey as Record<string, unknown>)
+      : undefined;
+
+  const candidates = [
+    root.collectorPubkey,
+    root.p256PublicKey,
+    root.secp256r1PublicKey,
+    wallet?.collectorPubkey,
+    wallet?.p256PublicKey,
+    wallet?.secp256r1PublicKey,
+    wallet?.passkeyPublicKey,
+    profile?.collectorPubkey,
+    profile?.p256PublicKey,
+    profile?.secp256r1PublicKey,
+    credential?.publicKey,
+    credential?.p256PublicKey,
+    passkey?.publicKey,
+    passkey?.p256PublicKey,
+  ];
+
+  for (const value of candidates) {
+    if (typeof value === "string") {
+      const normalized = normalizeCollectorPubkeyHex(value);
+      if (normalized) return normalized;
+    }
+  }
+
+  return undefined;
+}
+
 export function getSocketFiWalletAddressXdr(session: SocketFiSession | null): string | undefined {
   if (!session) return undefined;
 

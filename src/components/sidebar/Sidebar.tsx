@@ -46,11 +46,11 @@ function DesktopSidebar() {
         </div>
         <div className="flex items-center gap-3">
           <p className="text-sm text-[#D0C1BB]">
-            <span className="font-medium text-[#1A3F6C]">23k</span>{" "}
+            <span className="font-medium text-[#1A3F6C]">0</span>{" "}
             Followers
           </p>
           <p className="text-sm text-[#D0C1BB]">
-            <span className="font-medium text-[#1A3F6C]">3k</span> Following
+            <span className="font-medium text-[#1A3F6C]">0</span> Following
           </p>
         </div>
       </div>
@@ -194,12 +194,12 @@ function MobileMenu({
           </div>
           <div className="flex items-center gap-3 mb-8">
             <p className="text-[15px]">
-              <span className="font-bold text-[#1A3F6C]">0k</span>{" "}
+              <span className="font-bold text-[#1A3F6C]">0</span>{" "}
               <span className="font-medium text-[#464646]">Followers</span>
             </p>
             <div className="h-4 border-l-[1.5px] border-dotted border-slate-400" />
             <p className="text-[15px]">
-              <span className="font-bold text-[#1A3F6C]">0k</span>{" "}
+              <span className="font-bold text-[#1A3F6C]">0</span>{" "}
               <span className="font-medium text-[#464646]">Following</span>
             </p>
           </div>

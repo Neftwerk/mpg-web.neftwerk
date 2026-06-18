@@ -35,6 +35,22 @@ export function clearTokens() {
 // ─── Generic fetch wrapper (exported for use by other services) ───
 export type ApiResponse<T = unknown> = { ok: boolean; status: number; data: T; message?: string };
 
+function extractApiErrorMessage(data: Record<string, unknown>, fallback: string): string {
+  const fieldErrors = data.errors;
+  if (fieldErrors && typeof fieldErrors === "object") {
+    const first = Object.values(fieldErrors as Record<string, unknown>)
+      .flat()
+      .find((entry) => typeof entry === "string");
+    if (typeof first === "string") return first;
+  }
+
+  if (typeof data.message === "string" && data.message !== "Request body is invalid") {
+    return data.message;
+  }
+
+  return typeof data.error === "string" ? data.error : fallback;
+}
+
 export async function apiFetch<T = unknown>(
   url: string,
   options: RequestInit = {}
@@ -55,7 +71,10 @@ export async function apiFetch<T = unknown>(
         ok: false,
         status: res.status,
         data,
-        message: data?.message || data?.error || `Request failed (${res.status})`,
+        message: extractApiErrorMessage(
+          data as Record<string, unknown>,
+          `Request failed (${res.status})`,
+        ),
       };
     }
 
@@ -136,6 +155,7 @@ export interface UserProfile {
   fullName: string;
   email: string;
   bio?: string;
+  profilePicture?: string;
   avatarUrl?: string;
   [key: string]: unknown;
 }
@@ -162,7 +182,9 @@ export async function getMe() {
   });
 }
 
-export async function updateProfile(payload: Partial<Pick<UserProfile, "fullName" | "bio" | "avatarUrl">>) {
+export async function updateProfile(
+  payload: Partial<Pick<UserProfile, "fullName" | "bio" | "profilePicture">>,
+) {
   const token = getAccessToken();
   if (!token) {
     return { ok: false, status: 401, data: {} as UserProfile, message: "Not authenticated" };

@@ -6,10 +6,11 @@ import Link from "next/link";
 interface LinkSuccessModalProps {
   isOpen: boolean;
   onClose: () => void;
-  kind?: "wallet" | "bank" | "card";
+  kind?: "wallet" | "bank" | "card" | "artwork";
 }
 
 function textForSuccess(kind?: string) {
+  if (kind === "artwork") return "Your artwork purchase is complete";
   if (kind === "card") return "Your credit card has been linked successfully";
   if (kind === "bank") return "Your bank has been linked successfully";
   return "Your wallet has been linked successfully";

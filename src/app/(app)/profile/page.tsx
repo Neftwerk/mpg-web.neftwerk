@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from "react";
 import { fetchAllPublicArtworks, ArtworkItem } from "@/lib/gallery-service";
 import { useUser } from "@/lib/UserContext";
 import { updateProfile } from "@/lib/auth-service";
+import { uploadImage } from "@/lib/storage-service";
 import { NeftwerkImage } from "@/components/NeftwerkImage";
 import { ProfileSkeleton, ActivityGridSkeleton } from "@/components/Skeletons";
 
@@ -15,7 +16,7 @@ export default function ProfilePage() {
 function ProfileContent() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [editing, setEditing] = useState(false);
-  const { user, loading, refresh } = useUser();
+  const { user, loading, refresh, patchUser } = useUser();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Edit form state
@@ -40,6 +41,32 @@ function ProfileContent() {
   const displayBio = user?.bio || "";
   const displayEmail = user?.email || "";
 
+  function getProfileFieldValues() {
+    if (editing) {
+      return { fullName: editName, bio: editBio };
+    }
+    return { fullName: user?.fullName || "", bio: user?.bio || "" };
+  }
+
+  function validateProfileFields(fullName: string, bio: string): string | null {
+    const trimmedName = fullName.trim();
+    const trimmedBio = bio.trim();
+
+    if (!trimmedName || trimmedName.length < 2) {
+      return "Full name is required (at least 2 characters).";
+    }
+
+    if (!trimmedBio) {
+      return "Bio is required. Please add a short bio before saving your profile.";
+    }
+
+    if (trimmedBio.length > 500) {
+      return "Bio must not exceed 500 characters.";
+    }
+
+    return null;
+  }
+
   function openEdit() {
     setEditName(user?.fullName || "");
     setEditBio(user?.bio || "");
@@ -49,26 +76,35 @@ function ProfileContent() {
   }
 
   async function handleSave() {
-    setSaving(true);
     setSaveError("");
     setSaveSuccess("");
 
+    const validationError = validateProfileFields(editName, editBio);
+    if (validationError) {
+      setSaveError(validationError);
+      return;
+    }
+
+    setSaving(true);
+
     const result = await updateProfile({
-      fullName: editName,
-      bio: editBio,
+      fullName: editName.trim(),
+      bio: editBio.trim(),
     });
 
     if (result.ok) {
+      const trimmedName = editName.trim();
+      const trimmedBio = editBio.trim();
+
+      patchUser({ fullName: trimmedName, bio: trimmedBio });
+      setEditing(false);
       setSaveSuccess("Profile updated!");
-      await refresh();
-      setTimeout(() => {
-        setEditing(false);
-        setSaveSuccess("");
-      }, 1000);
-    } else {
-      setSaveError(result.message || "Failed to update profile.");
+      setSaving(false);
+      void refresh();
+      return;
     }
 
+    setSaveError(result.message || "Failed to update profile.");
     setSaving(false);
   }
 
@@ -80,9 +116,21 @@ function ProfileContent() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate size (keep it under 1.5MB to avoid heavy database payload)
-    if (file.size > 1.5 * 1024 * 1024) {
-      alert("Image is too large. Please select an image smaller than 1.5MB.");
+    const { fullName, bio } = getProfileFieldValues();
+    const validationError = validateProfileFields(fullName, bio);
+    if (validationError) {
+      setSaveError(validationError);
+      e.target.value = "";
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      setSaveError("Please select an image file.");
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setSaveError("Image is too large. Please select an image smaller than 10MB.");
       return;
     }
 
@@ -90,29 +138,34 @@ function ProfileContent() {
     setSaveError("");
     setSaveSuccess("");
 
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const base64Data = reader.result as string;
-      const result = await updateProfile({
-        avatarUrl: base64Data,
-      });
+    const uploadResult = await uploadImage(file);
+    if (!uploadResult.ok) {
+      setSaveError(uploadResult.message || "Failed to upload image.");
+      setSaving(false);
+      e.target.value = "";
+      return;
+    }
 
-      if (result.ok) {
-        setSaveSuccess("Profile picture updated!");
-        await refresh();
-        setTimeout(() => {
-          setSaveSuccess("");
-        }, 1500);
-      } else {
-        setSaveError(result.message || "Failed to upload avatar.");
-      }
+    patchUser({
+      avatarUrl: uploadResult.data.downloadUrl,
+      profilePicture: uploadResult.data.url,
+    });
+
+    const result = await updateProfile({
+      profilePicture: uploadResult.data.url,
+    });
+
+    if (result.ok) {
+      setSaveSuccess("Profile picture updated!");
       setSaving(false);
-    };
-    reader.onerror = () => {
-      setSaveError("Error reading file.");
-      setSaving(false);
-    };
-    reader.readAsDataURL(file);
+      e.target.value = "";
+      void refresh();
+      return;
+    }
+
+    setSaveError(result.message || "Failed to update profile picture.");
+    setSaving(false);
+    e.target.value = "";
   };
 
   return (
@@ -174,6 +227,17 @@ function ProfileContent() {
 
           {displayEmail && (
             <p className="text-[13px] text-slate-400 -mt-1">{displayEmail}</p>
+          )}
+
+          {saveError && !editing && (
+            <div className="w-full max-w-[320px] rounded-none border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
+              {saveError}
+            </div>
+          )}
+          {saveSuccess && !editing && (
+            <div className="w-full max-w-[320px] rounded-none border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-600">
+              {saveSuccess}
+            </div>
           )}
 
           {displayBio ? (
@@ -245,7 +309,7 @@ function ProfileContent() {
               </div>
 
               <label className="block text-sm font-medium text-slate-600 mb-2">
-                Full name
+                Full name <span className="text-red-500">*</span>
               </label>
               <input
                 className="w-full rounded-none border border-slate-300 bg-white px-3 py-3 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100 mb-4"
@@ -255,7 +319,7 @@ function ProfileContent() {
               />
 
               <label className="block text-sm font-medium text-slate-600 mb-2">
-                Bio
+                Bio <span className="text-red-500">*</span>
               </label>
               <textarea
                 className="w-full rounded-none border border-slate-300 bg-white px-3 py-3 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100 mb-6 resize-none"

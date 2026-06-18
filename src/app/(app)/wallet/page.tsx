@@ -11,6 +11,7 @@ import {
   type OwnedAsset,
   type OwnedAssetMintStatus,
 } from "@/lib/wallet-service";
+import { RegisterOwnershipButton } from "@/components/wallet/RegisterOwnershipButton";
 
 function mintStatusLabel(status: OwnedAssetMintStatus): string {
   switch (status) {
@@ -18,6 +19,8 @@ function mintStatusLabel(status: OwnedAssetMintStatus): string {
       return "Minted";
     case "queued":
       return "Minting";
+    case "awaiting_collector":
+      return "Register ownership";
     case "failed":
       return "Mint failed";
     default:
@@ -25,7 +28,13 @@ function mintStatusLabel(status: OwnedAssetMintStatus): string {
   }
 }
 
-function OwnedAssetCard({ asset }: { asset: OwnedAsset }) {
+function OwnedAssetCard({
+  asset,
+  onMintSuccess,
+}: {
+  asset: OwnedAsset;
+  onMintSuccess: () => void;
+}) {
   const acquiredDate = new Date(asset.acquiredAt).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
@@ -62,6 +71,13 @@ function OwnedAssetCard({ asset }: { asset: OwnedAsset }) {
           <span className="truncate">{asset.collectionName ?? "Collection"}</span>
           <span className="shrink-0">{acquiredDate}</span>
         </div>
+
+        <RegisterOwnershipButton
+          saleId={asset.saleId}
+          title={asset.title}
+          mintStatus={asset.mintStatus}
+          onSuccess={onMintSuccess}
+        />
       </div>
     </article>
   );
@@ -73,6 +89,18 @@ export default function WalletPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user, loading: userLoading } = useUser();
+
+  const reloadAssets = () => {
+    if (!user) return;
+    setLoading(true);
+    setError(null);
+    fetchOwnedAssets()
+      .then(setAssets)
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : "Could not load your collection.");
+      })
+      .finally(() => setLoading(false));
+  };
 
   useEffect(() => {
     if (userLoading) return;
@@ -153,7 +181,7 @@ export default function WalletPage() {
         {user && !loading && assets.length > 0 && (
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-4">
             {assets.map((asset) => (
-              <OwnedAssetCard key={asset.saleId} asset={asset} />
+              <OwnedAssetCard key={asset.saleId} asset={asset} onMintSuccess={reloadAssets} />
             ))}
           </div>
         )}

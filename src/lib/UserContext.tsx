@@ -2,17 +2,20 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { getProfile, getAccessToken, UserProfile, refreshAccessToken, clearTokens, setTokens } from "@/lib/auth-service";
+import { resolveProfilePictureUrl } from "@/lib/storage-service";
 
 interface UserContextValue {
   user: UserProfile | null;
   loading: boolean;
   refresh: () => Promise<void>;
+  patchUser: (updates: Partial<UserProfile>) => void;
 }
 
 const UserContext = createContext<UserContextValue>({
   user: null,
   loading: true,
   refresh: async () => {},
+  patchUser: () => {},
 });
 
 /**
@@ -67,6 +70,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const patchUser = useCallback((updates: Partial<UserProfile>) => {
+    setUser((current) => (current ? { ...current, ...updates } : current));
+  }, []);
+
   const refresh = useCallback(async () => {
     const token = getAccessToken();
 
@@ -108,9 +115,19 @@ export function UserProvider({ children }: { children: ReactNode }) {
             : "");
       }
 
-      // Use Google avatar if available and no avatarUrl set
-      if (profile && !profile.avatarUrl) {
-        profile.avatarUrl = profile.profilePicture || profile.avatar || profile.picture || profile.photoUrl || profile.image || "";
+      if (profile) {
+        const storedPicture =
+          profile.profilePicture ||
+          profile.avatarUrl ||
+          profile.avatar ||
+          profile.picture ||
+          profile.photoUrl ||
+          profile.image ||
+          "";
+
+        profile.avatarUrl = storedPicture
+          ? await resolveProfilePictureUrl(String(storedPicture))
+          : "";
       }
 
       setUser(profile);
@@ -146,7 +163,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   }, [refresh]);
 
   return (
-    <UserContext.Provider value={{ user, loading, refresh }}>
+    <UserContext.Provider value={{ user, loading, refresh, patchUser }}>
       {children}
     </UserContext.Provider>
   );
