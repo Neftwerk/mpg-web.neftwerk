@@ -207,87 +207,22 @@ export async function fetchAllPublicArtworks(): Promise<ArtworkItem[]> {
   return items;
 }
 
-function buildGalleryListFromArtworks(artworks: ArtworkItem[]): GalleryListItem[] {
-  const galleries = artworks.reduce<Record<string, GalleryListItem>>((acc, item) => {
-    const existing = acc[item.galleryId];
-
-    if (!existing) {
-      acc[item.galleryId] = {
-        id: item.galleryId,
-        name: item.galleryName ?? "Gallery",
-        artworkCount: 1,
-        minPriceCents:
-          item.listPriceCents > 0 ? item.listPriceCents : Number.POSITIVE_INFINITY,
-        coverMediaUrl: item.mediaUrl,
-      };
-      return acc;
-    }
-
-    existing.artworkCount += 1;
-    if (item.listPriceCents > 0) {
-      existing.minPriceCents = Math.min(existing.minPriceCents, item.listPriceCents);
-    }
-    if (!existing.name && item.galleryName) {
-      existing.name = item.galleryName;
-    }
-    return acc;
-  }, {});
-
-  return Object.values(galleries).map((gallery) => ({
-    ...gallery,
-    minPriceCents: Number.isFinite(gallery.minPriceCents) ? gallery.minPriceCents : 0,
-  }));
-}
-
-/** List public galleries derived from catalog artworks. */
+/** List public galleries with catalog stats (fast — no full artwork fetch). */
 export async function fetchPublicGalleries(): Promise<GalleryListItem[]> {
-  const artworks = await fetchAllPublicArtworks();
-  const galleries = buildGalleryListFromArtworks(artworks);
-
-  await Promise.all(
-    galleries
-      .filter((gallery) => gallery.name === "Gallery")
-      .map(async (gallery) => {
-        const details = await fetchPublicGallery(gallery.id);
-        if (!details) return;
-
-        gallery.name = details.name;
-        gallery.country = details.country;
-      }),
+  const json = await safeFetch<{ data?: { galleries?: GalleryListItem[] } }>(
+    `${API_ENDPOINTS.PUBLIC.GALLERIES}?limit=100`,
   );
-
-  return galleries.sort((a, b) => a.name.localeCompare(b.name));
+  return json?.data?.galleries ?? [];
 }
 
 /** Fetch all artworks for a single gallery. */
 export async function fetchPublicGalleryArtworks(
   galleryId: string,
 ): Promise<ArtworkItem[]> {
-  const allArtworks = await fetchAllPublicArtworks();
-  const fromAggregate = allArtworks.filter((item) => item.galleryId === galleryId);
-
-  if (fromAggregate.length > 0) {
-    return fromAggregate;
-  }
-
-  const gallery = await fetchPublicGallery(galleryId);
-  if (!gallery) return [];
-
-  const collections = await fetchPublicCollections(galleryId);
-  if (!collections.length) return [];
-
-  const batches = await Promise.all(
-    collections.map(async (collection) => {
-      const artworks = await fetchPublicCollectionArtworks(collection.id);
-      return artworks.map((artwork) => ({
-        ...artwork,
-        galleryName: gallery.name,
-        collectionName: collection.name,
-      }));
-    }),
+  const json = await safeFetch<{ data?: { artworks?: ArtworkItem[] } }>(
+    `${API_ENDPOINTS.PUBLIC.GALLERY_ARTWORKS(galleryId)}?limit=100`,
   );
-
-  return batches.flat().filter((item) => Boolean(item.mediaUrl));
+  return json?.data?.artworks ?? [];
 }
 
 /**

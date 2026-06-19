@@ -6,6 +6,7 @@ import { fetchPublicGalleries, GalleryListItem } from "@/lib/gallery-service";
 import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
 import { SkeletonBar } from "@/components/Skeletons";
 import { formatListPrice } from "@/lib/format";
+import { NeftwerkImage } from "@/components/NeftwerkImage";
 
 function GalleryListSkeleton() {
   return (
@@ -43,6 +44,17 @@ export default function GalleryPage() {
     load();
   }, []);
 
+  useEffect(() => {
+    galleries.slice(0, 6).forEach((gallery) => {
+      if (!gallery.coverMediaUrl) return;
+      const link = document.createElement("link");
+      link.rel = "prefetch";
+      link.as = "image";
+      link.href = gallery.coverMediaUrl;
+      document.head.appendChild(link);
+    });
+  }, [galleries]);
+
   return (
     <>
       <MobileTopBar title="Gallery" onMenuOpen={() => setMenuOpen(true)} />
@@ -76,11 +88,12 @@ export default function GalleryPage() {
                 className="card-neumorph px-4 py-4 flex items-center gap-4 hover:opacity-95 transition-opacity"
               >
                 {gallery.coverMediaUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <NeftwerkImage
                     src={gallery.coverMediaUrl}
                     alt={gallery.name}
-                    className="h-16 w-16 flex-shrink-0 object-cover"
+                    className="h-16 w-16 flex-shrink-0"
+                    imgClassName="h-16 w-16"
+                    priority={false}
                   />
                 ) : (
                   <div className="h-16 w-16 flex-shrink-0 bg-[#e8edf0]" />

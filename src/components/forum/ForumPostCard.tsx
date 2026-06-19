@@ -99,9 +99,9 @@ function formatTimeAgo(dateStr: string): string {
 
 // ─── Component ───
 
-type Props = { post: ForumPost };
+type Props = { post: ForumPost; priority?: boolean };
 
-export function ForumPostCard({ post }: Props) {
+export function ForumPostCard({ post, priority = false }: Props) {
   const { user } = useUser();
   const [liked, setLiked] = useState(post.userReaction === "like");
   const [likesCount, setLikesCount] = useState(post.likeCount);
@@ -166,6 +166,7 @@ export function ForumPostCard({ post }: Props) {
             className="mb-3 w-full bg-slate-100 object-cover max-h-[300px]"
             src={post.coverImage}
             alt={post.title}
+            priority={priority}
           />
         </Link>
       )}

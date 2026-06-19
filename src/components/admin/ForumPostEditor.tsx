@@ -1,13 +1,46 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Pin, Eye, Calendar, Upload, FileText, ChevronRight } from "lucide-react";
+import { Pin, Eye, Calendar, Upload, FileText } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
+import { uploadImage, resolveStorageUrl } from "@/lib/storage-service";
+import {
+  archiveForumPost,
+  createForumPost,
+  updateForumPost,
+  type CreateForumPostInput,
+  type ForumPost,
+} from "@/lib/forum-service";
 
 interface EditorProps {
   postId?: string;
-  initialData?: any;
+  initialData?: Partial<ForumPost> & {
+    scheduleDate?: string;
+    pinned?: boolean;
+    imageUrl?: string;
+  };
+}
+
+type PostStatus = "DRAFT" | "SCHEDULED" | "PUBLISHED";
+
+function toEditorStatus(status?: string): PostStatus {
+  const normalized = (status || "draft").toUpperCase();
+  if (normalized === "SCHEDULED" || normalized === "PUBLISHED") return normalized;
+  return "DRAFT";
+}
+
+function toApiStatus(status: PostStatus): CreateForumPostInput["status"] {
+  return status.toLowerCase() as CreateForumPostInput["status"];
+}
+
+function formatScheduleDate(value?: string): string {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const offset = date.getTimezoneOffset();
+  const local = new Date(date.getTime() - offset * 60_000);
+  return local.toISOString().slice(0, 16);
 }
 
 export function ForumPostEditor({ postId, initialData }: EditorProps) {
@@ -18,15 +51,41 @@ export function ForumPostEditor({ postId, initialData }: EditorProps) {
   // Form parameters
   const [title, setTitle] = useState(initialData?.title || "");
   const [excerpt, setExcerpt] = useState(initialData?.excerpt || "");
-  const [body, setBody] = useState(
-    initialData?.body ||
-      "### Understanding the Protocol\n\nStellar anchors provide critical off-ramps..."
+  const [body, setBody] = useState(initialData?.body || "");
+  const [tags, setTags] = useState(
+    Array.isArray(initialData?.tags) ? initialData.tags.join(", ") : ""
   );
-  const [tags, setTags] = useState(initialData?.tags || "stellar, arts-1, zk-proofs");
-  const [status, setStatus] = useState<"DRAFT" | "SCHEDULED" | "PUBLISHED">(initialData?.status || "DRAFT");
-  const [scheduleDate, setScheduleDate] = useState(initialData?.scheduleDate || "");
-  const [pinned, setPinned] = useState(initialData?.pinned || false);
-  const [coverImage, setCoverImage] = useState(initialData?.coverImage || initialData?.imageUrl || "");
+  const [status, setStatus] = useState<PostStatus>(toEditorStatus(initialData?.status));
+  const [scheduleDate, setScheduleDate] = useState(
+    formatScheduleDate(initialData?.scheduleDate || initialData?.scheduledAt)
+  );
+  const [pinned, setPinned] = useState(initialData?.pinned ?? initialData?.isPinned ?? false);
+  const [coverImageUrl, setCoverImageUrl] = useState(
+    initialData?.coverImage || initialData?.imageUrl || ""
+  );
+  const [coverImagePreview, setCoverImagePreview] = useState("");
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    const storedUrl = initialData?.coverImage || initialData?.imageUrl;
+
+    if (!storedUrl) {
+      setCoverImagePreview("");
+      return;
+    }
+
+    setCoverImageUrl(storedUrl);
+    void resolveStorageUrl(storedUrl).then((url) => {
+      if (!cancelled) setCoverImagePreview(url);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [initialData?.coverImage, initialData?.imageUrl]);
 
   // Live Simulator interactive states matching mobile client
   const [liked, setLiked] = useState(false);
@@ -60,21 +119,130 @@ export function ForumPostEditor({ postId, initialData }: EditorProps) {
     }
   };
 
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title.trim()) {
-      alert("Post title is required!");
-      return;
+  const revokePreviewIfBlob = (preview: string) => {
+    if (preview.startsWith("blob:")) {
+      URL.revokeObjectURL(preview);
     }
-    alert(`Post ${postId ? "updated" : "created"} successfully under state ${status}!`);
-    router.push("/forum");
   };
 
-  const handleArchive = () => {
-    if (confirm("Are you sure you want to archive this post? It will be retracted from directories.")) {
-      alert("Post archived successfully.");
-      router.push("/forum");
+  const handleCoverImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setSaveError("Please select an image file.");
+      e.target.value = "";
+      return;
     }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setSaveError("Image is too large. Please select an image smaller than 10MB.");
+      e.target.value = "";
+      return;
+    }
+
+    setSaveError("");
+    revokePreviewIfBlob(coverImagePreview);
+    const blobUrl = URL.createObjectURL(file);
+    setCoverImagePreview(blobUrl);
+    setUploadingCover(true);
+
+    const uploadResult = await uploadImage(file);
+    if (!uploadResult.ok) {
+      setSaveError(uploadResult.message || "Failed to upload cover image.");
+      revokePreviewIfBlob(blobUrl);
+      setCoverImagePreview(coverImageUrl ? await resolveStorageUrl(coverImageUrl) : "");
+      setUploadingCover(false);
+      e.target.value = "";
+      return;
+    }
+
+    setCoverImageUrl(uploadResult.data.url);
+    setCoverImagePreview(uploadResult.data.downloadUrl);
+    setUploadingCover(false);
+    e.target.value = "";
+  };
+
+  const handleRemoveCoverImage = () => {
+    revokePreviewIfBlob(coverImagePreview);
+    setCoverImageUrl("");
+    setCoverImagePreview("");
+    if (coverImageInputRef.current) {
+      coverImageInputRef.current.value = "";
+    }
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim()) {
+      setSaveError("Post title is required.");
+      return;
+    }
+    if (excerpt.trim().length < 10) {
+      setSaveError("Excerpt must be at least 10 characters.");
+      return;
+    }
+    if (!body.trim()) {
+      setSaveError("Post body is required.");
+      return;
+    }
+    if (status === "SCHEDULED" && !scheduleDate) {
+      setSaveError("Schedule date is required for scheduled posts.");
+      return;
+    }
+    if (uploadingCover) {
+      setSaveError("Please wait for the cover image upload to finish.");
+      return;
+    }
+
+    setSaving(true);
+    setSaveError("");
+
+    const payload: CreateForumPostInput = {
+      title: title.trim(),
+      excerpt: excerpt.trim(),
+      body: body.trim(),
+      tags: tags
+        .split(",")
+        .map((tag) => tag.trim().toLowerCase())
+        .filter(Boolean),
+      status: toApiStatus(status),
+      isPinned: pinned,
+      coverImage: coverImageUrl || (postId ? null : undefined),
+      ...(status === "SCHEDULED" && scheduleDate
+        ? { scheduledAt: new Date(scheduleDate).toISOString() }
+        : {}),
+    };
+
+    const result = postId
+      ? await updateForumPost(postId, payload)
+      : await createForumPost(payload);
+
+    if (result.ok) {
+      router.push("/admin/forum");
+      return;
+    }
+
+    setSaveError(result.message || "Failed to save post.");
+    setSaving(false);
+  };
+
+  const handleArchive = async () => {
+    if (!postId) return;
+    if (!confirm("Are you sure you want to archive this post? It will be retracted from directories.")) {
+      return;
+    }
+
+    setSaving(true);
+    setSaveError("");
+    const result = await archiveForumPost(postId);
+    if (result.ok) {
+      router.push("/admin/forum");
+      return;
+    }
+
+    setSaveError(result.message || "Failed to archive post.");
+    setSaving(false);
   };
 
   return (
@@ -154,29 +322,31 @@ export function ForumPostEditor({ postId, initialData }: EditorProps) {
           <input
             type="file"
             ref={coverImageInputRef}
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) {
-                const url = URL.createObjectURL(file);
-                setCoverImage(url);
-              }
-            }}
+            onChange={handleCoverImageChange}
             accept="image/*"
             className="hidden"
           />
           <div className="bg-white p-4 border border-dashed border-[#1A3F6C]/20 flex flex-col items-center justify-center gap-3 relative">
-            {coverImage ? (
+            {coverImagePreview ? (
               <div className="relative w-full h-36 bg-slate-100 overflow-hidden border border-black/10">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={coverImage}
+                  src={coverImagePreview}
                   alt="Header preview"
                   className="w-full h-full object-cover"
                 />
+                {uploadingCover && (
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-white">
+                      Uploading...
+                    </span>
+                  </div>
+                )}
                 <button
                   type="button"
-                  onClick={() => setCoverImage("")}
-                  className="absolute top-2 right-2 px-2 py-1 bg-black text-white text-[9px] font-black uppercase tracking-wider hover:bg-black/80"
+                  onClick={handleRemoveCoverImage}
+                  disabled={uploadingCover}
+                  className="absolute top-2 right-2 px-2 py-1 bg-black text-white text-[9px] font-black uppercase tracking-wider hover:bg-black/80 disabled:opacity-50"
                 >
                   Remove
                 </button>
@@ -259,6 +429,10 @@ export function ForumPostEditor({ postId, initialData }: EditorProps) {
         </div>
 
         {/* Action button rows */}
+        {saveError && (
+          <p className="text-xs font-bold text-red-600 uppercase tracking-wide">{saveError}</p>
+        )}
+
         <div className="border-t border-black/10 pt-6 mt-6 flex justify-between gap-4 flex-wrap">
           {postId && (
             <button
@@ -273,16 +447,17 @@ export function ForumPostEditor({ postId, initialData }: EditorProps) {
           <div className="flex items-center gap-3 ml-auto">
             <button
               type="button"
-              onClick={() => router.push("/forum")}
+              onClick={() => router.push("/admin/forum")}
               className="btn-neumorph py-2.5 px-4 text-xs font-bold uppercase"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="btn-neumorph py-2.5 px-6 text-xs font-black uppercase tracking-widest text-[#f5f0ec] bg-[#1A3F6C]"
+              disabled={saving || uploadingCover}
+              className="btn-neumorph py-2.5 px-6 text-xs font-black uppercase tracking-widest text-[#f5f0ec] bg-[#1A3F6C] disabled:opacity-50"
             >
-              Save Publication
+              {saving ? "Saving..." : "Save Publication"}
             </button>
           </div>
         </div>
@@ -364,11 +539,11 @@ export function ForumPostEditor({ postId, initialData }: EditorProps) {
             )}
 
             {/* Main cover image with robust widescreen container layout */}
-            {coverImage ? (
+            {coverImagePreview ? (
               <div className="mb-3 w-full bg-slate-100 border border-black/5 overflow-hidden relative aspect-[16/9]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={coverImage}
+                  src={coverImagePreview}
                   alt="Post Cover Preview"
                   className="absolute inset-0 w-full h-full object-cover"
                 />

@@ -26,6 +26,14 @@ export const API_ENDPOINTS = {
   FORUM: {
     /** GET  /api/forum/posts?page=&limit=&tags=&search=&isPinned=&sortBy=&sortOrder= */
     LIST_POSTS: `${API_BASE_URL}/api/forum/posts`,
+    /** POST /api/forum/admin/posts */
+    ADMIN_CREATE_POST: `${API_BASE_URL}/api/forum/admin/posts`,
+    /** GET  /api/forum/admin/posts/:id */
+    ADMIN_POST: (id: string) => `${API_BASE_URL}/api/forum/admin/posts/${id}`,
+    /** PUT  /api/forum/admin/posts/:id */
+    ADMIN_UPDATE_POST: (id: string) => `${API_BASE_URL}/api/forum/admin/posts/${id}`,
+    /** DELETE /api/forum/admin/posts/:id */
+    ADMIN_DELETE_POST: (id: string) => `${API_BASE_URL}/api/forum/admin/posts/${id}`,
     /** GET  /api/forum/posts/:slug */
     POST_BY_SLUG: (slug: string) => `${API_BASE_URL}/api/forum/posts/${slug}`,
     /** GET  /api/forum/posts/:postId/comments?page=&limit=&parentId=&flat= */
@@ -58,8 +66,13 @@ export const API_ENDPOINTS = {
   },
 
   PUBLIC: {
+    /** GET /api/public/galleries?page=&limit= */
+    GALLERIES: `${API_BASE_URL}/api/public/galleries`,
     /** GET /api/public/galleries/:galleryId */
     GALLERY: (galleryId: string) => `${API_BASE_URL}/api/public/galleries/${galleryId}`,
+    /** GET /api/public/galleries/:galleryId/artworks?page=&limit= */
+    GALLERY_ARTWORKS: (galleryId: string) =>
+      `${API_BASE_URL}/api/public/galleries/${galleryId}/artworks`,
     /** GET /api/public/galleries/:galleryId/collections */
     GALLERY_COLLECTIONS: (galleryId: string) => `${API_BASE_URL}/api/public/galleries/${galleryId}/collections`,
     /** GET /api/public/collections/:collectionId */

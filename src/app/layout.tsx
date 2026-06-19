@@ -18,6 +18,19 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {process.env.NEXT_PUBLIC_MEDIA_HOST ? (
+          <>
+            <link
+              rel="dns-prefetch"
+              href={`https://${process.env.NEXT_PUBLIC_MEDIA_HOST}`}
+            />
+            <link
+              rel="preconnect"
+              href={`https://${process.env.NEXT_PUBLIC_MEDIA_HOST}`}
+              crossOrigin="anonymous"
+            />
+          </>
+        ) : null}
       </head>
       <body
         suppressHydrationWarning
