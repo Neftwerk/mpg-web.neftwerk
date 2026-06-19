@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 import { HomeHeader } from "@/components/home/HomeHeader";
 import DiscoverIcon from "../../../../public/discovercard.svg";
 import ForumIcon from "../../../../public/forumcard.svg";
@@ -11,13 +11,14 @@ import ProfileIcon from "../../../../public/profilecard.svg";
 import WalletIcon from "../../../../public/walletcard.svg";
 
 export default function HomeScreen() {
-  const router = useRouter();
+  // const router = useRouter();
 
   return (
     <div
       className="flex flex-col min-h-[100dvh] w-full overflow-hidden"
     >
-      <HomeHeader onQrPress={() => router.push("/scan-qr")} />
+      {/* <HomeHeader onQrPress={() => router.push("/scan-qr")} /> */}
+      <HomeHeader />
 
       {/* Main content perfectly centered vertically and horizontally */}
       <div className="flex-1 flex items-center justify-center pt-[60px] pb-4">

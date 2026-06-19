@@ -1,41 +1,60 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ForumPostEditor } from "@/components/admin/ForumPostEditor";
+import { getForumPostById, type ForumPost } from "@/lib/forum-service";
 import { ArrowLeft } from "lucide-react";
-
-const MOCK_POSTS_DETAILS: Record<string, any> = {
-  "post-01": {
-    title: "Introducing ARTS-1: Art on Stellar",
-    excerpt: "The first formal release specification details for digital art on Stellar. Learn how to sequence and catalog smart split rules.",
-    body: "### Introducing ARTS-1 Standard\n\nWe are proud to announce the formal release of the **ARTS-1 standard** on the Stellar network. This protocol enables native digital artworks to carry built-in split payout instructions, metadata references, and zero-knowledge commitment validations.\n\n#### Key Architectural Enhancements\n- **Decentralized Split Registries**: Direct smart routing to custom payout nodes.\n- **IPFS Persistence**: Zero dependency on static backend file repositories.\n- **ZK Proof Bindings**: Maintain high-fidelity transaction validation while retaining complete privacy.",
-    tags: "stellar, arts-1, specs, contracts",
-    status: "PUBLISHED",
-    scheduleDate: "",
-    pinned: true,
-  },
-  "post-02": {
-    title: "How ZK Commitments Protect Collector Privacy",
-    excerpt: "An architectural review of how we embed zero knowledge parameters inside digital ledger records to mask transaction sizes.",
-    body: "### Zero Knowledge Mechanics\n\nPrivacy remains a vital pillar for contemporary art collectors globally. The integration of ZK commitments inside our smart metadata validations ensures that buyers can prove legitimacy without exposing secondary ledger balances.\n\n#### Validation Workflow\n1. Generate local commit hash on asset claim.\n2. Submit validator verify transaction.\n3. Bound commitment parameters natively to token minting structures.",
-    tags: "zk-proofs, privacy, security, ledger",
-    status: "PUBLISHED",
-    scheduleDate: "",
-    pinned: false,
-  }
-};
 
 export default function EditForumPostPage() {
   const params = useParams();
-  const id = (params?.id as string) || "post-01";
+  const id = params?.id as string;
+  const [initialData, setInitialData] = useState<ForumPost | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const postData = MOCK_POSTS_DETAILS[id] || MOCK_POSTS_DETAILS["post-01"];
+  useEffect(() => {
+    if (!id) return;
+
+    let cancelled = false;
+
+    const loadPost = async () => {
+      setLoading(true);
+      setError("");
+
+      const result = await getForumPostById(id);
+      if (cancelled) return;
+
+      if (!result.ok) {
+        setError(result.message || "Failed to load post.");
+        setLoading(false);
+        return;
+      }
+
+      const post =
+        (result.data as { data?: { post?: ForumPost } })?.data?.post ||
+        (result.data as { post?: ForumPost })?.post;
+
+      if (!post) {
+        setError("Post not found.");
+        setLoading(false);
+        return;
+      }
+
+      setInitialData(post);
+      setLoading(false);
+    };
+
+    void loadPost();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col gap-2">
         <Link
           href="/admin/forum"
@@ -54,8 +73,24 @@ export default function EditForumPostPage() {
         </div>
       </div>
 
-      {/* Editor loaded with existing post parameters */}
-      <ForumPostEditor postId={id} initialData={postData} />
+      {loading && (
+        <div className="card-neumorph p-8 text-center text-sm font-bold uppercase tracking-widest text-[#1A3F6C]/60">
+          Loading post...
+        </div>
+      )}
+
+      {!loading && error && (
+        <div className="card-neumorph p-8 text-center">
+          <p className="text-sm text-red-600 mb-4">{error}</p>
+          <Link href="/admin/forum" className="btn-neumorph px-6 py-2 text-xs font-bold uppercase">
+            Back to Forum
+          </Link>
+        </div>
+      )}
+
+      {!loading && !error && initialData && (
+        <ForumPostEditor postId={id} initialData={initialData} />
+      )}
     </div>
   );
 }

@@ -31,6 +31,20 @@ export function extractS3KeyFromUrl(url: string): string | null {
   }
 }
 
+/** Public catalog URLs are already presigned — skip a second round-trip. */
+export function isPresignedMediaUrl(url?: string): boolean {
+  if (!url) return false;
+
+  try {
+    const parsed = new URL(url);
+    if (parsed.searchParams.has("X-Amz-Signature")) return true;
+    if (parsed.searchParams.get("dev-mode") === "true") return true;
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 export async function uploadImage(file: File): Promise<ApiResponse<UploadedImage>> {
   const token = getAccessToken();
   if (!token) {
@@ -75,12 +89,17 @@ export async function presignStorageKey(key: string): Promise<string | null> {
   return result.data?.data?.url ?? null;
 }
 
-export async function resolveProfilePictureUrl(profilePicture?: string): Promise<string> {
-  if (!profilePicture) return "";
+export async function resolveStorageUrl(url?: string): Promise<string> {
+  if (!url) return "";
+  if (isPresignedMediaUrl(url)) return url;
 
-  const s3Key = extractS3KeyFromUrl(profilePicture);
-  if (!s3Key) return profilePicture;
+  const s3Key = extractS3KeyFromUrl(url);
+  if (!s3Key) return url;
 
   const presigned = await presignStorageKey(s3Key);
-  return presigned || profilePicture;
+  return presigned || url;
+}
+
+export async function resolveProfilePictureUrl(profilePicture?: string): Promise<string> {
+  return resolveStorageUrl(profilePicture);
 }

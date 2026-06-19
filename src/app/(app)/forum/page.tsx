@@ -68,6 +68,17 @@ export default function ForumPage() {
     fetchPosts(1, false);
   }, [fetchPosts]);
 
+  useEffect(() => {
+    posts.slice(0, 4).forEach((post) => {
+      if (!post.coverImage) return;
+      const link = document.createElement("link");
+      link.rel = "prefetch";
+      link.as = "image";
+      link.href = post.coverImage;
+      document.head.appendChild(link);
+    });
+  }, [posts]);
+
   const loadMore = () => {
     const next = page + 1;
     setPage(next);
@@ -182,8 +193,8 @@ export default function ForumPage() {
         {/* Posts feed */}
         {!loading && !error && posts.length > 0 && (
           <div className="grid forum-feed">
-            {posts.map((post) => (
-              <ForumPostCard key={post._id} post={post} />
+            {posts.map((post, index) => (
+              <ForumPostCard key={post._id} post={post} priority={index === 0} />
             ))}
           </div>
         )}

@@ -27,6 +27,13 @@ const menuIconMap: Record<string, string> = {
   support: "/images/supportbutton.svg",
 };
 
+const sidebarMenuItems = [
+  { href: "/home", label: "Home", icon: "home" },
+  ...navItems,
+  { href: "/settings", label: "Settings", icon: "settings" },
+  { href: "/support", label: "Support", icon: "support" },
+];
+
 /* ---------- Desktop sidebar (hidden on mobile) ---------- */
 function DesktopSidebar() {
   const pathname = usePathname();
@@ -54,7 +61,7 @@ function DesktopSidebar() {
           </p>
         </div>
       </div>
-      {navItems.map((item) => {
+      {sidebarMenuItems.map((item) => {
         const active = pathname === item.href;
         return (
           <Link
@@ -76,28 +83,6 @@ function DesktopSidebar() {
           </Link>
         );
       })}
-      <Link
-        href="/settings"
-        className={`mb-2 flex items-center gap-2 px-3 py-2 text-sm font-semibold transition ${pathname === "/settings"
-          ? "bg-sky-100 text-slate-900"
-          : "text-slate-700 hover:bg-slate-100"
-          }`}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/images/settings%20button.svg" alt="" className="h-9 w-9" aria-hidden />
-        <span>Settings</span>
-      </Link>
-      <Link
-        href="/support"
-        className={`flex items-center gap-2 px-3 py-2 text-sm font-semibold transition ${pathname === "/support"
-          ? "bg-sky-100 text-slate-900"
-          : "text-slate-700 hover:bg-slate-100"
-          }`}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/images/supportbutton.svg" alt="" className="h-9 w-9" aria-hidden />
-        <span>Support</span>
-      </Link>
     </aside>
   );
 }
@@ -156,13 +141,6 @@ function MobileMenu({
   const pathname = usePathname();
   const { user } = useUser();
 
-  const menuItems = [
-    { href: "/home", label: "Home", icon: "home" },
-    ...navItems.map((n) => ({ href: n.href, label: n.label, icon: n.icon })),
-    { href: "/settings", label: "Settings", icon: "settings" },
-    { href: "/support", label: "Support", icon: "support" },
-  ];
-
   return (
     <>
       {/* Overlay */}
@@ -217,7 +195,7 @@ function MobileMenu({
 
           {/* Nav links */}
           <nav className="flex flex-col gap-3">
-            {menuItems.map((item) => {
+            {sidebarMenuItems.map((item) => {
               const active = pathname === item.href;
               return (
                 <Link

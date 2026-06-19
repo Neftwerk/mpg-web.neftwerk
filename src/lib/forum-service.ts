@@ -19,6 +19,7 @@ export interface ForumPost {
   viewCount: number;
   commentsEnabled: boolean;
   commentThreadMode: "flat" | "threaded";
+  scheduledAt?: string;
   publishedAt: string;
   createdAt: string;
   updatedAt: string;
@@ -111,6 +112,72 @@ export async function getForumPosts(params: ListPostsParams = {}): Promise<ApiRe
 
 export async function getForumPostBySlug(slug: string): Promise<ApiResponse<{ post: ForumPost }>> {
   return apiFetch<{ post: ForumPost }>(API_ENDPOINTS.FORUM.POST_BY_SLUG(slug), { method: "GET" });
+}
+
+// ─── Admin Post Endpoints ───
+
+export interface CreateForumPostInput {
+  title: string;
+  excerpt: string;
+  body: string;
+  coverImage?: string | null;
+  tags?: string[];
+  status?: ForumPost["status"];
+  scheduledAt?: string;
+  isPinned?: boolean;
+  commentsEnabled?: boolean;
+  commentThreadMode?: "flat" | "threaded";
+}
+
+export type UpdateForumPostInput = Partial<CreateForumPostInput>;
+
+function unwrapPostPayload(data: unknown): ForumPost | null {
+  const nested = (data as { data?: { post?: ForumPost } })?.data?.post;
+  if (nested?._id) return nested;
+  const direct = (data as { post?: ForumPost })?.post;
+  if (direct?._id) return direct;
+  return null;
+}
+
+export async function getForumPostById(id: string): Promise<ApiResponse<{ post: ForumPost }>> {
+  return authedFetch<{ post: ForumPost }>(API_ENDPOINTS.FORUM.ADMIN_POST(id), { method: "GET" });
+}
+
+export async function createForumPost(
+  input: CreateForumPostInput
+): Promise<ApiResponse<{ post: ForumPost }>> {
+  const result = await authedFetch<{ post: ForumPost }>(API_ENDPOINTS.FORUM.ADMIN_CREATE_POST, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+
+  if (!result.ok) return result;
+
+  const post = unwrapPostPayload(result.data);
+  return post
+    ? { ok: true, status: result.status, data: { post } }
+    : { ok: false, status: result.status, data: { post: {} as ForumPost }, message: "Invalid create response" };
+}
+
+export async function updateForumPost(
+  id: string,
+  input: UpdateForumPostInput
+): Promise<ApiResponse<{ post: ForumPost }>> {
+  const result = await authedFetch<{ post: ForumPost }>(API_ENDPOINTS.FORUM.ADMIN_UPDATE_POST(id), {
+    method: "PUT",
+    body: JSON.stringify(input),
+  });
+
+  if (!result.ok) return result;
+
+  const post = unwrapPostPayload(result.data);
+  return post
+    ? { ok: true, status: result.status, data: { post } }
+    : { ok: false, status: result.status, data: { post: {} as ForumPost }, message: "Invalid update response" };
+}
+
+export async function archiveForumPost(id: string): Promise<ApiResponse<unknown>> {
+  return updateForumPost(id, { status: "archived" });
 }
 
 // ─── Comment Endpoints ───
