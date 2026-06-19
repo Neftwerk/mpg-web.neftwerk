@@ -20,7 +20,7 @@ function mintStatusLabel(status: OwnedAssetMintStatus): string {
     case "queued":
       return "Minting";
     case "awaiting_collector":
-      return "Register ownership";
+      return "Claim";
     case "failed":
       return "Mint failed";
     default:
