@@ -10,6 +10,7 @@ import {
 } from "./socketfi-auth";
 import { getSocketFiClient } from "./socketfi";
 import {
+  enrichSocketFiSession,
   getSocketFiCollectorPubkey,
   getSocketFiWalletAddress,
   getStoredSocketFiSession,
@@ -57,14 +58,23 @@ async function submitSaleMint(
 
 async function ensureSocketFiSession(): Promise<SocketFiSession> {
   const stored = getStoredSocketFiSession();
-  if (stored?.accessToken) return stored;
+  if (stored?.accessToken && getSocketFiWalletAddress(stored)) {
+    return stored;
+  }
 
   const auth = await authenticateSocketFi("wallet");
   if (!auth.ok) {
     throw new Error(auth.message ?? "Wallet authentication was cancelled.");
   }
 
-  return auth.session;
+  const session = enrichSocketFiSession(auth.session);
+  if (!getSocketFiWalletAddress(session)) {
+    throw new Error(
+      "Wallet connected but your smart wallet address could not be read. Try again or contact support.",
+    );
+  }
+
+  return session;
 }
 
 /** Full register-ownership flow: SocketFi auth → mint-prep → sign → mint-submit. */
@@ -128,9 +138,9 @@ export async function registerSaleOwnership(saleId: string): Promise<RegisterOwn
           submitViaRelayer: true,
         },
         display: {
-          title: "Register ownership",
+          title: "Claim artwork",
           description: `Mint ${prep.onChainArtworkId} to your wallet`,
-          action: "Register artwork ownership on Stellar",
+          action: "Claim artwork ownership on Stellar",
         },
       });
     } catch (error) {
@@ -170,7 +180,7 @@ export async function registerSaleOwnership(saleId: string): Promise<RegisterOwn
 
     return { ok: true, data: submit };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Register ownership failed.";
+    const message = error instanceof Error ? error.message : "Claim failed.";
     if (message.toLowerCase().includes("cancel")) {
       return { ok: false, cancelled: true, message };
     }

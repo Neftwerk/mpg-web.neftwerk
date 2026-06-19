@@ -113,6 +113,7 @@ export async function startArtworkCheckout(opts: {
         subtotalCents: sale.amountCents,
         blockchain: "stellar",
         externalId: sale.externalId,
+        saleId: sale.saleId,
         successUrl: `${origin}/checkout-success?kind=artwork&saleId=${encodeURIComponent(
           sale.saleId,
         )}`,
