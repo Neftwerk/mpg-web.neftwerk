@@ -20,7 +20,7 @@ export interface GalleryListItem {
   name: string;
   country?: string;
   artworkCount: number;
-  minPriceCents: number;
+  minPriceCents?: number | null;
   coverMediaUrl?: string;
 }
 

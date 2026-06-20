@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { formatListPrice } from "@/lib/format";
 import { startArtworkCheckout } from "@/lib/payment-service";
 import { CoinflowCheckoutModal } from "@/components/payments/CoinflowCheckoutModal";
@@ -9,6 +10,7 @@ import { LinkSuccessModal } from "@/components/LinkSuccessModal";
 interface ArtworkPriceBuyProps {
   artworkId: string;
   listPriceCents?: number | null;
+  artworkTitle?: string;
   galleryName?: string;
   compact?: boolean;
   className?: string;
@@ -17,10 +19,12 @@ interface ArtworkPriceBuyProps {
 export function ArtworkPriceBuy({
   artworkId,
   listPriceCents,
+  artworkTitle,
   galleryName,
   compact = false,
   className = "",
 }: ArtworkPriceBuyProps) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
@@ -28,6 +32,14 @@ export function ArtworkPriceBuy({
   const [purchaseComplete, setPurchaseComplete] = useState(false);
   const priceLabel = formatListPrice(listPriceCents);
   const canBuy = (listPriceCents ?? 0) > 0;
+  const inquireHref = (() => {
+    const params = new URLSearchParams({ artworkId });
+    if (artworkTitle) params.set("artwork", artworkTitle);
+    return `/messages?${params.toString()}`;
+  })();
+  const actionClassName = `btn-neumorph shrink-0 ${
+    compact ? "!px-4 !py-2 text-[13px]" : "!px-8"
+  }`;
 
   const handleBuy = async () => {
     if (!canBuy || loading) return;
@@ -88,16 +100,24 @@ export function ArtworkPriceBuy({
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={handleBuy}
-          disabled={!canBuy || loading}
-          className={`btn-neumorph shrink-0 disabled:opacity-50 ${
-            compact ? "!px-4 !py-2 text-[13px]" : "!px-8"
-          }`}
-        >
-          {loading ? status ?? "Loading…" : "Buy now"}
-        </button>
+        {canBuy ? (
+          <button
+            type="button"
+            onClick={handleBuy}
+            disabled={loading}
+            className={`${actionClassName} disabled:opacity-50`}
+          >
+            {loading ? status ?? "Loading…" : "Buy now"}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => router.push(inquireHref)}
+            className={actionClassName}
+          >
+            Inquire
+          </button>
+        )}
       </div>
 
       {error && (
