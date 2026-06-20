@@ -11,6 +11,10 @@ import type { SocketFiSession } from "@socketfi/react";
 
 type SocketFiError = Error & { code?: string };
 
+function getSocketFiAppOrigin(): string {
+  return typeof window !== "undefined" ? window.location.origin : "this site";
+}
+
 export type SocketFiAuthResult =
   | { ok: true; session: SocketFiSession }
   | { ok: false; cancelled?: boolean; message?: string };
@@ -43,10 +47,11 @@ function mapSocketFiError(error: unknown): SocketFiAuthResult {
   }
 
   if (isWebAuthnError(message)) {
+    const origin = getSocketFiAppOrigin();
     return {
       ok: false,
       message:
-        "Passkey authentication failed. Use a supported browser (Chrome or Safari), allow popups, complete the prompt within 60 seconds, and ensure http://localhost:3000 is registered in your SocketFi app settings.",
+        `Passkey authentication failed. Use a supported browser (Chrome or Safari), allow popups, complete the prompt within 60 seconds, and ensure ${origin} is registered in your SocketFi app settings.`,
     };
   }
 
@@ -229,8 +234,7 @@ function formatSocketFiTransactionError(
   if (raw.toLowerCase().includes("prepare transaction")) {
     const clientId = getSocketFiClientId();
     const factory = context?.factoryContractId ?? "your ARTS-1 factory";
-    const origin =
-      typeof window !== "undefined" ? window.location.origin : "your app origin";
+    const origin = getSocketFiAppOrigin();
     return new Error(
       `SocketFi could not prepare this claim transaction (${phase}): ${raw}. Mint-prep on Neftwerk succeeded; the failure is inside the SocketFi approval popup at auth.socket.fi. Ask SocketFi to enable the ARTS-1 relayer mint flow for client ${clientId} on TESTNET (factory ${factory}, origin ${origin}).`,
     );
