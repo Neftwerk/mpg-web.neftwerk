@@ -216,6 +216,7 @@ export default function ArtworkPage({ params }: { params: Promise<Params> }) {
               ) : showBuy ? (
                 <ArtworkPriceBuy
                   artworkId={artwork.id}
+                  artworkTitle={artwork.title}
                   listPriceCents={artwork.listPriceCents}
                 />
               ) : (
@@ -256,6 +257,7 @@ export default function ArtworkPage({ params }: { params: Promise<Params> }) {
           <div className="w-[85%] max-w-md pointer-events-auto card-neumorph px-4 py-3 bg-white/95 backdrop-blur-sm">
             <ArtworkPriceBuy
               artworkId={artwork.id}
+              artworkTitle={artwork.title}
               listPriceCents={artwork.listPriceCents}
               galleryName={artwork.galleryName}
             />
