@@ -1,0 +1,28 @@
+<svg width="139" height="154" viewBox="0 0 139 154" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g filter="url(#filter0_di_messages_card)">
+<path d="M110.014 31.7143C113.1 33.5027 115 36.7996 115 40.3666V93.1771C115 96.7441 113.1 100.041 110.014 101.829L64.5138 128.196C61.4128 129.993 57.5872 129.993 54.4862 128.196L8.98616 101.829C5.89995 100.041 4 96.7441 4 93.1771V40.3666C4 36.7996 5.89995 33.5027 8.98615 31.7143L54.4861 5.34776C57.5872 3.55075 61.4128 3.55075 64.5138 5.34776L110.014 31.7143Z" fill="#F2F3F7"/>
+</g>
+<g transform="translate(69.5 51) scale(1.85) translate(-27 -30)">
+<path d="M16 18.5C16 17.6716 16.6716 17 17.5 17H32.5C33.3284 17 34 17.6716 34 18.5V27.5C34 28.3284 33.3284 29 32.5 29H21.5L16 33.5V18.5ZM17.5 18.5V30.0858L20.9142 26.6716C21.0392 26.5466 21.2048 26.5 21.5 26.5H32.5C32.7761 26.5 33 26.2761 33 26V18.5C33 18.2239 32.7761 18 32.5 18H17.5C17.2239 18 17 18.2239 17 18.5ZM19.5 21.5C19.2239 21.5 19 21.7239 19 22C19 22.2761 19.2239 22.5 19.5 22.5H30.5C30.7761 22.5 31 22.2761 31 22C31 21.7239 30.7761 21.5 30.5 21.5H19.5ZM19.5 24.5C19.2239 24.5 19 24.7239 19 25C19 25.2761 19.2239 25.5 19.5 25.5H27.5C27.7761 25.5 28 25.2761 28 25C28 24.7239 27.7761 24.5 27.5 24.5H19.5Z" fill="#38A8AB"/>
+<path d="M24 31.5C24 30.6716 24.6716 30 25.5 30H36.5C37.3284 30 38 30.6716 38 31.5V36.5C38 37.3284 37.3284 38 36.5 38H31.5L26 42.5V31.5C26 31.2239 26.2239 31 26.5 31H25.5C24.6716 31 24 31.6716 24 31.5Z" fill="#38A8AB" fill-opacity="0.55"/>
+</g>
+<text x="69.5" y="89.5" text-anchor="middle" fill="#1A3F6C" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="10.5" font-weight="500" letter-spacing="0.02em">Messages</text>
+<defs>
+<filter id="filter0_di_messages_card" x="0" y="0" width="139" height="153.544" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset dx="10" dy="10"/>
+<feGaussianBlur stdDeviation="7"/>
+<feComposite in2="hardAlpha" operator="out"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0.898039 0 0 0 0 0.870588 0 0 0 0 0.85098 0 0 0 1 0"/>
+<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_messages_card"/>
+<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_messages_card" result="shape"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset dx="4" dy="4"/>
+<feGaussianBlur stdDeviation="3"/>
+<feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1"/>
+<feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0"/>
+<feBlend mode="normal" in2="shape" result="effect2_innerShadow_messages_card"/>
+</filter>
+</defs>
+</svg>

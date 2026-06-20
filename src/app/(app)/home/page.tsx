@@ -7,7 +7,9 @@ import { HomeHeader } from "@/components/home/HomeHeader";
 import DiscoverIcon from "../../../../public/discovercard.svg";
 import ForumIcon from "../../../../public/forumcard.svg";
 import GalleryIcon from "../../../../public/gallerycard.svg";
+import MessagesIcon from "../../../../public/messagescard.svg";
 import ProfileIcon from "../../../../public/profilecard.svg";
+import SupportIcon from "../../../../public/supportcard.svg";
 import WalletIcon from "../../../../public/walletcard.svg";
 
 export default function HomeScreen() {
@@ -17,18 +19,24 @@ export default function HomeScreen() {
     <div
       className="flex flex-col min-h-[100dvh] w-full overflow-hidden"
     >
-      {/* <HomeHeader onQrPress={() => router.push("/scan-qr")} /> */}
       <HomeHeader />
 
       {/* Main content perfectly centered vertically and horizontally */}
       <div className="flex-1 flex items-center justify-center pt-[60px] pb-4">
         {/* Hexagon cluster container with absolute positioned children */}
-        <div className="relative w-[334px] h-[373px] sm:scale-110 md:scale-125 transition-transform duration-300">
+        <div className="relative w-[calc(382px+0.17in)] h-[400px] sm:scale-110 md:scale-125 transition-transform duration-300">
 
           {/* Forum */}
-          <div className="absolute top-0 left-[63px]">
+          <div className="absolute top-0 left-[63px] z-10">
             <Link href="/forum" className="block transition-transform active:scale-95">
               <Image src={ForumIcon} alt="Forum" className="w-[145px] h-auto" />
+            </Link>
+          </div>
+
+          {/* Messages — upper-right, beside Forum / in front of Discover */}
+          <div className="absolute top-0 left-[189px] z-20">
+            <Link href="/messages" className="block transition-transform active:scale-95">
+              <Image src={MessagesIcon} alt="Messages" className="w-[145px] h-auto" />
             </Link>
           </div>
 
@@ -40,21 +48,28 @@ export default function HomeScreen() {
           </div>
 
           {/* Discover */}
-          <div className="absolute top-[114px] left-[126px]">
+          <div className="absolute top-[114px] left-[126px] z-10">
             <Link href="/discover" className="block transition-transform active:scale-95">
               <Image src={DiscoverIcon} alt="Discover" className="w-[145px] h-auto" />
             </Link>
           </div>
 
+          {/* Support — middle row, nudged 0.59in right of Discover */}
+          <div className="absolute top-[114px] left-[calc(189px+0.67in)] z-20">
+            <Link href="/support" className="block transition-transform active:scale-95">
+              <Image src={SupportIcon} alt="Support" className="w-[145px] h-auto" />
+            </Link>
+          </div>
+
           {/* Wallet */}
-          <div className="absolute top-[228px] left-[63px]">
+          <div className="absolute top-[228px] left-[63px] z-10">
             <Link href="/wallet" className="block transition-transform active:scale-95">
               <Image src={WalletIcon} alt="Wallet" className="w-[145px] h-auto" />
             </Link>
           </div>
 
           {/* Profile */}
-          <div className="absolute top-[228px] left-[189px]">
+          <div className="absolute top-[228px] left-[189px] z-10">
             <Link href="/profile" className="block transition-transform active:scale-95">
               <Image src={ProfileIcon} alt="Profile" className="w-[145px] h-auto" />
             </Link>
