@@ -8,7 +8,7 @@ import { LinkSuccessModal } from "@/components/LinkSuccessModal";
 
 interface ArtworkPriceBuyProps {
   artworkId: string;
-  listPriceCents: number;
+  listPriceCents?: number | null;
   galleryName?: string;
   compact?: boolean;
   className?: string;
@@ -27,17 +27,20 @@ export function ArtworkPriceBuy({
   const [checkoutLink, setCheckoutLink] = useState<string | null>(null);
   const [purchaseComplete, setPurchaseComplete] = useState(false);
   const priceLabel = formatListPrice(listPriceCents);
-  const canBuy = listPriceCents > 0;
+  const canBuy = (listPriceCents ?? 0) > 0;
 
   const handleBuy = async () => {
     if (!canBuy || loading) return;
+    const priceCents = listPriceCents;
+    if (priceCents == null || priceCents <= 0) return;
+
     setError(null);
     setLoading(true);
 
     try {
       const result = await startArtworkCheckout({
         artworkId,
-        listPriceCents,
+        listPriceCents: priceCents,
         returnPath: `/artwork/${artworkId}`,
         onStatus: setStatus,
       });

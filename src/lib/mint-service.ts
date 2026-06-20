@@ -1,30 +1,32 @@
 import { API_ENDPOINTS } from "./api";
 import { authedFetch } from "./auth-service";
 import { fetchChainConfig } from "./chain-service";
-import { buildMintArgsXdr } from "./mint-soroban-args";
 import {
   authenticateSocketFi,
-  extractCollectorSignature,
-  extractOwnerAuthXdr,
-  signMintAuthDigestViaSocketFi,
+  requestArts1MintApprovalViaSocketFi,
 } from "./socketfi-auth";
-import { getSocketFiClient } from "./socketfi";
 import {
   enrichSocketFiSession,
+  getSocketFiAccessToken,
   getSocketFiCollectorPubkey,
   getSocketFiWalletAddress,
   getStoredSocketFiSession,
+  hasClaimReadySocketFiSession,
+  clearStoredSocketFiSession,
   setStoredSocketFiSession,
 } from "./socketfi-session";
+import { resolveSocketFiSession, verifySocketFiSessionViaBackend } from "./socketfi-wallet-service";
 import type { SocketFiSession } from "@socketfi/react";
 
+import { recoverCollectorPubkeyFromDigestSignature } from "./p256-collector-pubkey";
 import type { MintPrepData, MintSubmitResult, RegisterOwnershipResult } from "./mint-types";
 
 async function prepareSaleMint(
   saleId: string,
   body: {
     ownerAddress: string;
-    collectorPubkey: string;
+    collectorPubkey?: string;
+    collectorSignature?: string;
     artistAddress?: string;
   },
 ): Promise<MintPrepData> {
@@ -42,7 +44,7 @@ async function prepareSaleMint(
 
 async function submitSaleMint(
   saleId: string,
-  body: { collectorSignature: string; ownerAuth: string },
+  body: { collectorSignature: string; ownerAuth: string; collectorPubkey?: string },
 ): Promise<MintSubmitResult> {
   const response = await authedFetch<{ data?: MintSubmitResult }>(
     API_ENDPOINTS.SALES.MINT_SUBMIT(saleId),
@@ -56,48 +58,86 @@ async function submitSaleMint(
   return response.data.data;
 }
 
-async function ensureSocketFiSession(): Promise<SocketFiSession> {
-  const stored = getStoredSocketFiSession();
-  if (stored?.accessToken && getSocketFiWalletAddress(stored)) {
-    return stored;
+async function ensureSocketFiSession(forceFresh = false): Promise<SocketFiSession> {
+  if (!forceFresh) {
+    const stored = getStoredSocketFiSession();
+    if (stored && hasClaimReadySocketFiSession(stored)) {
+      return enrichSocketFiSession(await resolveSocketFiSession(stored));
+    }
   }
+
+  clearStoredSocketFiSession();
 
   const auth = await authenticateSocketFi("wallet");
   if (!auth.ok) {
     throw new Error(auth.message ?? "Wallet authentication was cancelled.");
   }
 
-  const session = enrichSocketFiSession(auth.session);
-  if (!getSocketFiWalletAddress(session)) {
+  let session = enrichSocketFiSession(auth.session);
+  if (!getSocketFiAccessToken(session)) {
+    clearStoredSocketFiSession();
     throw new Error(
-      "Wallet connected but your smart wallet address could not be read. Try again or contact support.",
+      "Wallet connected but SocketFi did not return an access token. Try Claim again.",
     );
   }
 
-  return session;
-}
+  session = await resolveSocketFiSession(session);
 
-/** Full register-ownership flow: SocketFi auth → mint-prep → sign → mint-submit. */
-export async function registerSaleOwnership(saleId: string): Promise<RegisterOwnershipResult> {
-  try {
-    const session = await ensureSocketFiSession();
-    setStoredSocketFiSession(session);
+  const verified = await verifySocketFiSessionViaBackend(session);
+  if (verified.ok) {
+    session = enrichSocketFiSession({
+      ...session,
+      wallet: {
+        ...(typeof session.wallet === "object" && session.wallet ? session.wallet : {}),
+        address: verified.data.walletAddress,
+        ...(verified.data.collectorPubkey ? { collectorPubkey: verified.data.collectorPubkey } : {}),
+      },
+      userProfile: {
+        ...session.userProfile,
+        ...(verified.data.username ? { username: verified.data.username } : {}),
+        ...(verified.data.accountId ? { accountId: verified.data.accountId } : {}),
+        id: verified.data.userId,
+      },
+    });
+  }
 
-    const ownerAddress = getSocketFiWalletAddress(session);
-    const collectorPubkey = getSocketFiCollectorPubkey(session);
-
-    if (!ownerAddress) {
-      return {
-        ok: false,
-        message: "Your smart wallet address is unavailable. Reconnect your wallet and try again.",
-      };
+  if (!getSocketFiWalletAddress(session)) {
+    clearStoredSocketFiSession();
+    if (!verified.ok && verified.message) {
+      throw new Error(verified.message);
     }
 
-    if (!collectorPubkey) {
+    throw new Error(
+      "Wallet connected but your smart wallet address could not be verified. Complete SocketFi wallet setup, then try Claim again.",
+    );
+  }
+
+  if (!getSocketFiAccessToken(session)) {
+    clearStoredSocketFiSession();
+    throw new Error(
+      "Wallet connected but SocketFi session is incomplete. Try Claim again.",
+    );
+  }
+
+  return enrichSocketFiSession(session);
+}
+
+/** Full register-ownership flow: SocketFi auth → mint-prep → one claim popup → mint-submit. */
+export async function registerSaleOwnership(saleId: string): Promise<RegisterOwnershipResult> {
+  try {
+    const session = await ensureSocketFiSession(true);
+    setStoredSocketFiSession(session);
+
+    const verified = await verifySocketFiSessionViaBackend(session);
+    const ownerAddress = verified.ok
+      ? verified.data.walletAddress
+      : getSocketFiWalletAddress(session);
+
+    if (!ownerAddress) {
+      clearStoredSocketFiSession();
       return {
         ok: false,
-        message:
-          "Your passkey public key is not available from SocketFi. Reconnect your wallet or contact support.",
+        message: "Your smart wallet address is unavailable. Refresh the page and try Claim again.",
       };
     }
 
@@ -105,80 +145,44 @@ export async function registerSaleOwnership(saleId: string): Promise<RegisterOwn
 
     const prep = await prepareSaleMint(saleId, {
       ownerAddress,
-      collectorPubkey,
       artistAddress: chainConfig.defaultArtistAddress || undefined,
     });
 
-    let collectorSignature: string;
     try {
-      collectorSignature = await signMintAuthDigestViaSocketFi({
+      const approval = await requestArts1MintApprovalViaSocketFi({
         session,
-        digestHex: prep.mintAuthDigest,
+        prep,
+        saleId,
       });
-    } catch (digestError) {
+
+      let collectorPubkey =
+        approval.collectorPubkey ??
+        getSocketFiCollectorPubkey(session) ??
+        recoverCollectorPubkeyFromDigestSignature(prep.mintAuthDigest, approval.signature);
+
+      if (!collectorPubkey) {
+        return {
+          ok: false,
+          message:
+            "Wallet approved the claim but your passkey public key could not be determined. Try Claim again or contact support.",
+        };
+      }
+
+      const submit = await submitSaleMint(saleId, {
+        collectorSignature: approval.signature,
+        ownerAuth: approval.ownerAuth!,
+        collectorPubkey,
+      });
+
+      return { ok: true, data: submit };
+    } catch (approvalError) {
       const message =
-        digestError instanceof Error ? digestError.message : "Passkey signing failed.";
-      return { ok: false, message };
-    }
-
-    const argsXdr = await buildMintArgsXdr(prep, collectorSignature);
-    const client = getSocketFiClient();
-
-    let txResult: unknown;
-    try {
-      txResult = await client.requestTransaction({
-        accessToken: session.accessToken,
-        contractId: prep.chain.arts1FactoryContractId,
-        callFunction: { name: "mint" },
-        argsXdr,
-        txDetails: {
-          arts1Mint: true,
-          saleId,
-          mintAuthDigest: prep.mintAuthDigest,
-          submitViaRelayer: true,
-        },
-        display: {
-          title: "Claim artwork",
-          description: `Mint ${prep.onChainArtworkId} to your wallet`,
-          action: "Claim artwork ownership on Stellar",
-        },
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Transaction approval failed.";
+        approvalError instanceof Error ? approvalError.message : "Wallet approval failed.";
       if (message.toLowerCase().includes("cancel")) {
         return { ok: false, cancelled: true, message };
       }
       return { ok: false, message };
     }
-
-    const ownerAuth =
-      extractOwnerAuthXdr(txResult) ??
-      (typeof txResult === "object" &&
-      txResult &&
-      "ownerAuth" in txResult &&
-      typeof (txResult as { ownerAuth?: string }).ownerAuth === "string"
-        ? (txResult as { ownerAuth: string }).ownerAuth
-        : undefined);
-
-    const collectorFromTx = extractCollectorSignature(txResult);
-    if (collectorFromTx) {
-      collectorSignature = collectorFromTx;
-    }
-
-    if (!ownerAuth) {
-      return {
-        ok: false,
-        message:
-          "Wallet approved the transaction but did not return owner authorization for relayer submit. SocketFi may need an ARTS-1 integration update.",
-      };
-    }
-
-    const submit = await submitSaleMint(saleId, {
-      collectorSignature,
-      ownerAuth,
-    });
-
-    return { ok: true, data: submit };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Claim failed.";
     if (message.toLowerCase().includes("cancel")) {

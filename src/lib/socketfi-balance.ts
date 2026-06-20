@@ -5,6 +5,7 @@ import { getSocketFiClient } from "./socketfi";
 import {
   getSocketFiWalletAddress,
   getSocketFiWalletAddressXdr,
+  getSocketFiAccessToken,
 } from "./socketfi-session";
 
 const USD_DECIMALS = 7;
@@ -81,8 +82,17 @@ export async function fetchUsdTokenBalance(
   }
 
   try {
+    const accessToken = getSocketFiAccessToken(session);
+    if (!accessToken) {
+      return {
+        ok: false,
+        message: "SocketFi access token is missing from the session.",
+        silent: true,
+      };
+    }
+
     const response = await getSocketFiClient().readContract({
-      accessToken: session.accessToken,
+      accessToken,
       contractId: getUsdTokenContractId(),
       callFunction: { name: "balance" },
       argsXdr: [walletAddressXdr],

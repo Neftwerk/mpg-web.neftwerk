@@ -1,4 +1,3 @@
-import { Address } from "@stellar/stellar-sdk";
 import type { SocketFiSession } from "@socketfi/react";
 
 const SESSION_KEY = "socketfi_session";
@@ -88,10 +87,93 @@ function walkForCollectorPubkey(value: unknown, depth = 0): string | undefined {
   return undefined;
 }
 
+function isJwtString(value: string): boolean {
+  return /^eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(value);
+}
+
+function walkForJwtToken(value: unknown, depth = 0): string | undefined {
+  if (depth > 8) return undefined;
+
+  if (typeof value === "string" && isJwtString(value)) {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const found = walkForJwtToken(item, depth + 1);
+      if (found) return found;
+    }
+    return undefined;
+  }
+
+  if (isPlainObject(value)) {
+    for (const candidate of Object.values(value)) {
+      const found = walkForJwtToken(candidate, depth + 1);
+      if (found) return found;
+    }
+  }
+
+  return undefined;
+}
+
+/** Normalize access token field names across SocketFi SDK versions. */
+export function getSocketFiAccessToken(session: SocketFiSession | null): string | undefined {
+  if (!session) return undefined;
+
+  const root = session as Record<string, unknown>;
+  const nestedSession = isPlainObject(root.session) ? root.session : undefined;
+  const nestedData = isPlainObject(root.data) ? root.data : undefined;
+
+  const candidates = [
+    session.accessToken,
+    root.socketfiAccessToken,
+    root.token,
+    root.access_token,
+    nestedSession?.accessToken,
+    nestedSession?.socketfiAccessToken,
+    nestedData?.accessToken,
+    nestedData?.socketfiAccessToken,
+  ];
+
+  for (const value of candidates) {
+    if (typeof value === "string" && value.length > 0) {
+      return value;
+    }
+  }
+
+  return walkForJwtToken(root);
+}
+
+export function hasValidSocketFiSession(session: SocketFiSession | null): boolean {
+  return Boolean(getSocketFiAccessToken(session) && getSocketFiWalletAddress(session));
+}
+
+/** Session is complete enough for Claim (wallet + access token). */
+export function hasClaimReadySocketFiSession(session: SocketFiSession | null): boolean {
+  return Boolean(getSocketFiAccessToken(session) && getSocketFiWalletAddress(session));
+}
+
+/** Drop cached SocketFi auth after a full page reload so Claim can reconnect fresh. */
+export function clearSocketFiSessionOnPageReload(): void {
+  if (typeof window === "undefined") return;
+
+  const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+  if (nav?.type === "reload") {
+    clearStoredSocketFiSession();
+  }
+}
+
 /** Merge wallet/profile fields from the JWT access token into the session object. */
 export function enrichSocketFiSession(session: SocketFiSession): SocketFiSession {
-  const payload = decodeJwtPayload(session.accessToken);
-  if (!payload) return session;
+  const accessToken = getSocketFiAccessToken(session);
+  if (!accessToken) return session;
+
+  const payload = decodeJwtPayload(accessToken);
+  const normalizedSession: SocketFiSession = {
+    ...session,
+    accessToken,
+  };
+  if (!payload) return normalizedSession;
 
   const jwtWallet = payload.wallet;
   const mergedWallet = {
@@ -107,7 +189,7 @@ export function enrichSocketFiSession(session: SocketFiSession): SocketFiSession
   };
 
   return {
-    ...session,
+    ...normalizedSession,
     ...(Object.keys(mergedWallet).length > 0 ? { wallet: mergedWallet } : {}),
     userProfile: mergedProfile,
   };
@@ -120,7 +202,7 @@ export function getStoredSocketFiSession(): SocketFiSession | null {
     const raw = localStorage.getItem(SESSION_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as SocketFiSession;
-    if (!parsed?.accessToken) return null;
+    if (!getSocketFiAccessToken(parsed)) return null;
     return enrichSocketFiSession(parsed);
   } catch {
     return null;
@@ -146,7 +228,7 @@ function collectAddressCandidates(session: SocketFiSession): string[] {
     profile?.wallet && typeof profile.wallet === "object"
       ? (profile.wallet as Record<string, unknown>)
       : undefined;
-  const payload = decodeJwtPayload(enriched.accessToken);
+  const payload = decodeJwtPayload(getSocketFiAccessToken(enriched) ?? "");
 
   const explicit = [
     root.address,
@@ -186,6 +268,22 @@ export function getSocketFiWalletAddress(session: SocketFiSession | null): strin
 function normalizeCollectorPubkeyHex(value: string): string | undefined {
   const hex = value.replace(/^0x/i, "").toLowerCase();
   if (/^04[0-9a-f]{128}$/.test(hex)) return hex;
+
+  try {
+    const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+    const binary = atob(padded);
+    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+    if (bytes.length === 65 && bytes[0] === 0x04) {
+      return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+    }
+    if (bytes.length === 64) {
+      return `04${Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("")}`;
+    }
+  } catch {
+    return undefined;
+  }
+
   return undefined;
 }
 
@@ -217,9 +315,12 @@ export function getSocketFiCollectorPubkey(session: SocketFiSession | null): str
     profile?.p256PublicKey,
     profile?.secp256r1PublicKey,
     credential?.publicKey,
+    credential?.publicKeyHex,
     credential?.p256PublicKey,
+    credential?.credentialPublicKey,
     passkey?.publicKey,
     passkey?.p256PublicKey,
+    passkey?.credentialPublicKey,
   ];
 
   for (const value of candidates) {
@@ -229,7 +330,7 @@ export function getSocketFiCollectorPubkey(session: SocketFiSession | null): str
     }
   }
 
-  const payload = decodeJwtPayload(session.accessToken);
+  const payload = decodeJwtPayload(getSocketFiAccessToken(session) ?? "");
   return (
     walkForCollectorPubkey(session.wallet) ??
     walkForCollectorPubkey(session.userProfile) ??
@@ -264,12 +365,5 @@ export function getSocketFiWalletAddressXdr(session: SocketFiSession | null): st
     }
   }
 
-  const address = getSocketFiWalletAddress(session);
-  if (!address) return undefined;
-
-  try {
-    return Address.fromString(address).toScVal().toXDR("base64");
-  } catch {
-    return undefined;
-  }
+  return undefined;
 }

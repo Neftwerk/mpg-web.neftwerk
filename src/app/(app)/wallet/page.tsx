@@ -12,6 +12,7 @@ import {
   type OwnedAssetMintStatus,
 } from "@/lib/wallet-service";
 import { RegisterOwnershipButton } from "@/components/wallet/RegisterOwnershipButton";
+import { OwnedArtworkDates } from "@/components/wallet/OwnedArtworkDates";
 
 function mintStatusLabel(status: OwnedAssetMintStatus): string {
   switch (status) {
@@ -35,11 +36,7 @@ function OwnedAssetCard({
   asset: OwnedAsset;
   onMintSuccess: () => void;
 }) {
-  const acquiredDate = new Date(asset.acquiredAt).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  const purchasedAt = asset.purchasedAt ?? asset.acquiredAt;
 
   return (
     <article className="card-neumorph overflow-hidden">
@@ -69,8 +66,14 @@ function OwnedAssetCard({
 
         <div className="flex items-center justify-between gap-2 text-[11px] text-[#334E57]/60">
           <span className="truncate">{asset.collectionName ?? "Collection"}</span>
-          <span className="shrink-0">{acquiredDate}</span>
         </div>
+
+        <OwnedArtworkDates
+          purchasedAt={purchasedAt}
+          mintStatus={asset.mintStatus}
+          claimedAt={asset.claimedAt}
+          variant="compact"
+        />
 
         <RegisterOwnershipButton
           saleId={asset.saleId}

@@ -24,14 +24,23 @@ const menuIconMap: Record<string, string> = {
   wallet: "/images/walletbutton.svg",
   profile: "/images/profilebutton.svg",
   settings: "/images/settings%20button.svg",
+  messages: "/images/messagesbutton.svg",
   support: "/images/supportbutton.svg",
 };
 
+const messagesNavItem = {
+  href: "/messages",
+  label: "Messages",
+  icon: "messages",
+} as const;
+
 const sidebarMenuItems = [
   { href: "/home", label: "Home", icon: "home" },
-  ...navItems,
-  { href: "/settings", label: "Settings", icon: "settings" },
+  ...navItems.flatMap((item) =>
+    item.href === "/gallery" ? [messagesNavItem, item] : [item],
+  ),
   { href: "/support", label: "Support", icon: "support" },
+  { href: "/settings", label: "Settings", icon: "settings" },
 ];
 
 /* ---------- Desktop sidebar (hidden on mobile) ---------- */

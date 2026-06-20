@@ -39,8 +39,8 @@ export interface ArtworkItem {
   artistId: string;
   title: string;
   description?: string;
-  listPriceCents: number;
-  royaltyBps: number;
+  listPriceCents?: number;
+  royaltyBps?: number;
   mediaUrl: string;
   mediaExpiresAt?: string;
   galleryName?: string;

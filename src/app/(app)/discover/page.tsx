@@ -56,7 +56,7 @@ export default function DiscoverPage() {
   const popularArtworks = useMemo(
     () =>
       [...artworks]
-        .sort((a, b) => b.listPriceCents - a.listPriceCents)
+        .sort((a, b) => (b.listPriceCents ?? 0) - (a.listPriceCents ?? 0))
         .slice(0, 3),
     [artworks],
   );

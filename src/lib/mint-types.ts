@@ -9,12 +9,15 @@ export type MintPrepData = {
   royaltyBps: number;
   ownerAddress: string;
   artistAddress: string;
-  collectorPubkey: string;
+  collectorPubkey?: string;
   primarySaleSplits: Array<{ address: string; bps: number; role: string }>;
   provenancePreimage: string;
   provenancePreimageHash?: string;
   mintAuthDigest: string;
   neftwerkSignature: string;
+  /** Args for read-only `compute_mint_auth_digest` (digest signing popup). */
+  mintDigestArgsXdr: string[];
+  mintArgsXdr: string[];
   chain: ChainConfig;
 };
 

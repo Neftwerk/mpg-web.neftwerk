@@ -114,6 +114,11 @@ export const API_ENDPOINTS = {
     CONFIG: `${API_BASE_URL}/api/chain/config`,
   },
 
+  WALLET: {
+    /** POST /api/wallet/socketfi/verify */
+    SOCKETFI_VERIFY: `${API_BASE_URL}/api/wallet/socketfi/verify`,
+  },
+
   STORAGE: {
     /** POST /api/storage/upload/image — multipart field: file */
     UPLOAD_IMAGE: `${API_BASE_URL}/api/storage/upload/image`,
