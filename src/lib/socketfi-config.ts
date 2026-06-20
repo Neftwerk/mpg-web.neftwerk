@@ -32,6 +32,14 @@ export function getSocketFiClientId(): string {
   return clientId;
 }
 
+export function getSocketFiApiUrl(): string {
+  const apiUrl = process.env.NEXT_PUBLIC_SOCKETFI_API_URL?.trim().replace(/\/$/, "");
+  if (!apiUrl) {
+    throw new Error("NEXT_PUBLIC_SOCKETFI_API_URL is not configured");
+  }
+  return apiUrl;
+}
+
 export function getUsdTokenContractId(): string {
   const contractId = isSocketFiMainnet()
     ? process.env.NEXT_PUBLIC_USD_TOKEN_CONTRACT_ID_MAINNET

@@ -49,7 +49,7 @@ export function RegisterOwnershipButton({ saleId, title, mintStatus, onSuccess }
         className="btn-neumorph w-full !py-2 !text-[12px] disabled:opacity-60"
         aria-label={`Claim ${title}`}
       >
-        {loading ? "Connecting wallet…" : "Claim"}
+        {loading ? "Approve in wallet…" : "Claim"}
       </button>
       {error && <p className="text-[11px] text-red-600 leading-snug">{error}</p>}
     </div>

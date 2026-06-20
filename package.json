@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@noble/curves": "^1.9.7",
     "@socketfi/react": "^1.2.1",
     "@stellar/stellar-sdk": "^15.1.0",
     "lucide-react": "^1.16.0",

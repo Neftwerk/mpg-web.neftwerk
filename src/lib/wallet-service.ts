@@ -13,8 +13,8 @@ export interface OwnedAsset {
   artworkId: string;
   title: string;
   description?: string;
-  listPriceCents: number;
-  royaltyBps: number;
+  listPriceCents?: number;
+  royaltyBps?: number;
   galleryId: string;
   galleryName?: string;
   collectionId: string;
@@ -24,6 +24,11 @@ export interface OwnedAsset {
   mediaUrl: string;
   mediaExpiresAt?: string;
   mintStatus: OwnedAssetMintStatus;
+  /** When payment settled. */
+  purchasedAt: string;
+  /** When on-chain claim completed; omitted until minted. */
+  claimedAt?: string;
+  /** @deprecated Use purchasedAt */
   acquiredAt: string;
 }
 
@@ -48,4 +53,11 @@ export async function fetchOwnedAssets(): Promise<OwnedAsset[]> {
   }
 
   return response.data?.data?.assets ?? [];
+}
+
+export async function fetchOwnedAssetForArtwork(
+  artworkId: string,
+): Promise<OwnedAsset | null> {
+  const assets = await fetchOwnedAssets();
+  return assets.find((asset) => asset.artworkId === artworkId) ?? null;
 }
