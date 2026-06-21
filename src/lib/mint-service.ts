@@ -15,11 +15,18 @@ import {
   clearStoredSocketFiSession,
   setStoredSocketFiSession,
 } from "./socketfi-session";
-import { resolveSocketFiSession, verifySocketFiSessionViaBackend } from "./socketfi-wallet-service";
+import {
+  resolveSocketFiSession,
+  verifySocketFiSessionViaBackend,
+} from "./socketfi-wallet-service";
 import type { SocketFiSession } from "@socketfi/react";
 
 import { recoverCollectorPubkeyFromDigestSignature } from "./p256-collector-pubkey";
-import type { MintPrepData, MintSubmitResult, RegisterOwnershipResult } from "./mint-types";
+import type {
+  MintPrepData,
+  MintSubmitResult,
+  RegisterOwnershipResult,
+} from "./mint-types";
 
 async function prepareSaleMint(
   saleId: string,
@@ -28,11 +35,11 @@ async function prepareSaleMint(
     collectorPubkey?: string;
     collectorSignature?: string;
     artistAddress?: string;
-  },
+  }
 ): Promise<MintPrepData> {
   const response = await authedFetch<{ data?: MintPrepData }>(
     API_ENDPOINTS.SALES.MINT_PREP(saleId),
-    { method: "POST", body: JSON.stringify(body) },
+    { method: "POST", body: JSON.stringify(body) }
   );
 
   if (!response.ok || !response.data?.data) {
@@ -44,11 +51,15 @@ async function prepareSaleMint(
 
 async function submitSaleMint(
   saleId: string,
-  body: { collectorSignature: string; ownerAuth: string; collectorPubkey?: string },
+  body: {
+    collectorSignature: string;
+    ownerAuth: string;
+    collectorPubkey?: string;
+  }
 ): Promise<MintSubmitResult> {
   const response = await authedFetch<{ data?: MintSubmitResult }>(
     API_ENDPOINTS.SALES.MINT_SUBMIT(saleId),
-    { method: "POST", body: JSON.stringify(body) },
+    { method: "POST", body: JSON.stringify(body) }
   );
 
   if (!response.ok || !response.data?.data) {
@@ -58,7 +69,9 @@ async function submitSaleMint(
   return response.data.data;
 }
 
-async function ensureSocketFiSession(forceFresh = false): Promise<SocketFiSession> {
+async function ensureSocketFiSession(
+  forceFresh = false
+): Promise<SocketFiSession> {
   if (!forceFresh) {
     const stored = getStoredSocketFiSession();
     if (stored && hasClaimReadySocketFiSession(stored)) {
@@ -77,7 +90,7 @@ async function ensureSocketFiSession(forceFresh = false): Promise<SocketFiSessio
   if (!getSocketFiAccessToken(session)) {
     clearStoredSocketFiSession();
     throw new Error(
-      "Wallet connected but SocketFi did not return an access token. Try Claim again.",
+      "Wallet connected but SocketFi did not return an access token. Try Claim again."
     );
   }
 
@@ -88,14 +101,20 @@ async function ensureSocketFiSession(forceFresh = false): Promise<SocketFiSessio
     session = enrichSocketFiSession({
       ...session,
       wallet: {
-        ...(typeof session.wallet === "object" && session.wallet ? session.wallet : {}),
+        ...(typeof session.wallet === "object" && session.wallet
+          ? session.wallet
+          : {}),
         address: verified.data.walletAddress,
-        ...(verified.data.collectorPubkey ? { collectorPubkey: verified.data.collectorPubkey } : {}),
+        ...(verified.data.collectorPubkey
+          ? { collectorPubkey: verified.data.collectorPubkey }
+          : {}),
       },
       userProfile: {
         ...session.userProfile,
         ...(verified.data.username ? { username: verified.data.username } : {}),
-        ...(verified.data.accountId ? { accountId: verified.data.accountId } : {}),
+        ...(verified.data.accountId
+          ? { accountId: verified.data.accountId }
+          : {}),
         id: verified.data.userId,
       },
     });
@@ -108,14 +127,14 @@ async function ensureSocketFiSession(forceFresh = false): Promise<SocketFiSessio
     }
 
     throw new Error(
-      "Wallet connected but your smart wallet address could not be verified. Complete SocketFi wallet setup, then try Claim again.",
+      "Wallet connected but your smart wallet address could not be verified. Complete SocketFi wallet setup, then try Claim again."
     );
   }
 
   if (!getSocketFiAccessToken(session)) {
     clearStoredSocketFiSession();
     throw new Error(
-      "Wallet connected but SocketFi session is incomplete. Try Claim again.",
+      "Wallet connected but SocketFi session is incomplete. Try Claim again."
     );
   }
 
@@ -123,7 +142,9 @@ async function ensureSocketFiSession(forceFresh = false): Promise<SocketFiSessio
 }
 
 /** Full register-ownership flow: SocketFi auth → mint-prep → one claim popup → mint-submit. */
-export async function registerSaleOwnership(saleId: string): Promise<RegisterOwnershipResult> {
+export async function registerSaleOwnership(
+  saleId: string
+): Promise<RegisterOwnershipResult> {
   try {
     const session = await ensureSocketFiSession(true);
     setStoredSocketFiSession(session);
@@ -137,7 +158,8 @@ export async function registerSaleOwnership(saleId: string): Promise<RegisterOwn
       clearStoredSocketFiSession();
       return {
         ok: false,
-        message: "Your smart wallet address is unavailable. Refresh the page and try Claim again.",
+        message:
+          "Your smart wallet address is unavailable. Refresh the page and try Claim again.",
       };
     }
 
@@ -158,7 +180,10 @@ export async function registerSaleOwnership(saleId: string): Promise<RegisterOwn
       let collectorPubkey =
         approval.collectorPubkey ??
         getSocketFiCollectorPubkey(session) ??
-        recoverCollectorPubkeyFromDigestSignature(prep.mintAuthDigest, approval.signature);
+        recoverCollectorPubkeyFromDigestSignature(
+          prep.mintAuthDigest,
+          approval.signature
+        );
 
       if (!collectorPubkey) {
         return {
@@ -177,7 +202,9 @@ export async function registerSaleOwnership(saleId: string): Promise<RegisterOwn
       return { ok: true, data: submit };
     } catch (approvalError) {
       const message =
-        approvalError instanceof Error ? approvalError.message : "Wallet approval failed.";
+        approvalError instanceof Error
+          ? approvalError.message
+          : "Wallet approval failed.";
       if (message.toLowerCase().includes("cancel")) {
         return { ok: false, cancelled: true, message };
       }

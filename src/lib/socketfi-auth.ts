@@ -1,3 +1,4 @@
+import { nativeToScVal, xdr } from "@stellar/stellar-sdk";
 import { getSocketFiClient } from "./socketfi";
 import { getSocketFiClientId } from "./socketfi-config";
 import type { MintPrepData } from "./mint-types";
@@ -40,7 +41,8 @@ function isWebAuthnError(message: string): boolean {
 
 function mapSocketFiError(error: unknown): SocketFiAuthResult {
   const err = error as SocketFiError;
-  const message = err?.message ?? "Wallet authentication failed. Please try again.";
+  const message =
+    err?.message ?? "Wallet authentication failed. Please try again.";
 
   if (err?.code === "USER_CANCELLED" || isUserCancelled(message)) {
     return { ok: false, cancelled: true, message };
@@ -50,12 +52,14 @@ function mapSocketFiError(error: unknown): SocketFiAuthResult {
     const origin = getSocketFiAppOrigin();
     return {
       ok: false,
-      message:
-        `Passkey authentication failed. Use a supported browser (Chrome or Safari), allow popups, complete the prompt within 60 seconds, and ensure ${origin} is registered in your SocketFi app settings.`,
+      message: `Passkey authentication failed. Use a supported browser (Chrome or Safari), allow popups, complete the prompt within 60 seconds, and ensure ${origin} is registered in your SocketFi app settings.`,
     };
   }
 
-  if (err?.code === "POPUP_BLOCKED" || message.toLowerCase().includes("popup")) {
+  if (
+    err?.code === "POPUP_BLOCKED" ||
+    message.toLowerCase().includes("popup")
+  ) {
     return {
       ok: false,
       message:
@@ -75,7 +79,7 @@ function mapSocketFiError(error: unknown): SocketFiAuthResult {
 
 /** Authenticate with SocketFi (user gesture required). */
 export async function authenticateSocketFi(
-  source: "buy" | "wallet",
+  source: "buy" | "wallet"
 ): Promise<SocketFiAuthResult> {
   try {
     const rawSession = await getSocketFiClient().authenticate();
@@ -135,10 +139,14 @@ function normalizeCollectorPubkeyHex(value: string): string | undefined {
     const binary = atob(padded);
     const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
     if (bytes.length === 65 && bytes[0] === 0x04) {
-      return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+      return Array.from(bytes, (byte) =>
+        byte.toString(16).padStart(2, "0")
+      ).join("");
     }
     if (bytes.length === 64) {
-      return `04${Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("")}`;
+      return `04${Array.from(bytes, (byte) =>
+        byte.toString(16).padStart(2, "0")
+      ).join("")}`;
     }
   } catch {
     return undefined;
@@ -184,7 +192,7 @@ export type SignMintAuthDigestResult = {
 export function buildArts1MintTxDetails(
   prep: MintPrepData,
   saleId: string,
-  extras?: Record<string, unknown>,
+  extras?: Record<string, unknown>
 ): Record<string, unknown> {
   const base = {
     arts1Mint: true,
@@ -219,7 +227,7 @@ export function buildArts1MintTxDetails(
 function formatSocketFiTransactionError(
   error: unknown,
   phase: string,
-  context?: { factoryContractId?: string },
+  context?: { factoryContractId?: string }
 ): Error {
   const err = error as SocketFiError & { details?: string; cause?: unknown };
   const parts = [
@@ -236,7 +244,7 @@ function formatSocketFiTransactionError(
     const factory = context?.factoryContractId ?? "your ARTS-1 factory";
     const origin = getSocketFiAppOrigin();
     return new Error(
-      `SocketFi could not prepare this claim transaction (${phase}): ${raw}. Mint-prep on Neftwerk succeeded; the failure is inside the SocketFi approval popup at auth.socket.fi. Ask SocketFi to enable the ARTS-1 relayer mint flow for client ${clientId} on TESTNET (factory ${factory}, origin ${origin}).`,
+      `SocketFi could not prepare this claim transaction (${phase}): ${raw}. Mint-prep on Neftwerk succeeded; the failure is inside the SocketFi approval popup at auth.socket.fi. Ask SocketFi to enable the ARTS-1 relayer mint flow for client ${clientId} on TESTNET (factory ${factory}, origin ${origin}).`
     );
   }
 
@@ -259,14 +267,29 @@ async function requestArts1MintTransaction(opts: {
 }): Promise<unknown> {
   const accessToken = getSocketFiAccessToken(opts.session);
   if (!accessToken) {
-    throw new Error("SocketFi access token is missing. Reconnect your wallet and try Claim again.");
+    throw new Error(
+      "SocketFi access token is missing. Reconnect your wallet and try Claim again."
+    );
   }
+
+  const contractArgs = opts.argsXdr.map((xdrString) =>
+    xdr.ScVal.fromXDR(xdrString, "base64")
+  );
+
+  const callArgs = [
+    nativeToScVal(opts.prep.chain.arts1FactoryContractId, { type: "address" }),
+    nativeToScVal("mint", { type: "symbol" }),
+    nativeToScVal(contractArgs, { type: "vec" }),
+    nativeToScVal([], { type: "vec" }),
+  ];
+
+  const argsXdr = callArgs.map((arg) => arg.toXDR("base64"));
 
   return getSocketFiClient().requestTransaction({
     accessToken,
-    contractId: opts.prep.chain.arts1FactoryContractId,
-    callFunction: opts.callFunction,
-    argsXdr: opts.argsXdr,
+    contractId: opts.prep.ownerAddress,
+    callFunction: { name: "dapp_invoker" },
+    argsXdr: argsXdr,
     txDetails: opts.txDetails,
     display: opts.display,
   });
@@ -287,7 +310,7 @@ export async function signArts1MintDigestViaSocketFi(opts: {
 
   if (!digestArgsXdr?.length) {
     throw new Error(
-      "Mint preparation did not return digest arguments. Refresh and try Claim again.",
+      "Mint preparation did not return digest arguments. Refresh and try Claim again."
     );
   }
 
@@ -322,7 +345,7 @@ export async function signArts1MintDigestViaSocketFi(opts: {
 
   if (!signature) {
     throw new Error(
-      "Passkey signing completed but no collector signature was returned. Try Claim again or contact support.",
+      "Passkey signing completed but no collector signature was returned. Try Claim again or contact support."
     );
   }
 
@@ -343,10 +366,13 @@ export async function requestArts1MintOwnerAuthViaSocketFi(opts: {
   collectorSignature: string;
 }): Promise<SignMintAuthDigestResult & { raw: unknown }> {
   if (!opts.prep.mintArgsXdr?.length) {
-    throw new Error("Mint preparation did not return transaction arguments. Try Claim again.");
+    throw new Error(
+      "Mint preparation did not return transaction arguments. Try Claim again."
+    );
   }
 
   let txResult: unknown;
+
   try {
     txResult = await requestArts1MintTransaction({
       session: opts.session,
@@ -378,7 +404,7 @@ export async function requestArts1MintOwnerAuthViaSocketFi(opts: {
 
   if (!ownerAuth) {
     throw new Error(
-      "Wallet approved the claim but did not return owner authorization for relayer submit. Try Claim again or contact support.",
+      "Wallet approved the claim but did not return owner authorization for relayer submit. Try Claim again or contact support."
     );
   }
 
@@ -400,11 +426,15 @@ export async function requestArts1MintApprovalViaSocketFi(opts: {
 }): Promise<SignMintAuthDigestResult & { raw: unknown }> {
   const accessToken = getSocketFiAccessToken(opts.session);
   if (!accessToken) {
-    throw new Error("SocketFi access token is missing. Reconnect your wallet and try Claim again.");
+    throw new Error(
+      "SocketFi access token is missing. Reconnect your wallet and try Claim again."
+    );
   }
 
   if (!opts.prep.mintArgsXdr?.length) {
-    throw new Error("Mint preparation did not return transaction arguments. Try Claim again.");
+    throw new Error(
+      "Mint preparation did not return transaction arguments. Try Claim again."
+    );
   }
 
   let txResult: unknown;
@@ -435,13 +465,13 @@ export async function requestArts1MintApprovalViaSocketFi(opts: {
 
   if (!signature) {
     throw new Error(
-      "Wallet approved the claim but did not return a passkey signature. Try Claim again or contact support.",
+      "Wallet approved the claim but did not return a passkey signature. Try Claim again or contact support."
     );
   }
 
   if (!ownerAuth) {
     throw new Error(
-      "Wallet approved the claim but did not return owner authorization for relayer submit. Try Claim again or contact support.",
+      "Wallet approved the claim but did not return owner authorization for relayer submit. Try Claim again or contact support."
     );
   }
 
