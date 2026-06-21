@@ -52,8 +52,7 @@ async function prepareSaleMint(
 async function submitSaleMint(
   saleId: string,
   body: {
-    collectorSignature: string;
-    ownerAuth: string;
+    mintTxHash: string;
     collectorPubkey?: string;
   }
 ): Promise<MintSubmitResult> {
@@ -141,7 +140,7 @@ async function ensureSocketFiSession(
   return enrichSocketFiSession(session);
 }
 
-/** Full register-ownership flow: SocketFi auth → mint-prep → one claim popup → mint-submit. */
+/** Full register-ownership flow: SocketFi auth → mint-prep → claim popup → record mint in DB. */
 export async function registerSaleOwnership(
   saleId: string
 ): Promise<RegisterOwnershipResult> {
@@ -194,8 +193,7 @@ export async function registerSaleOwnership(
       }
 
       const submit = await submitSaleMint(saleId, {
-        collectorSignature: approval.signature,
-        ownerAuth: approval.ownerAuth!,
+        mintTxHash: approval.mintTxHash!,
         collectorPubkey,
       });
 

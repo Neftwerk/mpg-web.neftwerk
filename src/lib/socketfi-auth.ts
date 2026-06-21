@@ -187,6 +187,7 @@ export type SignMintAuthDigestResult = {
   signature: string;
   collectorPubkey?: string;
   ownerAuth?: string;
+  mintTxHash?: string;
 };
 
 export function buildArts1MintTxDetails(
@@ -219,7 +220,7 @@ export function buildArts1MintTxDetails(
 
   return {
     ...base,
-    submitViaRelayer: true,
+    submitViaRelayer: false,
     ...extras,
   };
 }
@@ -383,7 +384,7 @@ export async function requestArts1MintOwnerAuthViaSocketFi(opts: {
       txDetails: buildArts1MintTxDetails(opts.prep, opts.saleId, {
         arts1Phase: "owner_auth",
         skipDigestSign: true,
-        submitViaRelayer: true,
+        submitViaRelayer: false,
         collectorSignature: opts.collectorSignature,
       }),
       display: {
@@ -417,7 +418,7 @@ export async function requestArts1MintOwnerAuthViaSocketFi(opts: {
 }
 
 /**
- * ARTS-1 claim: one SocketFi popup signs the digest and returns owner auth for relayer submit.
+ * ARTS-1 claim: one SocketFi popup mints on-chain and returns the transaction hash.
  */
 export async function requestArts1MintApprovalViaSocketFi(opts: {
   session: SocketFiSession;
@@ -460,7 +461,7 @@ export async function requestArts1MintApprovalViaSocketFi(opts: {
   }
 
   const signature = extractCollectorSignature(txResult);
-  const ownerAuth = extractOwnerAuthXdr(txResult);
+  const mintTxHash = extractTransactionHash(txResult);
   const collectorPubkey = extractCollectorPubkey(txResult);
 
   if (!signature) {
@@ -469,18 +470,44 @@ export async function requestArts1MintApprovalViaSocketFi(opts: {
     );
   }
 
-  if (!ownerAuth) {
+  if (!mintTxHash) {
     throw new Error(
-      "Wallet approved the claim but did not return owner authorization for relayer submit. Try Claim again or contact support."
+      "Wallet approved the claim but did not return a transaction hash. Try Claim again or contact support."
     );
   }
 
   return {
     signature,
-    ownerAuth,
+    mintTxHash,
     collectorPubkey,
     raw: txResult,
   };
+}
+
+export function extractTransactionHash(result: unknown): string | undefined {
+  if (!result || typeof result !== "object") return undefined;
+  const record = result as Record<string, unknown>;
+
+  const direct = [
+    record.transactionHash,
+    record.txHash,
+    record.hash,
+    record.stellarTransactionHash,
+    record.sorobanTransactionHash,
+  ];
+
+  for (const value of direct) {
+    if (typeof value === "string" && /^[0-9a-fA-F]{64}$/.test(value)) {
+      return value.toLowerCase();
+    }
+  }
+
+  const nested = record.data;
+  if (nested && typeof nested === "object") {
+    return extractTransactionHash(nested);
+  }
+
+  return undefined;
 }
 
 export function extractOwnerAuthXdr(result: unknown): string | undefined {
