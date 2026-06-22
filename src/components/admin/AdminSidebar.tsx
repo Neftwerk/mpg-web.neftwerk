@@ -10,6 +10,7 @@ import {
   Palette,
   BadgeDollarSign,
   MessageSquare,
+  MessagesSquare,
   Users,
   Cpu,
   ShieldAlert,
@@ -44,6 +45,7 @@ const SIDEBAR_GROUPS: SidebarGroup[] = [
     label: "COMMERCE",
     items: [
       { name: "Primary Sales & Mints", href: "/admin/sales", icon: BadgeDollarSign },
+      { name: "Price Enquiries", href: "/admin/enquiries", icon: MessagesSquare },
     ],
   },
   {

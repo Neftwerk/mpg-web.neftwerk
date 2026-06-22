@@ -15,9 +15,11 @@ import {
   reactToPost,
   reactToComment,
   reportComment,
+  FORUM_PUBLISHER_NAME,
   type ForumPost,
   type ForumComment,
 } from "@/lib/forum-service";
+import { isPresignedMediaUrl, resolveProfilePictureUrl } from "@/lib/storage-service";
 
 // ─── Helpers ───
 
@@ -42,6 +44,65 @@ function formatTimeAgo(dateStr: string): string {
   const diffDay = Math.floor(diffHr / 24);
   if (diffDay < 7) return `${diffDay}d ago`;
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function NeftwerkPostAvatar() {
+  return (
+    <div className="grid h-11 w-11 place-items-center rounded-full bg-[#1A3F6C] border-2 border-[#38A8AB]">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+        <path d="M4 20V4h4l8 12V4h4v16h-4L8 8v12H4z" fill="white" />
+      </svg>
+    </div>
+  );
+}
+
+function CommentAvatar({
+  profilePicture,
+  fullName,
+}: {
+  profilePicture?: string;
+  fullName: string;
+}) {
+  const [src, setSrc] = useState<string | null>(
+    profilePicture && isPresignedMediaUrl(profilePicture) ? profilePicture : null,
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!profilePicture) {
+      setSrc(null);
+      return;
+    }
+
+    if (isPresignedMediaUrl(profilePicture)) {
+      setSrc(profilePicture);
+      return;
+    }
+
+    void resolveProfilePictureUrl(profilePicture).then((url) => {
+      if (!cancelled && url) setSrc(url);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [profilePicture]);
+
+  if (src) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={src} alt="" className="h-6 w-6 rounded-full object-cover" />
+    );
+  }
+
+  return (
+    <div className="h-6 w-6 rounded-full bg-[#1A3F6C] grid place-items-center">
+      <span className="text-[9px] text-white font-bold">
+        {(fullName || "?")[0].toUpperCase()}
+      </span>
+    </div>
+  );
 }
 
 // ─── Comment Component ───
@@ -120,20 +181,10 @@ function CommentItem({
       {/* Author */}
       <div className="flex items-center justify-between mb-1.5">
         <div className="flex items-center gap-2">
-          {comment.author?.profilePicture ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={comment.author.profilePicture}
-              alt=""
-              className="h-6 w-6 rounded-full object-cover"
-            />
-          ) : (
-            <div className="h-6 w-6 rounded-full bg-[#1A3F6C] grid place-items-center">
-              <span className="text-[9px] text-white font-bold">
-                {(comment.author?.fullName || "?")[0].toUpperCase()}
-              </span>
-            </div>
-          )}
+          <CommentAvatar
+            profilePicture={comment.author?.profilePicture}
+            fullName={comment.author?.fullName || "Anonymous"}
+          />
           <span className="font-extrabold text-[#11181c] text-[11px] uppercase tracking-wider">
             {comment.author?.fullName || "Anonymous"}
           </span>
@@ -304,12 +355,11 @@ export default function ForumPostDetailPage() {
     (async () => {
       setLoading(true);
       const res = await getForumPostBySlug(slug);
-      if (res.ok) {
-        const data = (res.data as any)?.data || res.data;
-        const p = data?.post || data;
+      if (res.ok && res.data?.post) {
+        const p = res.data.post;
         setPost(p);
-        setLiked(p?.userReaction === "like");
-        setLikeCount(p?.likeCount ?? 0);
+        setLiked(p.userReaction === "like");
+        setLikeCount(p.likeCount ?? 0);
         setError("");
       } else {
         setError(res.message || "Post not found.");
@@ -317,6 +367,12 @@ export default function ForumPostDetailPage() {
       setLoading(false);
     })();
   }, [slug]);
+
+  useEffect(() => {
+    if (!post) return;
+    setLiked(post.userReaction === "like");
+    setLikeCount(post.likeCount);
+  }, [post?._id, post?.userReaction, post?.likeCount]);
 
   // ─── Fetch Comments ───
   const fetchComments = useCallback(
@@ -330,11 +386,10 @@ export default function ForumPostDetailPage() {
         flat: true,
       });
 
-      if (res.ok) {
-        const data = (res.data as any)?.data || res.data;
-        const fetched = data?.comments || [];
-        const pagination = data?.pagination;
-        const mode = data?.commentThreadMode || "flat";
+      if (res.ok && res.data) {
+        const fetched = res.data.comments || [];
+        const pagination = res.data.pagination;
+        const mode = res.data.commentThreadMode || "flat";
 
         if (append) {
           setComments((prev) => [...prev, ...fetched]);
@@ -365,10 +420,18 @@ export default function ForumPostDetailPage() {
     setLikeCount((prev) => (wasLiked ? prev - 1 : prev + 1));
 
     const res = await reactToPost(post._id, "like");
-    if (res.ok) {
-      const data = (res.data as any)?.data || res.data;
-      setLikeCount(data.likeCount ?? likeCount);
-      setLiked(data.userReaction === "like");
+    if (res.ok && res.data) {
+      setLikeCount(res.data.likeCount);
+      setLiked(res.data.userReaction === "like");
+      setPost((current) =>
+        current
+          ? {
+              ...current,
+              likeCount: res.data!.likeCount,
+              userReaction: res.data!.userReaction,
+            }
+          : current,
+      );
     } else {
       setLiked(wasLiked);
       setLikeCount((prev) => (wasLiked ? prev + 1 : prev - 1));
@@ -457,24 +520,9 @@ export default function ForumPostDetailPage() {
         <article className="card-neumorph mb-6">
           {/* Author & Date */}
           <div className="flex items-center gap-3 mb-4">
-            {post.author?.profilePicture ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={post.author.profilePicture}
-                alt=""
-                className="h-11 w-11 rounded-full object-cover border-2 border-[#38A8AB]"
-              />
-            ) : (
-              <div className="grid h-11 w-11 place-items-center rounded-full bg-[#1A3F6C] border-2 border-[#38A8AB]">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-                  <path d="M4 20V4h4l8 12V4h4v16h-4L8 8v12H4z" fill="white" />
-                </svg>
-              </div>
-            )}
+            <NeftwerkPostAvatar />
             <div>
-              <p className="text-[15px] font-bold text-[#1A3F6C]">
-                {post.author?.fullName || "Neftwerk News"}
-              </p>
+              <p className="text-[15px] font-bold text-[#1A3F6C]">{FORUM_PUBLISHER_NAME}</p>
               <p className="text-xs text-slate-400">
                 {formatDate(post.publishedAt || post.createdAt)}
               </p>
@@ -523,21 +571,32 @@ export default function ForumPostDetailPage() {
                 onClick={handleLike}
                 disabled={!user || reacting}
                 className="inline-flex items-center gap-1.5 transition active:scale-95 disabled:opacity-50"
-                title={user ? "Like this post" : "Sign in to like"}
+                aria-label={liked ? "Unlike" : "Like"}
+                aria-pressed={liked}
+                title={user ? (liked ? "Unlike this post" : "Like this post") : "Sign in to like"}
               >
-                <svg
-                  width={22}
-                  height={22}
-                  viewBox="0 0 24 24"
-                  fill={liked ? "#E11D48" : "none"}
-                  stroke={liked ? "#E11D48" : "#1A3F6C"}
-                  strokeWidth="1.75"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                {liked ? (
+                  <svg width={22} height={22} viewBox="0 0 24 24" fill="#E11D48" aria-hidden>
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                  </svg>
+                ) : (
+                  <svg
+                    width={22}
+                    height={22}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#1A3F6C"
+                    strokeWidth="1.75"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden
+                  >
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                  </svg>
+                )}
+                <span
+                  className={`text-[13px] font-bold ${liked ? "text-[#E11D48]" : "text-[#38A8AB]"}`}
                 >
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                </svg>
-                <span className="text-[13px] font-bold text-[#38A8AB]">
                   {likeCount}
                 </span>
               </button>
