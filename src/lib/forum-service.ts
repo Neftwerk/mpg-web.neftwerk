@@ -1,5 +1,5 @@
 import { API_ENDPOINTS } from "./api";
-import { apiFetch, authedFetch, type ApiResponse } from "./auth-service";
+import { apiFetch, authedFetch, getAccessToken, type ApiResponse } from "./auth-service";
 
 // ─── Types ───
 
@@ -83,6 +83,70 @@ export interface ReactionResponse {
   userReaction: "like" | "dislike" | null;
 }
 
+export const FORUM_PUBLISHER_NAME = "Neftwerk";
+
+type ForumAuthor = NonNullable<ForumPost["author"]>;
+
+function unwrapApiData<T>(data: unknown): T | null {
+  if (!data || typeof data !== "object") return null;
+  const root = data as Record<string, unknown>;
+  if ("data" in root && root.data && typeof root.data === "object") {
+    return root.data as T;
+  }
+  return root as T;
+}
+
+function normalizeAuthor(raw: unknown): ForumAuthor | undefined {
+  if (!raw || typeof raw !== "object" || !("_id" in raw)) return undefined;
+  const author = raw as Record<string, unknown>;
+  const fullName = typeof author.fullName === "string" ? author.fullName.trim() : "";
+  if (!fullName) return undefined;
+
+  return {
+    _id: String(author._id),
+    fullName,
+    email: typeof author.email === "string" ? author.email : "",
+    ...(typeof author.profilePicture === "string"
+      ? { profilePicture: author.profilePicture }
+      : {}),
+  };
+}
+
+export function normalizeForumPost(post: ForumPost & { authorId?: unknown }): ForumPost {
+  const { authorId: _authorId, ...rest } = post;
+  return {
+    ...rest,
+    author: {
+      _id: "neftwerk",
+      fullName: FORUM_PUBLISHER_NAME,
+      email: "",
+    },
+  };
+}
+
+export function normalizeForumComment(
+  comment: ForumComment & { authorId?: unknown },
+): ForumComment {
+  const author =
+    comment.author ??
+    normalizeAuthor(comment.authorId) ?? {
+      _id: "",
+      fullName: "Anonymous",
+      email: "",
+    };
+  return { ...comment, author };
+}
+
+function unwrapReaction(data: unknown): ReactionResponse | null {
+  const payload = unwrapApiData<ReactionResponse>(data);
+  if (!payload || typeof payload.likeCount !== "number") return null;
+  return {
+    likeCount: payload.likeCount,
+    dislikeCount: payload.dislikeCount ?? 0,
+    userReaction: payload.userReaction ?? null,
+  };
+}
+
 // ─── Post Endpoints ───
 
 export interface ListPostsParams {
@@ -107,11 +171,36 @@ export async function getForumPosts(params: ListPostsParams = {}): Promise<ApiRe
 
   const qs = query.toString();
   const url = `${API_ENDPOINTS.FORUM.LIST_POSTS}${qs ? `?${qs}` : ""}`;
-  return apiFetch<PostListResponse>(url, { method: "GET" });
+  const result = getAccessToken()
+    ? await authedFetch<PostListResponse>(url, { method: "GET" })
+    : await apiFetch<PostListResponse>(url, { method: "GET" });
+  if (!result.ok) return result;
+
+  const data = unwrapApiData<PostListResponse>(result.data);
+  if (!data?.posts) return result;
+
+  return {
+    ok: true,
+    status: result.status,
+    data: {
+      ...data,
+      posts: data.posts.map((post) => normalizeForumPost(post)),
+    },
+  };
 }
 
 export async function getForumPostBySlug(slug: string): Promise<ApiResponse<{ post: ForumPost }>> {
-  return apiFetch<{ post: ForumPost }>(API_ENDPOINTS.FORUM.POST_BY_SLUG(slug), { method: "GET" });
+  const url = API_ENDPOINTS.FORUM.POST_BY_SLUG(slug);
+  const result = getAccessToken()
+    ? await authedFetch<{ post: ForumPost }>(url, { method: "GET" })
+    : await apiFetch<{ post: ForumPost }>(url, { method: "GET" });
+  if (!result.ok) return result;
+
+  const data = unwrapApiData<{ post: ForumPost }>(result.data);
+  const post = data?.post ? normalizeForumPost(data.post) : null;
+  return post
+    ? { ok: true, status: result.status, data: { post } }
+    : { ok: false, status: result.status, data: { post: {} as ForumPost }, message: "Invalid post response" };
 }
 
 // ─── Admin Post Endpoints ───
@@ -201,7 +290,20 @@ export async function getPostComments(
 
   const qs = query.toString();
   const url = `${API_ENDPOINTS.FORUM.POST_COMMENTS(postId)}${qs ? `?${qs}` : ""}`;
-  return apiFetch<CommentListResponse>(url, { method: "GET" });
+  const result = await apiFetch<CommentListResponse>(url, { method: "GET" });
+  if (!result.ok) return result;
+
+  const data = unwrapApiData<CommentListResponse>(result.data);
+  if (!data?.comments) return result;
+
+  return {
+    ok: true,
+    status: result.status,
+    data: {
+      ...data,
+      comments: data.comments.map((comment) => normalizeForumComment(comment)),
+    },
+  };
 }
 
 export async function addComment(
@@ -232,20 +334,42 @@ export async function reactToPost(
   postId: string,
   reaction: "like" | "dislike"
 ): Promise<ApiResponse<ReactionResponse>> {
-  return authedFetch<ReactionResponse>(API_ENDPOINTS.FORUM.REACT_POST(postId), {
+  const result = await authedFetch<ReactionResponse>(API_ENDPOINTS.FORUM.REACT_POST(postId), {
     method: "POST",
     body: JSON.stringify({ reaction }),
   });
+  if (!result.ok) return result;
+
+  const data = unwrapReaction(result.data);
+  return data
+    ? { ok: true, status: result.status, data }
+    : {
+        ok: false,
+        status: result.status,
+        data: { likeCount: 0, dislikeCount: 0, userReaction: null },
+        message: "Invalid reaction response",
+      };
 }
 
 export async function reactToComment(
   commentId: string,
   reaction: "like" | "dislike"
 ): Promise<ApiResponse<ReactionResponse>> {
-  return authedFetch<ReactionResponse>(API_ENDPOINTS.FORUM.REACT_COMMENT(commentId), {
+  const result = await authedFetch<ReactionResponse>(API_ENDPOINTS.FORUM.REACT_COMMENT(commentId), {
     method: "POST",
     body: JSON.stringify({ reaction }),
   });
+  if (!result.ok) return result;
+
+  const data = unwrapReaction(result.data);
+  return data
+    ? { ok: true, status: result.status, data }
+    : {
+        ok: false,
+        status: result.status,
+        data: { likeCount: 0, dislikeCount: 0, userReaction: null },
+        message: "Invalid reaction response",
+      };
 }
 
 // ─── Moderation (user-facing) ───

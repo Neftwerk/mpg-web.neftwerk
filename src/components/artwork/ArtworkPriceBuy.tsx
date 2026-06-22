@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatListPrice } from "@/lib/format";
+import { getAccessToken } from "@/lib/auth-service";
 import { startArtworkCheckout } from "@/lib/payment-service";
 import { CoinflowCheckoutModal } from "@/components/payments/CoinflowCheckoutModal";
 import { LinkSuccessModal } from "@/components/LinkSuccessModal";
@@ -32,7 +33,7 @@ export function ArtworkPriceBuy({
   const [purchaseComplete, setPurchaseComplete] = useState(false);
   const priceLabel = formatListPrice(listPriceCents);
   const canBuy = (listPriceCents ?? 0) > 0;
-  const inquireHref = (() => {
+  const enquireHref = (() => {
     const params = new URLSearchParams({ artworkId });
     if (artworkTitle) params.set("artwork", artworkTitle);
     return `/messages?${params.toString()}`;
@@ -112,10 +113,16 @@ export function ArtworkPriceBuy({
         ) : (
           <button
             type="button"
-            onClick={() => router.push(inquireHref)}
+            onClick={() => {
+              if (!getAccessToken()) {
+                router.push("/login");
+                return;
+              }
+              router.push(enquireHref);
+            }}
             className={actionClassName}
           >
-            Inquire
+            Enquire
           </button>
         )}
       </div>

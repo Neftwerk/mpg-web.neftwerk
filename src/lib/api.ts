@@ -52,6 +52,42 @@ export const API_ENDPOINTS = {
     REPORT_COMMENT: (commentId: string) => `${API_BASE_URL}/api/forum/comments/${commentId}/report`,
   },
 
+  ENQUIRIES: {
+    /** POST /api/enquiries  { artworkId, message, attachments? } */
+    CREATE: `${API_BASE_URL}/api/enquiries`,
+    /** GET /api/enquiries?page=&limit=&status= */
+    LIST: `${API_BASE_URL}/api/enquiries`,
+    /** GET /api/enquiries/:enquiryId */
+    DETAIL: (enquiryId: string) => `${API_BASE_URL}/api/enquiries/${enquiryId}`,
+    /** POST /api/enquiries/:enquiryId/messages  { body, attachments? } */
+    MESSAGES: (enquiryId: string) => `${API_BASE_URL}/api/enquiries/${enquiryId}/messages`,
+    /** PATCH /api/enquiries/:enquiryId/read */
+    READ: (enquiryId: string) => `${API_BASE_URL}/api/enquiries/${enquiryId}/read`,
+  },
+
+  ADMIN_ENQUIRIES: {
+    /** GET /api/admin/enquiries?page=&limit=&status=&unassigned= */
+    LIST: `${API_BASE_URL}/api/admin/enquiries`,
+    /** GET /api/admin/enquiries/:enquiryId */
+    DETAIL: (enquiryId: string) =>
+      `${API_BASE_URL}/api/admin/enquiries/${enquiryId}`,
+    /** POST /api/admin/enquiries/:enquiryId/messages */
+    MESSAGES: (enquiryId: string) =>
+      `${API_BASE_URL}/api/admin/enquiries/${enquiryId}/messages`,
+    /** PATCH /api/admin/enquiries/:enquiryId/assign/me */
+    ASSIGN_ME: (enquiryId: string) =>
+      `${API_BASE_URL}/api/admin/enquiries/${enquiryId}/assign/me`,
+    /** PATCH /api/admin/enquiries/:enquiryId/assign */
+    ASSIGN: (enquiryId: string) =>
+      `${API_BASE_URL}/api/admin/enquiries/${enquiryId}/assign`,
+    /** PATCH /api/admin/enquiries/:enquiryId/status */
+    STATUS: (enquiryId: string) =>
+      `${API_BASE_URL}/api/admin/enquiries/${enquiryId}/status`,
+    /** PATCH /api/admin/enquiries/:enquiryId/read */
+    READ: (enquiryId: string) =>
+      `${API_BASE_URL}/api/admin/enquiries/${enquiryId}/read`,
+  },
+
   NOTIFICATIONS: {
     /** GET    /api/notifications?page=&limit=&unreadOnly= */
     LIST: `${API_BASE_URL}/api/notifications`,

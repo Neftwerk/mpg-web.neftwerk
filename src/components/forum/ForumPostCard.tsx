@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import type { ForumPost } from "@/lib/forum-service";
-import { reactToPost } from "@/lib/forum-service";
+import { reactToPost, FORUM_PUBLISHER_NAME } from "@/lib/forum-service";
 import { NeftwerkImage } from "@/components/NeftwerkImage";
 import { useUser } from "@/lib/UserContext";
 
@@ -60,18 +60,8 @@ function EyeIcon() {
   );
 }
 
-/* Neftwerk News logo — teal circle outline with stylised "N" icon */
-function NeftwerkAvatar({ profilePicture }: { profilePicture?: string }) {
-  if (profilePicture) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={profilePicture}
-        alt="Author"
-        className="h-11 w-11 rounded-full object-cover flex-shrink-0 border-2 border-[#38A8AB]"
-      />
-    );
-  }
+/* Neftwerk brand avatar for forum posts */
+function NeftwerkAvatar() {
   return (
     <div className="grid h-11 w-11 place-items-center rounded-full bg-[#1A3F6C] flex-shrink-0 border-2 border-[#38A8AB]">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -107,38 +97,37 @@ export function ForumPostCard({ post, priority = false }: Props) {
   const [likesCount, setLikesCount] = useState(post.likeCount);
   const [reacting, setReacting] = useState(false);
 
+  useEffect(() => {
+    setLiked(post.userReaction === "like");
+    setLikesCount(post.likeCount);
+  }, [post._id, post.userReaction, post.likeCount]);
+
   const handleLikeToggle = async () => {
-    if (!user) return; // must be signed in
-    if (reacting) return;
+    if (!user || reacting) return;
     setReacting(true);
 
-    // Optimistic update
     const wasLiked = liked;
     setLiked(!wasLiked);
     setLikesCount((prev) => (wasLiked ? prev - 1 : prev + 1));
 
     const result = await reactToPost(post._id, "like");
-    if (result.ok) {
-      // Use server values
-      const data = (result.data as any)?.data || result.data;
-      setLikesCount(data.likeCount ?? likesCount);
-      setLiked(data.userReaction === "like");
+    if (result.ok && result.data) {
+      setLikesCount(result.data.likeCount);
+      setLiked(result.data.userReaction === "like");
     } else {
-      // Revert on error
       setLiked(wasLiked);
       setLikesCount((prev) => (wasLiked ? prev + 1 : prev - 1));
     }
     setReacting(false);
   };
 
-  const authorName = post.author?.fullName || "Neftwerk News";
-  const authorPic = post.author?.profilePicture;
+  const authorName = FORUM_PUBLISHER_NAME;
 
   return (
     <article className="card-neumorph mb-4">
       {/* Author row */}
       <div className="mb-3 flex items-center gap-3">
-        <NeftwerkAvatar profilePicture={authorPic} />
+        <NeftwerkAvatar />
         <div className="min-w-0 flex-1">
           <h3 className="text-[15px] font-bold text-[#1A3F6C]">{authorName}</h3>
           <p className="mt-0.5 text-xs text-slate-400">
@@ -194,11 +183,16 @@ export function ForumPostCard({ post, priority = false }: Props) {
             onClick={handleLikeToggle}
             disabled={!user || reacting}
             className="inline-flex items-center gap-1.5 text-slate-900 transition hover:bg-slate-100/10 active:scale-95 disabled:opacity-50"
-            aria-label="Like"
-            title={user ? "Like this post" : "Sign in to like"}
+            aria-label={liked ? "Unlike" : "Like"}
+            aria-pressed={liked}
+            title={user ? (liked ? "Unlike this post" : "Like this post") : "Sign in to like"}
           >
             {liked ? <HeartFilledIcon /> : <HeartOutlineIcon />}
-            <span className="text-[13px] font-bold text-[#38A8AB]">{likesCount}</span>
+            <span
+              className={`text-[13px] font-bold ${liked ? "text-[#E11D48]" : "text-[#38A8AB]"}`}
+            >
+              {likesCount}
+            </span>
           </button>
 
           {/* Comments */}

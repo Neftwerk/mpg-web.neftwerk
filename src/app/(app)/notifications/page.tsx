@@ -12,6 +12,9 @@ import {
   deleteAllNotifications,
   type Notification,
 } from "@/lib/notification-service";
+import { getNotificationHref, isNotificationNavigable } from "@/lib/notification-routing";
+import { useUser } from "@/lib/UserContext";
+import { useRouter } from "next/navigation";
 
 export default function NotificationsPage() {
   return (
@@ -22,6 +25,9 @@ export default function NotificationsPage() {
 }
 
 function NotificationsContent() {
+  const router = useRouter();
+  const { user } = useUser();
+  const viewerRole = typeof user?.role === "string" ? user.role : undefined;
   const [menuOpen, setMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,7 +45,7 @@ function NotificationsContent() {
 
       const res = await getNotifications({ page: pageNum, limit: 20 });
       if (res.ok) {
-        const data = (res.data as any)?.data || res.data;
+        const data = res.data;
         const fetched: Notification[] = data?.notifications || [];
         const pagination = data?.pagination;
 
@@ -129,6 +135,20 @@ function NotificationsContent() {
     return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   }
 
+  const getNotificationBody = (notification: Notification) =>
+    notification.body || notification.message || "";
+
+  const handleOpen = async (notification: Notification) => {
+    const href = getNotificationHref(notification, viewerRole);
+    if (!href) return;
+
+    if (!notification.isRead) {
+      await handleMarkRead(notification._id);
+    }
+
+    router.push(href);
+  };
+
   return (
     <>
       <MobileTopBar title="Notifications" onMenuOpen={() => setMenuOpen(true)} />
@@ -203,12 +223,29 @@ function NotificationsContent() {
         {/* List */}
         {!loading && !error && notifications.length > 0 && (
           <div className="space-y-2 mt-4">
-            {notifications.map((n) => (
+            {notifications.map((n) => {
+              const navigable = isNotificationNavigable(n, viewerRole);
+              const body = getNotificationBody(n);
+
+              return (
               <div
                 key={n._id}
+                role={navigable ? "button" : undefined}
+                tabIndex={navigable ? 0 : undefined}
+                onClick={navigable ? () => handleOpen(n) : undefined}
+                onKeyDown={
+                  navigable
+                    ? (e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handleOpen(n);
+                        }
+                      }
+                    : undefined
+                }
                 className={`card-neumorph p-4 flex items-start gap-3 transition ${
                   !n.isRead ? "border-l-4 border-l-[#38A8AB] bg-[#38A8AB]/5" : ""
-                }`}
+                } ${navigable ? "cursor-pointer hover:shadow-md active:scale-[0.99]" : ""}`}
               >
                 {/* Icon */}
                 <div className={`flex-shrink-0 w-8 h-8 rounded-full grid place-items-center ${
@@ -223,10 +260,15 @@ function NotificationsContent() {
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                   <p className={`text-sm leading-snug ${!n.isRead ? "font-bold text-[#1A3F6C]" : "text-[#11181c]"}`}>
-                    {n.title || n.message}
+                    {n.title || body}
                   </p>
-                  {n.title && n.message && n.title !== n.message && (
-                    <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{n.message}</p>
+                  {n.title && body && n.title !== body && (
+                    <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{body}</p>
+                  )}
+                  {navigable && (
+                    <p className="text-[10px] font-bold text-[#38A8AB] uppercase tracking-wider mt-1">
+                      Open conversation →
+                    </p>
                   )}
                   <p className="text-[10px] text-slate-400 mt-1">{timeAgo(n.createdAt)}</p>
                 </div>
@@ -236,7 +278,10 @@ function NotificationsContent() {
                   {!n.isRead && (
                     <button
                       type="button"
-                      onClick={() => handleMarkRead(n._id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleMarkRead(n._id);
+                      }}
                       disabled={actionLoading === n._id}
                       className="text-[9px] font-bold text-[#38A8AB] uppercase tracking-wider hover:underline disabled:opacity-50"
                     >
@@ -245,7 +290,10 @@ function NotificationsContent() {
                   )}
                   <button
                     type="button"
-                    onClick={() => handleDelete(n._id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(n._id);
+                    }}
                     disabled={actionLoading === n._id}
                     className="text-[9px] font-bold text-slate-400 uppercase tracking-wider hover:underline hover:text-red-400 disabled:opacity-50"
                   >
@@ -253,7 +301,8 @@ function NotificationsContent() {
                   </button>
                 </div>
               </div>
-            ))}
+            );
+            })}
           </div>
         )}
 
