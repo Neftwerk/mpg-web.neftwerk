@@ -93,6 +93,9 @@ export const API_ENDPOINTS = {
     DETAIL: (galleryId: string) => `${API_BASE_URL}/api/admin/galleries/${galleryId}`,
     /** PATCH /api/admin/galleries/:galleryId */
     UPDATE: (galleryId: string) => `${API_BASE_URL}/api/admin/galleries/${galleryId}`,
+    /** GET /api/admin/galleries/:galleryId/artworks?status=&collectionId=&artistId=&search= */
+    ARTWORKS: (galleryId: string) =>
+      `${API_BASE_URL}/api/admin/galleries/${galleryId}/artworks`,
   },
 
   NOTIFICATIONS: {

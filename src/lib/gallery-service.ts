@@ -47,6 +47,37 @@ export interface AdminGalleryRecord {
   status: string;
 }
 
+export interface AdminArtworkRecord {
+  _id: string;
+  galleryId: string;
+  collectionId: string;
+  artistId: string;
+  title: string;
+  description: string;
+  status: string;
+  listPriceCents?: number;
+  royaltyBps?: number;
+  createdAt?: string;
+}
+
+export interface AdminArtworkListResponse {
+  artworks: AdminArtworkRecord[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    total: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+}
+
+export interface ListAdminGalleryArtworksParams {
+  status?: string;
+  collectionId?: string;
+  artistId?: string;
+  search?: string;
+}
+
 export interface CollectionSummary {
   id: string;
   galleryId: string;
@@ -279,6 +310,55 @@ function unwrapAuthedData<T>(data: unknown): T {
     return (data as { data: T }).data;
   }
   return data as T;
+}
+
+/** List all artworks for a gallery (admin API). */
+export async function listAdminGalleryArtworks(
+  galleryId: string,
+  params: ListAdminGalleryArtworksParams = {},
+): Promise<ApiResponse<AdminArtworkListResponse>> {
+  const query = new URLSearchParams();
+  if (params.status) query.set("status", params.status);
+  if (params.collectionId) query.set("collectionId", params.collectionId);
+  if (params.artistId) query.set("artistId", params.artistId);
+  if (params.search) query.set("search", params.search);
+
+  const qs = query.toString();
+  const url = `${API_ENDPOINTS.ADMIN_GALLERIES.ARTWORKS(galleryId)}${qs ? `?${qs}` : ""}`;
+  const res = await authedFetch<unknown>(url, { method: "GET" });
+
+  if (!res.ok) return res as ApiResponse<AdminArtworkListResponse>;
+
+  return {
+    ...res,
+    data: unwrapAuthedData<AdminArtworkListResponse>(res.data),
+  };
+}
+
+/** Fetch all artworks for a gallery (admin API). */
+export async function fetchAllAdminGalleryArtworks(
+  galleryId: string,
+  params: ListAdminGalleryArtworksParams = {},
+): Promise<ApiResponse<{ artworks: AdminArtworkRecord[]; total: number }>> {
+  const res = await listAdminGalleryArtworks(galleryId, params);
+
+  if (!res.ok) {
+    return {
+      ok: false,
+      status: res.status,
+      data: { artworks: [], total: 0 },
+      message: res.message,
+    };
+  }
+
+  return {
+    ok: true,
+    status: res.status,
+    data: {
+      artworks: res.data.artworks,
+      total: res.data.pagination.total,
+    },
+  };
 }
 
 /** Update an admin gallery record (e.g. profile picture). */

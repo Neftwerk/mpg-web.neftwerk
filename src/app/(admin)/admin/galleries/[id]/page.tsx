@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { GalleryOnboardingWizard } from "@/components/admin/GalleryOnboardingWizard";
+import { GalleryArtworksPanel } from "@/components/admin/GalleryArtworksPanel";
 import { ArrowLeft } from "lucide-react";
 
 const MOCK_DETAILS: Record<string, any> = {
@@ -85,6 +86,8 @@ export default function GalleryDetailPage() {
 
       {/* Stepper Wizard component loaded with existing data */}
       <GalleryOnboardingWizard galleryId={id} initialData={galleryData} />
+
+      <GalleryArtworksPanel galleryId={id} />
     </div>
   );
 }
