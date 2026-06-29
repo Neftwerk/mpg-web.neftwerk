@@ -14,6 +14,7 @@ import {
   listAdminEnquiries,
 } from "@/lib/enquiry-service";
 import { useEnquirySocket } from "@/lib/use-enquiry-socket";
+import { EnquiryArtworkCell } from "@/components/messages/EnquiryArtworkCell";
 
 type EnquiryRow = EnquiryListItem & { id: string };
 
@@ -96,7 +97,7 @@ export default function AdminEnquiriesPage() {
     {
       key: "artwork",
       header: "Artwork",
-      render: (row) => getArtworkTitle(row.artworkId),
+      render: (row) => <EnquiryArtworkCell artworkId={row.artworkId} />,
     },
     {
       key: "customer",

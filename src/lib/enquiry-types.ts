@@ -12,6 +12,8 @@ export interface EnquiryArtworkRef {
   _id: string;
   title: string;
   description?: string;
+  mediaUrl?: string;
+  mediaExpiresAt?: string;
 }
 
 export interface EnquiryMessage {

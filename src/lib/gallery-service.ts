@@ -1,8 +1,9 @@
 /**
- * Gallery Service — fetches public gallery data from the Neftwerk backend.
+ * Gallery Service — public catalog and admin gallery APIs.
  */
 
 import { API_ENDPOINTS } from "./api";
+import { authedFetch, type ApiResponse } from "./auth-service";
 
 const ARTWORKS_CACHE_KEY = "neft_public_artworks_v1";
 const ARTWORK_CACHE_MS = 60_000;
@@ -21,7 +22,29 @@ export interface GalleryListItem {
   country?: string;
   artworkCount: number;
   minPriceCents?: number | null;
+  profileMediaUrl?: string;
+  profileMediaExpiresAt?: string;
   coverMediaUrl?: string;
+  coverMediaExpiresAt?: string;
+}
+
+export function getGalleryListImageUrl(gallery: GalleryListItem): string | undefined {
+  return gallery.profileMediaUrl ?? gallery.coverMediaUrl;
+}
+
+export interface GalleryProfilePicture {
+  s3Bucket: string;
+  s3Key: string;
+  mimeType?: string;
+  originalName?: string;
+  size?: number;
+}
+
+export interface AdminGalleryRecord {
+  _id: string;
+  name: string;
+  profilePicture?: GalleryProfilePicture;
+  status: string;
 }
 
 export interface CollectionSummary {
@@ -249,4 +272,34 @@ export async function fetchAllPublicCollections(): Promise<
   );
 
   return allCollections;
+}
+
+function unwrapAuthedData<T>(data: unknown): T {
+  if (data && typeof data === "object" && "data" in data) {
+    return (data as { data: T }).data;
+  }
+  return data as T;
+}
+
+/** Update an admin gallery record (e.g. profile picture). */
+export async function updateAdminGallery(
+  galleryId: string,
+  payload: { profilePicture?: GalleryProfilePicture | null },
+): Promise<ApiResponse<{ gallery: AdminGalleryRecord }>> {
+  const res = await authedFetch<unknown>(
+    API_ENDPOINTS.ADMIN_GALLERIES.UPDATE(galleryId),
+    {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    },
+  );
+
+  if (!res.ok) {
+    return res as ApiResponse<{ gallery: AdminGalleryRecord }>;
+  }
+
+  return {
+    ...res,
+    data: unwrapAuthedData<{ gallery: AdminGalleryRecord }>(res.data),
+  };
 }

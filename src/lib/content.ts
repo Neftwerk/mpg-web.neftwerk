@@ -1,7 +1,7 @@
 export const navItems = [
   { href: "/forum", label: "Forum", icon: "forum" as const },
   { href: "/discover", label: "Discover", icon: "discover" as const },
-  { href: "/gallery", label: "Gallery", icon: "gallery" as const },
+  { href: "/gallery", label: "My Gallery", icon: "gallery" as const },
   { href: "/wallet", label: "Wallet", icon: "wallet" as const },
   { href: "/profile", label: "Profile", icon: "profile" as const },
 ];
