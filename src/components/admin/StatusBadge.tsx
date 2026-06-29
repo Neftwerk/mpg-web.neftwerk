@@ -46,6 +46,12 @@ export function StatusBadge({ status, variant }: StatusBadgeProps) {
       case "MINTED":
         colorClasses = "bg-purple-100 text-purple-800 border-purple-200";
         break;
+      case "ACTIVE":
+        colorClasses = "bg-green-100 text-green-800 border-green-200";
+        break;
+      case "INACTIVE":
+        colorClasses = "bg-slate-200 text-slate-600 border-slate-300";
+        break;
       default:
         colorClasses = "bg-slate-100 text-slate-800 border-slate-200";
     }

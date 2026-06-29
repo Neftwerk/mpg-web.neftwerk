@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   createEnquiry,
   findEnquiryByArtworkId,
   getEnquiryErrorCode,
 } from "@/lib/enquiry-service";
+import { fetchPublicArtwork } from "@/lib/gallery-service";
+import { NeftwerkImage } from "@/components/NeftwerkImage";
 
 interface EnquiryComposeProps {
   artworkId: string;
@@ -20,6 +22,25 @@ export function EnquiryCompose({ artworkId, artworkTitle }: EnquiryComposeProps)
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [resolvedTitle, setResolvedTitle] = useState(artworkTitle ?? "");
+  const [mediaUrl, setMediaUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      const artwork = await fetchPublicArtwork(artworkId);
+      if (cancelled || !artwork) return;
+      if (!artworkTitle) setResolvedTitle(artwork.title);
+      if (artwork.mediaUrl) setMediaUrl(artwork.mediaUrl);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [artworkId, artworkTitle]);
+
+  const displayTitle = resolvedTitle || artworkTitle;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,16 +76,28 @@ export function EnquiryCompose({ artworkId, artworkTitle }: EnquiryComposeProps)
 
   return (
     <div className="card-neumorph w-full max-w-md p-6 mt-4 space-y-4">
-      <div>
-        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#4D91A7]">
-          New enquiry
-        </p>
-        <h2 className="text-lg font-semibold text-[#11181c] mt-1">
-          {artworkTitle ? `Enquiry about ${artworkTitle}` : "Price enquiry"}
-        </h2>
-        <p className="text-sm text-[#616161] mt-2 leading-relaxed">
-          Ask the gallery about pricing for this artwork. They will reply here.
-        </p>
+      <div className="flex items-start gap-3">
+        {mediaUrl ? (
+          <NeftwerkImage
+            src={mediaUrl}
+            alt={displayTitle || "Artwork"}
+            className="w-16 h-16 rounded-lg object-cover shrink-0 bg-slate-100"
+            priority
+          />
+        ) : (
+          <div className="w-16 h-16 rounded-lg shrink-0 bg-slate-100" aria-hidden />
+        )}
+        <div className="min-w-0">
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#4D91A7]">
+            New enquiry
+          </p>
+          <h2 className="text-lg font-semibold text-[#11181c] mt-1">
+            {displayTitle ? `Enquiry about ${displayTitle}` : "Price enquiry"}
+          </h2>
+          <p className="text-sm text-[#616161] mt-2 leading-relaxed">
+            Ask the gallery about pricing for this artwork. They will reply here.
+          </p>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">

@@ -2,15 +2,34 @@
 
 import Link from "next/link";
 import { useState, useEffect, useMemo } from "react";
-import { fetchAllPublicArtworks, ArtworkItem } from "@/lib/gallery-service";
+import {
+  fetchAllPublicArtworks,
+  fetchPublicGalleries,
+  ArtworkItem,
+  GalleryListItem,
+} from "@/lib/gallery-service";
 import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
 import { GalleryGridSkeleton, SkeletonBar } from "@/components/Skeletons";
 import { GalleryArtworkCard } from "@/components/artwork/GalleryArtworkCard";
+import { GalleriesList } from "@/components/gallery/GalleriesList";
 import { NeftwerkImage } from "@/components/NeftwerkImage";
 
 function DiscoverSectionsSkeleton() {
   return (
     <>
+      <SkeletonBar className="h-4 w-24 mb-3" />
+      <div className="grid gap-3 sm:grid-cols-2 mb-8">
+        {Array.from({ length: 2 }).map((_, index) => (
+          <div key={index} className="card-neumorph px-4 py-4 flex items-center gap-4">
+            <SkeletonBar className="h-16 w-16 flex-shrink-0" />
+            <div className="flex-1 space-y-2">
+              <SkeletonBar className="h-4 w-2/3" />
+              <SkeletonBar className="h-3 w-1/2" />
+            </div>
+          </div>
+        ))}
+      </div>
+
       <SkeletonBar className="h-4 w-36 mb-3" />
       <div className="grid grid-cols-3 gap-3 mb-8">
         {Array.from({ length: 3 }).map((_, index) => (
@@ -35,6 +54,7 @@ function DiscoverSectionsSkeleton() {
 export default function DiscoverPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [artworks, setArtworks] = useState<ArtworkItem[]>([]);
+  const [galleries, setGalleries] = useState<GalleryListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -42,8 +62,12 @@ export default function DiscoverPage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const items = await fetchAllPublicArtworks();
-        setArtworks(items);
+        const [artworkItems, galleryItems] = await Promise.all([
+          fetchAllPublicArtworks(),
+          fetchPublicGalleries(),
+        ]);
+        setArtworks(artworkItems);
+        setGalleries(galleryItems);
       } catch (e) {
         setError((e as Error).message);
       } finally {
@@ -122,7 +146,14 @@ export default function DiscoverPage() {
 
         {loading && <DiscoverSectionsSkeleton />}
 
-        {!loading && !isSearching && artworks.length === 0 && (
+        {!loading && !isSearching && (
+          <section id="galleries" className="mb-8 scroll-mt-24">
+            <h3 className="text-[16px] font-bold text-[#1A3F6C] mb-3">Galleries</h3>
+            <GalleriesList galleries={galleries} prefetchCovers />
+          </section>
+        )}
+
+        {!loading && !isSearching && artworks.length === 0 && galleries.length === 0 && (
           <div className="text-center py-16">
             <p className="font-bold text-sm uppercase tracking-wider text-[#334E57]/60">
               No artworks available yet.

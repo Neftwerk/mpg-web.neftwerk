@@ -71,7 +71,9 @@ export function DataTable<T extends { id?: string | number; [key: string]: any }
                   {columns.map((col) => (
                     <td
                       key={col.key}
-                      className="px-6 py-4 text-sm font-medium text-[#11181c] whitespace-nowrap"
+                      className={`px-6 py-4 text-sm font-medium text-[#11181c] ${
+                        col.key === "artwork" ? "whitespace-normal min-w-[220px]" : "whitespace-nowrap"
+                      }`}
                     >
                       {col.render ? col.render(row) : row[col.key]}
                     </td>

@@ -34,7 +34,7 @@ export default function HomeScreen() {
           {/* Gallery */}
           <div className="absolute top-[114px] left-0 z-10">
             <Link href="/gallery" className="block transition-transform active:scale-95">
-              <Image src={GalleryIcon} alt="Gallery" className="w-[145px] h-auto" />
+              <Image src={GalleryIcon} alt="My Gallery" className="w-[145px] h-auto" />
             </Link>
           </div>
 

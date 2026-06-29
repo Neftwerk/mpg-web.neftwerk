@@ -1,9 +1,20 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Upload, ChevronRight, ChevronLeft, Check, AlertTriangle, ShieldCheck, XCircle } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
+import { uploadImage } from "@/lib/storage-service";
+import {
+  updateAdminGallery,
+  type GalleryProfilePicture,
+} from "@/lib/gallery-service";
+
+const OBJECT_ID_RE = /^[a-f\d]{24}$/i;
+
+function isPersistableGalleryId(id?: string): boolean {
+  return Boolean(id && OBJECT_ID_RE.test(id));
+}
 
 interface GalleryWizardProps {
   galleryId?: string; // If present, it's detail/edit mode
@@ -36,7 +47,7 @@ export function GalleryOnboardingWizard({ galleryId, initialData }: GalleryWizar
     displayName: initialData?.displayName || "",
     shortDesc: initialData?.shortDesc || "",
     longDesc: initialData?.longDesc || "",
-    coverImage: initialData?.coverImage || "",
+    profilePicture: (initialData?.profilePicture as GalleryProfilePicture | null) ?? null,
     address: initialData?.address || "",
     taxId: initialData?.taxId || "",
     walletAddress: initialData?.walletAddress || "",
@@ -58,6 +69,10 @@ export function GalleryOnboardingWizard({ galleryId, initialData }: GalleryWizar
     { type: "Entity Proof", expiry: "2028-12-31", version: "v1.0", file: "cert_of_incorporation.pdf" },
     { type: "Tax Form", expiry: "2027-04-15", version: "v2.0", file: "w9_form.pdf" },
   ]);
+  const [profilePreviewUrl, setProfilePreviewUrl] = useState(initialData?.profilePreviewUrl || "");
+  const [profileUploading, setProfileUploading] = useState(false);
+  const [profileError, setProfileError] = useState("");
+  const profileInputRef = useRef<HTMLInputElement>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -78,6 +93,70 @@ export function GalleryOnboardingWizard({ galleryId, initialData }: GalleryWizar
     };
     setUploadedDocs((prev) => [...prev, newDoc]);
     setFormData((prev) => ({ ...prev, docExpiry: "", docVersion: "v1.0" }));
+  };
+
+  const handleProfilePictureUpload = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      setProfileError("Please select an image file.");
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setProfileError("Image is too large. Please select an image smaller than 10MB.");
+      return;
+    }
+
+    setProfileUploading(true);
+    setProfileError("");
+
+    const uploadResult = await uploadImage(file);
+    if (!uploadResult.ok) {
+      setProfileError(uploadResult.message || "Failed to upload profile picture.");
+      setProfileUploading(false);
+      return;
+    }
+
+    const profilePicture: GalleryProfilePicture = {
+      s3Bucket: uploadResult.data.bucket,
+      s3Key: uploadResult.data.key,
+      mimeType: uploadResult.data.mimeType,
+      originalName: uploadResult.data.originalName,
+      size: uploadResult.data.size,
+    };
+
+    if (isPersistableGalleryId(galleryId)) {
+      const updateResult = await updateAdminGallery(galleryId!, { profilePicture });
+      if (!updateResult.ok) {
+        setProfileError(updateResult.message || "Failed to save gallery profile picture.");
+        setProfileUploading(false);
+        return;
+      }
+    }
+
+    setFormData((prev) => ({ ...prev, profilePicture }));
+    setProfilePreviewUrl(uploadResult.data.downloadUrl);
+    setProfileUploading(false);
+  };
+
+  const handleProfilePictureRemove = async () => {
+    setProfileUploading(true);
+    setProfileError("");
+
+    if (isPersistableGalleryId(galleryId)) {
+      const updateResult = await updateAdminGallery(galleryId!, { profilePicture: null });
+      if (!updateResult.ok) {
+        setProfileError(updateResult.message || "Failed to remove gallery profile picture.");
+        setProfileUploading(false);
+        return;
+      }
+    }
+
+    setFormData((prev) => ({ ...prev, profilePicture: null }));
+    setProfilePreviewUrl("");
+    if (profileInputRef.current) {
+      profileInputRef.current.value = "";
+    }
+    setProfileUploading(false);
   };
 
   const nextStep = () => {
@@ -284,16 +363,67 @@ export function GalleryOnboardingWizard({ galleryId, initialData }: GalleryWizar
                 />
               </div>
               <div>
-                <label className="field-label">Cover Artwork Banner</label>
+                <label className="field-label">Gallery Profile Picture</label>
                 <div className="card-neumorph p-4 border border-dashed border-[#1A3F6C]/20 flex flex-col items-center justify-center gap-3">
-                  <Upload className="w-8 h-8 text-[#1A3F6C]" />
+                  {profilePreviewUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={profilePreviewUrl}
+                      alt="Gallery profile preview"
+                      className="h-24 w-24 rounded-full object-cover border border-[#1A3F6C]/10"
+                    />
+                  ) : (
+                    <Upload className="w-8 h-8 text-[#1A3F6C]" />
+                  )}
                   <div className="text-center">
-                    <span className="text-xs font-bold block text-[#11181c]">Drag and drop cover image here</span>
-                    <span className="text-[10px] font-bold block text-[#1A3F6C]/60 mt-1">PNG, JPG up to 10MB (Recommended: 1200x480px)</span>
+                    <span className="text-xs font-bold block text-[#11181c]">
+                      {profilePreviewUrl
+                        ? "Gallery profile picture uploaded"
+                        : "Upload the gallery profile picture"}
+                    </span>
+                    <span className="text-[10px] font-bold block text-[#1A3F6C]/60 mt-1">
+                      PNG or JPG up to 10MB (recommended square image)
+                    </span>
                   </div>
-                  <button className="btn-neumorph text-xs font-bold py-1.5 px-4 mt-2">
-                    Browse Files
-                  </button>
+                  <input
+                    ref={profileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      if (file) void handleProfilePictureUpload(file);
+                      event.target.value = "";
+                    }}
+                  />
+                  <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
+                    <button
+                      type="button"
+                      className="btn-neumorph text-xs font-bold py-1.5 px-4 disabled:opacity-50"
+                      disabled={profileUploading}
+                      onClick={() => profileInputRef.current?.click()}
+                    >
+                      {profileUploading ? "Uploading…" : profilePreviewUrl ? "Replace image" : "Browse files"}
+                    </button>
+                    {profilePreviewUrl && (
+                      <button
+                        type="button"
+                        className="text-xs font-bold py-1.5 px-4 border border-red-200 text-red-600 disabled:opacity-50"
+                        disabled={profileUploading}
+                        onClick={() => void handleProfilePictureRemove()}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                  {profileError && (
+                    <p className="text-xs text-red-500 text-center">{profileError}</p>
+                  )}
+                  {!isPersistableGalleryId(galleryId) && (
+                    <p className="text-[10px] text-[#616161] text-center">
+                      Save the gallery record first to persist the profile picture to the backend.
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

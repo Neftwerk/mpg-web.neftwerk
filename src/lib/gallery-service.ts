@@ -1,8 +1,9 @@
 /**
- * Gallery Service — fetches public gallery data from the Neftwerk backend.
+ * Gallery Service — public catalog and admin gallery APIs.
  */
 
 import { API_ENDPOINTS } from "./api";
+import { authedFetch, type ApiResponse } from "./auth-service";
 
 const ARTWORKS_CACHE_KEY = "neft_public_artworks_v1";
 const ARTWORK_CACHE_MS = 60_000;
@@ -21,7 +22,60 @@ export interface GalleryListItem {
   country?: string;
   artworkCount: number;
   minPriceCents?: number | null;
+  profileMediaUrl?: string;
+  profileMediaExpiresAt?: string;
   coverMediaUrl?: string;
+  coverMediaExpiresAt?: string;
+}
+
+export function getGalleryListImageUrl(gallery: GalleryListItem): string | undefined {
+  return gallery.profileMediaUrl ?? gallery.coverMediaUrl;
+}
+
+export interface GalleryProfilePicture {
+  s3Bucket: string;
+  s3Key: string;
+  mimeType?: string;
+  originalName?: string;
+  size?: number;
+}
+
+export interface AdminGalleryRecord {
+  _id: string;
+  name: string;
+  profilePicture?: GalleryProfilePicture;
+  status: string;
+}
+
+export interface AdminArtworkRecord {
+  _id: string;
+  galleryId: string;
+  collectionId: string;
+  artistId: string;
+  title: string;
+  description: string;
+  status: string;
+  listPriceCents?: number;
+  royaltyBps?: number;
+  createdAt?: string;
+}
+
+export interface AdminArtworkListResponse {
+  artworks: AdminArtworkRecord[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    total: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+}
+
+export interface ListAdminGalleryArtworksParams {
+  status?: string;
+  collectionId?: string;
+  artistId?: string;
+  search?: string;
 }
 
 export interface CollectionSummary {
@@ -249,4 +303,83 @@ export async function fetchAllPublicCollections(): Promise<
   );
 
   return allCollections;
+}
+
+function unwrapAuthedData<T>(data: unknown): T {
+  if (data && typeof data === "object" && "data" in data) {
+    return (data as { data: T }).data;
+  }
+  return data as T;
+}
+
+/** List all artworks for a gallery (admin API). */
+export async function listAdminGalleryArtworks(
+  galleryId: string,
+  params: ListAdminGalleryArtworksParams = {},
+): Promise<ApiResponse<AdminArtworkListResponse>> {
+  const query = new URLSearchParams();
+  if (params.status) query.set("status", params.status);
+  if (params.collectionId) query.set("collectionId", params.collectionId);
+  if (params.artistId) query.set("artistId", params.artistId);
+  if (params.search) query.set("search", params.search);
+
+  const qs = query.toString();
+  const url = `${API_ENDPOINTS.ADMIN_GALLERIES.ARTWORKS(galleryId)}${qs ? `?${qs}` : ""}`;
+  const res = await authedFetch<unknown>(url, { method: "GET" });
+
+  if (!res.ok) return res as ApiResponse<AdminArtworkListResponse>;
+
+  return {
+    ...res,
+    data: unwrapAuthedData<AdminArtworkListResponse>(res.data),
+  };
+}
+
+/** Fetch all artworks for a gallery (admin API). */
+export async function fetchAllAdminGalleryArtworks(
+  galleryId: string,
+  params: ListAdminGalleryArtworksParams = {},
+): Promise<ApiResponse<{ artworks: AdminArtworkRecord[]; total: number }>> {
+  const res = await listAdminGalleryArtworks(galleryId, params);
+
+  if (!res.ok) {
+    return {
+      ok: false,
+      status: res.status,
+      data: { artworks: [], total: 0 },
+      message: res.message,
+    };
+  }
+
+  return {
+    ok: true,
+    status: res.status,
+    data: {
+      artworks: res.data.artworks,
+      total: res.data.pagination.total,
+    },
+  };
+}
+
+/** Update an admin gallery record (e.g. profile picture). */
+export async function updateAdminGallery(
+  galleryId: string,
+  payload: { profilePicture?: GalleryProfilePicture | null },
+): Promise<ApiResponse<{ gallery: AdminGalleryRecord }>> {
+  const res = await authedFetch<unknown>(
+    API_ENDPOINTS.ADMIN_GALLERIES.UPDATE(galleryId),
+    {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    },
+  );
+
+  if (!res.ok) {
+    return res as ApiResponse<{ gallery: AdminGalleryRecord }>;
+  }
+
+  return {
+    ...res,
+    data: unwrapAuthedData<{ gallery: AdminGalleryRecord }>(res.data),
+  };
 }

@@ -16,13 +16,41 @@ function unwrapData<T>(data: unknown): T {
   return data as T;
 }
 
+const OBJECT_ID_RE = /^[a-f\d]{24}$/i;
+
 export function getArtworkTitle(
   artworkId: EnquiryListItem["artworkId"],
 ): string {
   if (typeof artworkId === "object" && artworkId?.title) {
-    return artworkId.title;
+    if (!OBJECT_ID_RE.test(artworkId.title)) {
+      return artworkId.title;
+    }
+  }
+  if (typeof artworkId === "string" && !OBJECT_ID_RE.test(artworkId)) {
+    return artworkId;
   }
   return "Artwork";
+}
+
+export function getArtworkRefId(
+  artworkId: EnquiryListItem["artworkId"],
+): string | null {
+  if (typeof artworkId === "object" && artworkId?._id) {
+    return artworkId._id;
+  }
+  if (typeof artworkId === "string") {
+    return artworkId;
+  }
+  return null;
+}
+
+export function getArtworkMediaUrl(
+  artworkId: EnquiryListItem["artworkId"],
+): string | undefined {
+  if (typeof artworkId === "object" && artworkId?.mediaUrl) {
+    return artworkId.mediaUrl;
+  }
+  return undefined;
 }
 
 export function getCustomerName(

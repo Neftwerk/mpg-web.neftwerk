@@ -6,6 +6,7 @@ import { useUser } from "@/lib/UserContext";
 import type { EnquiryDetail, EnquiryMessage } from "@/lib/enquiry-types";
 import {
   getAdminEnquiry,
+  getArtworkRefId,
   getArtworkTitle,
   getEnquiry,
   isUserAssignedToEnquiry,
@@ -16,6 +17,8 @@ import {
   sendEnquiryMessage,
 } from "@/lib/enquiry-service";
 import { useEnquirySocket } from "@/lib/use-enquiry-socket";
+import { EnquiryArtworkThumb } from "@/components/messages/EnquiryArtworkThumb";
+import { useEnquiryArtwork } from "@/lib/use-enquiry-artwork";
 
 function formatTime(dateStr: string): string {
   return new Date(dateStr).toLocaleString("en-US", {
@@ -44,6 +47,37 @@ function serializeMessage(message: EnquiryMessage): EnquiryMessage {
   };
 }
 
+function mergeEnquiryArtwork(
+  current: EnquiryDetail | null,
+  next: EnquiryDetail,
+): EnquiryDetail {
+  if (!current) return next;
+
+  const currentArtwork = current.artworkId;
+  const nextArtwork = next.artworkId;
+
+  if (
+    typeof currentArtwork === "object" &&
+    currentArtwork !== null &&
+    typeof nextArtwork === "string"
+  ) {
+    return { ...next, artworkId: currentArtwork };
+  }
+
+  if (
+    typeof currentArtwork === "object" &&
+    currentArtwork !== null &&
+    typeof nextArtwork === "object" &&
+    nextArtwork !== null &&
+    !nextArtwork.title &&
+    currentArtwork.title
+  ) {
+    return { ...next, artworkId: { ...currentArtwork, ...nextArtwork } };
+  }
+
+  return next;
+}
+
 interface EnquiryThreadProps {
   enquiryId: string;
   adminMode?: boolean;
@@ -67,14 +101,11 @@ export function EnquiryThread({
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
+  const { title: resolvedTitle } = useEnquiryArtwork(enquiry?.artworkId);
 
-  const applyEnquiry = useCallback(
-    (next: EnquiryDetail) => {
-      setEnquiry(next);
-      onEnquiryUpdated?.(next);
-    },
-    [onEnquiryUpdated],
-  );
+  const applyEnquiry = useCallback((next: EnquiryDetail) => {
+    setEnquiry((current) => mergeEnquiryArtwork(current, next));
+  }, []);
 
   const loadEnquiry = useCallback(async () => {
     setLoading(true);
@@ -105,6 +136,12 @@ export function EnquiryThread({
     loadEnquiry();
   }, [loadEnquiry]);
 
+  useEffect(() => {
+    if (enquiry) {
+      onEnquiryUpdated?.(enquiry);
+    }
+  }, [enquiry, onEnquiryUpdated]);
+
   const handleMessageNew = useCallback(
     (payload: { enquiryId: string; message: EnquiryMessage }) => {
       if (payload.enquiryId !== enquiryId) return;
@@ -115,15 +152,13 @@ export function EnquiryThread({
         if (current.messages.some((m) => m._id === incoming._id)) {
           return current;
         }
-        const next = {
+        return {
           ...current,
           messages: [...current.messages, incoming],
         };
-        onEnquiryUpdated?.(next);
-        return next;
       });
     },
-    [enquiryId, onEnquiryUpdated],
+    [enquiryId],
   );
 
   const handleStatusChanged = useCallback(
@@ -131,12 +166,10 @@ export function EnquiryThread({
       if (payload.enquiryId !== enquiryId) return;
       setEnquiry((current) => {
         if (!current) return current;
-        const next = { ...current, status: payload.status };
-        onEnquiryUpdated?.(next);
-        return next;
+        return { ...current, status: payload.status };
       });
     },
-    [enquiryId, onEnquiryUpdated],
+    [enquiryId],
   );
 
   useEnquirySocket({
@@ -170,7 +203,7 @@ export function EnquiryThread({
         if (current.messages.some((m) => m._id === message._id)) {
           return current;
         }
-        const next = {
+        return {
           ...current,
           messages: [...current.messages, message],
           status:
@@ -181,8 +214,6 @@ export function EnquiryThread({
               ? "in_progress"
               : current.status,
         };
-        onEnquiryUpdated?.(next);
-        return next;
       });
       setDraft("");
     } else {
@@ -212,6 +243,8 @@ export function EnquiryThread({
   }
 
   const title = getArtworkTitle(enquiry.artworkId);
+  const artworkPageId = getArtworkRefId(enquiry.artworkId);
+  const displayTitle = resolvedTitle !== "Artwork" ? resolvedTitle : title;
   const isClosed = enquiry.status === "closed";
   const assigned = isUserAssignedToEnquiry(enquiry, user?.id);
   const replyAllowed =
@@ -221,22 +254,41 @@ export function EnquiryThread({
   return (
     <div className="flex flex-col min-h-[calc(100dvh-5rem)] lg:min-h-[calc(100dvh-4rem)]">
       <div className="card-neumorph p-4 mt-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <Link
-              href={backHref}
-              className="text-xs font-bold text-[#38A8AB] uppercase tracking-wider hover:underline"
-            >
-              ← Back
-            </Link>
-            <h2 className="text-lg font-semibold text-[#11181c] mt-1 truncate">
-              {title}
-            </h2>
-            <p className="text-xs text-slate-500 mt-0.5">{enquiry.enquiryNumber}</p>
+        <div className="flex items-start gap-3">
+          <EnquiryArtworkThumb
+            artworkId={enquiry.artworkId}
+            size="md"
+            linkToArtwork
+            priority
+          />
+
+          <div className="flex-1 min-w-0 flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <Link
+                href={backHref}
+                className="text-xs font-bold text-[#38A8AB] uppercase tracking-wider hover:underline"
+              >
+                ← Back
+              </Link>
+              {artworkPageId ? (
+                <Link href={`/artwork/${artworkPageId}`} className="block mt-1">
+                  <h2 className="text-lg font-semibold text-[#11181c] truncate hover:text-[#1A3F6C]">
+                    {displayTitle}
+                  </h2>
+                </Link>
+              ) : (
+                <h2 className="text-lg font-semibold text-[#11181c] mt-1 truncate">
+                  {displayTitle}
+                </h2>
+              )}
+              {adminMode && (
+                <p className="text-xs text-slate-500 mt-0.5">{enquiry.enquiryNumber}</p>
+              )}
+            </div>
+            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full bg-[#38A8AB]/15 text-[#1A3F6C] shrink-0">
+              {statusLabel(enquiry.status)}
+            </span>
           </div>
-          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full bg-[#38A8AB]/15 text-[#1A3F6C] shrink-0">
-            {statusLabel(enquiry.status)}
-          </span>
         </div>
       </div>
 
