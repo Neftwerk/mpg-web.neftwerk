@@ -1,4 +1,3 @@
-import { nativeToScVal, xdr } from "@stellar/stellar-sdk";
 import { getSocketFiClient } from "./socketfi";
 import { getSocketFiClientId } from "./socketfi-config";
 import type { MintPrepData } from "./mint-types";
@@ -255,16 +254,8 @@ function formatSocketFiTransactionError(
 async function requestArts1MintTransaction(opts: {
   session: SocketFiSession;
   prep: MintPrepData;
-  saleId: string;
   callFunction: { name: string };
   argsXdr: string[];
-  txDetails: Record<string, unknown>;
-  display: {
-    title: string;
-    description: string;
-    action: string;
-    app: string;
-  };
   signOnly?: boolean;
   clientPaymaster?: string;
 }): Promise<unknown> {
@@ -275,24 +266,11 @@ async function requestArts1MintTransaction(opts: {
     );
   }
 
-  const contractArgs = opts.argsXdr.map((xdrString) =>
-    xdr.ScVal.fromXDR(xdrString, "base64")
-  );
-
-  const callArgs = [
-    nativeToScVal(opts.prep.chain.arts1FactoryContractId, { type: "address" }),
-    nativeToScVal("mint", { type: "symbol" }),
-    nativeToScVal(contractArgs, { type: "vec" }),
-    nativeToScVal([], { type: "vec" }),
-  ];
-
-  const argsXdr = callArgs.map((arg) => arg.toXDR("base64"));
-
   const input = {
     accessToken,
-    contractId: opts.prep.ownerAddress,
-    callFunction: { name: "dapp_invoker" as const },
-    argsXdr,
+    contractId: opts.prep.chain.arts1FactoryContractId,
+    callFunction: opts.callFunction,
+    argsXdr: opts.argsXdr,
     ...(opts.clientPaymaster ? { clientPaymaster: opts.clientPaymaster } : {}),
   };
 
@@ -332,20 +310,8 @@ export async function signArts1MintDigestViaSocketFi(opts: {
     txResult = await requestArts1MintTransaction({
       session: opts.session,
       prep: opts.prep,
-      saleId: opts.saleId,
       callFunction: { name: "compute_mint_auth_digest" },
       argsXdr: digestArgsXdr,
-      txDetails: buildArts1MintTxDetails(opts.prep, opts.saleId, {
-        arts1Phase: "sign_digest",
-        signDigestOnly: true,
-        submitViaRelayer: false,
-      }),
-      display: {
-        title: "Sign ownership proof",
-        description: `Approve ownership of ${opts.prep.onChainArtworkId} with your passkey`,
-        action: "Sign ownership proof",
-        app: "Neftwerk",
-      },
       signOnly: true,
       clientPaymaster: process.env.NEXT_PUBLIC_SOCKETFI_CLIENT_PAYMASTER,
     });
@@ -392,21 +358,8 @@ export async function requestArts1MintOwnerAuthViaSocketFi(opts: {
     txResult = await requestArts1MintTransaction({
       session: opts.session,
       prep: opts.prep,
-      saleId: opts.saleId,
       callFunction: { name: "mint" },
       argsXdr: opts.prep.mintArgsXdr,
-      txDetails: buildArts1MintTxDetails(opts.prep, opts.saleId, {
-        arts1Phase: "owner_auth",
-        skipDigestSign: true,
-        submitViaRelayer: false,
-        collectorSignature: opts.collectorSignature,
-      }),
-      display: {
-        title: "Claim artwork",
-        description: `Mint ${opts.prep.onChainArtworkId} to your wallet`,
-        action: "Authorize mint on Stellar",
-        app: "Neftwerk",
-      },
       signOnly: true,
       clientPaymaster: process.env.NEXT_PUBLIC_SOCKETFI_CLIENT_PAYMASTER,
     });
@@ -459,16 +412,8 @@ export async function requestArts1MintApprovalViaSocketFi(opts: {
     txResult = await requestArts1MintTransaction({
       session: opts.session,
       prep: opts.prep,
-      saleId: opts.saleId,
       callFunction: { name: "mint" },
       argsXdr: opts.prep.mintArgsXdr,
-      txDetails: buildArts1MintTxDetails(opts.prep, opts.saleId),
-      display: {
-        title: "Claim artwork",
-        description: `Mint ${opts.prep.onChainArtworkId} to your wallet`,
-        action: "Claim artwork ownership on Stellar",
-        app: "Neftwerk",
-      },
     });
   } catch (error) {
     throw formatSocketFiTransactionError(error, "mint approval", {
