@@ -108,7 +108,6 @@ export default function GalleryPage() {
                 key={asset.saleId}
                 asset={asset}
                 onMintSuccess={reloadAssets}
-                showMintActions={false}
               />
             ))}
           </div>
