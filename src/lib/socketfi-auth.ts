@@ -265,6 +265,8 @@ async function requestArts1MintTransaction(opts: {
     action: string;
     app: string;
   };
+  signOnly?: boolean;
+  clientPaymaster?: string;
 }): Promise<unknown> {
   const accessToken = getSocketFiAccessToken(opts.session);
   if (!accessToken) {
@@ -286,14 +288,24 @@ async function requestArts1MintTransaction(opts: {
 
   const argsXdr = callArgs.map((arg) => arg.toXDR("base64"));
 
-  return getSocketFiClient().requestTransaction({
+  const input = {
     accessToken,
     contractId: opts.prep.ownerAddress,
-    callFunction: { name: "dapp_invoker" },
-    argsXdr: argsXdr,
-    txDetails: opts.txDetails,
-    display: opts.display,
-  });
+    callFunction: { name: "dapp_invoker" as const },
+    argsXdr,
+    ...(opts.clientPaymaster ? { clientPaymaster: opts.clientPaymaster } : {}),
+  };
+
+  if (opts.signOnly) {
+    if (!input.clientPaymaster) {
+      throw new Error(
+        "SocketFi client paymaster is required for sign-only mint transactions. Set NEXT_PUBLIC_SOCKETFI_CLIENT_PAYMASTER."
+      );
+    }
+    return getSocketFiClient().signTx(input);
+  }
+
+  return getSocketFiClient().signAndSubmitTx(input);
 }
 
 /**
@@ -334,6 +346,8 @@ export async function signArts1MintDigestViaSocketFi(opts: {
         action: "Sign ownership proof",
         app: "Neftwerk",
       },
+      signOnly: true,
+      clientPaymaster: process.env.NEXT_PUBLIC_SOCKETFI_CLIENT_PAYMASTER,
     });
   } catch (error) {
     throw formatSocketFiTransactionError(error, "digest signing", {
@@ -393,6 +407,8 @@ export async function requestArts1MintOwnerAuthViaSocketFi(opts: {
         action: "Authorize mint on Stellar",
         app: "Neftwerk",
       },
+      signOnly: true,
+      clientPaymaster: process.env.NEXT_PUBLIC_SOCKETFI_CLIENT_PAYMASTER,
     });
   } catch (error) {
     throw formatSocketFiTransactionError(error, "owner authorization", {
@@ -464,12 +480,6 @@ export async function requestArts1MintApprovalViaSocketFi(opts: {
   const mintTxHash = extractTransactionHash(txResult);
   const collectorPubkey = extractCollectorPubkey(txResult);
 
-  if (!signature) {
-    throw new Error(
-      "Wallet approved the claim but did not return a passkey signature. Try Claim again or contact support."
-    );
-  }
-
   if (!mintTxHash) {
     throw new Error(
       "Wallet approved the claim but did not return a transaction hash. Try Claim again or contact support."
@@ -477,7 +487,7 @@ export async function requestArts1MintApprovalViaSocketFi(opts: {
   }
 
   return {
-    signature,
+    signature: signature ?? "",
     mintTxHash,
     collectorPubkey,
     raw: txResult,
@@ -489,8 +499,8 @@ export function extractTransactionHash(result: unknown): string | undefined {
   const record = result as Record<string, unknown>;
 
   const direct = [
-    record.transactionHash,
     record.txHash,
+    record.transactionHash,
     record.hash,
     record.stellarTransactionHash,
     record.sorobanTransactionHash,
@@ -525,6 +535,13 @@ export function extractOwnerAuthXdr(result: unknown): string | undefined {
 
   for (const value of direct) {
     if (typeof value === "string" && value.length > 16) return value;
+  }
+
+  const signedEntries = record.signedAuthEntriesXdr;
+  if (Array.isArray(signedEntries)) {
+    for (const entry of signedEntries) {
+      if (typeof entry === "string" && entry.length > 16) return entry;
+    }
   }
 
   const entries = record.authorizationEntries;
