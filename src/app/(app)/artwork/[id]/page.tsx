@@ -207,10 +207,10 @@ export default function ArtworkPage({ params }: { params: Promise<Params> }) {
                     }}
                   />
                   <Link
-                    href="/wallet"
+                    href="/gallery"
                     className="inline-block text-[13px] font-semibold text-[#1A3F6C] hover:underline"
                   >
-                    View in wallet
+                    View in your gallery
                   </Link>
                 </div>
               ) : showBuy ? (

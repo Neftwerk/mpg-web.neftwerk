@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 
 interface LinkSuccessModalProps {
   isOpen: boolean;
@@ -16,14 +15,23 @@ function textForSuccess(kind?: string) {
   return "Your wallet has been linked successfully";
 }
 
+function primaryActionForKind(kind?: string): { label: string; href: string } {
+  if (kind === "artwork") {
+    return { label: "View gallery", href: "/gallery" };
+  }
+  return { label: "View wallet", href: "/wallet" };
+}
+
 export function LinkSuccessModal({ isOpen, onClose, kind }: LinkSuccessModalProps) {
   const router = useRouter();
 
   if (!isOpen) return null;
 
-  const handleViewWallet = () => {
+  const primaryAction = primaryActionForKind(kind);
+
+  const handlePrimaryAction = () => {
     onClose();
-    router.push("/wallet");
+    router.push(primaryAction.href);
   };
 
   return (
@@ -52,10 +60,10 @@ export function LinkSuccessModal({ isOpen, onClose, kind }: LinkSuccessModalProp
             Close
           </button>
           <button
-            onClick={handleViewWallet}
+            onClick={handlePrimaryAction}
             className="px-6 py-3 border border-slate-200 bg-white font-bold text-slate-900 transition hover:bg-slate-100"
           >
-            View wallet
+            {primaryAction.label}
           </button>
         </div>
       </div>
