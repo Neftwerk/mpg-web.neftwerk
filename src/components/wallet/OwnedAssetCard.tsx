@@ -11,7 +11,7 @@ function mintStatusLabel(status: OwnedAssetMintStatus): string {
     case "minted":
       return "Minted";
     case "queued":
-      return "Minting";
+      return "Claim";
     case "awaiting_collector":
       return "Claim";
     case "failed":

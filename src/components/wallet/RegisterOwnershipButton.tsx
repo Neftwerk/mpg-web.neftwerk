@@ -15,7 +15,11 @@ export function RegisterOwnershipButton({ saleId, title, mintStatus, onSuccess }
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const canRegister = mintStatus === "awaiting_collector" || mintStatus === "failed";
+  const canRegister =
+    mintStatus === "awaiting_collector" ||
+    mintStatus === "queued" ||
+    mintStatus === "not_started" ||
+    mintStatus === "failed";
 
   if (!canRegister) return null;
 
