@@ -151,6 +151,8 @@ export const API_ENDPOINTS = {
     MINE: `${API_BASE_URL}/api/sales/mine`,
     /** POST /api/sales/:saleId/mint-prep */
     MINT_PREP: (saleId: string) => `${API_BASE_URL}/api/sales/${saleId}/mint-prep`,
+    /** POST /api/sales/:saleId/mint-relay */
+    MINT_RELAY: (saleId: string) => `${API_BASE_URL}/api/sales/${saleId}/mint-relay`,
     /** POST /api/sales/:saleId/mint-submit */
     MINT_SUBMIT: (saleId: string) => `${API_BASE_URL}/api/sales/${saleId}/mint-submit`,
   },

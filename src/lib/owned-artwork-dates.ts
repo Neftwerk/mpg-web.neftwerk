@@ -30,7 +30,7 @@ export function getOwnershipDateRows(
   }
 
   if (mintStatus === "queued") {
-    rows.push({ label: "Claim", value: "In progress" });
+    rows.push({ label: "Claim", value: "Ready when you are" });
     return rows;
   }
 

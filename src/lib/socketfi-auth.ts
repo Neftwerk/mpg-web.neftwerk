@@ -1,6 +1,13 @@
 import { getSocketFiClient } from "./socketfi";
 import { getSocketFiClientId } from "./socketfi-config";
+import { openSocketFiHostedTransaction } from "./socketfi-hosted-transaction";
+import {
+  buildWalletDappInvokerArgsXdr,
+  resolveWalletAuthValidUntilLedger,
+} from "./build-wallet-dapp-invoker-args";
 import type { MintPrepData } from "./mint-types";
+import { API_ENDPOINTS } from "./api";
+import { authedFetch } from "./auth-service";
 import {
   enrichSocketFiSession,
   getSocketFiAccessToken,
@@ -239,6 +246,58 @@ function formatSocketFiTransactionError(
   const raw = parts.join(" — ") || "Wallet approval failed.";
   console.error(`[SocketFi] ${phase} failed:`, error);
 
+  if (
+    raw.includes("MismatchingParameterLen") &&
+    raw.includes("dapp_invoker")
+  ) {
+    const clientId = getSocketFiClientId();
+    const origin = getSocketFiAppOrigin();
+    return new Error(
+      `SocketFi called wallet dapp_invoker with the wrong number of arguments (${phase}). Mint-prep succeeded; the wallet contract expects 7 parameters including passkey_sig and valid_until_ledger. If this persists after refreshing, ask SocketFi to verify ARTS-1 mint assembly for client ${clientId} on TESTNET (origin ${origin}).`
+    );
+  }
+
+  if (raw.includes("#2155") || raw.includes("WindowTooLarge")) {
+    return new Error(
+      `The claim authorization window was too long for your SocketFi wallet (${phase}). Refresh the page and try Claim again immediately after the wallet popup opens.`
+    );
+  }
+
+  if (raw.includes("#2145") || raw.includes("InvalidLedgerWindow")) {
+    return new Error(
+      `The claim authorization expired before it could be submitted (${phase}). Refresh and try Claim again.`
+    );
+  }
+
+  if (
+    raw.includes("UnreachableCodeReached") ||
+    (raw.includes("WasmVm") &&
+      raw.includes("InvalidAction") &&
+      raw.includes("dapp_invoker"))
+  ) {
+    const clientId = getSocketFiClientId();
+    const factory = context?.factoryContractId ?? "your ARTS-1 factory";
+    const origin = getSocketFiAppOrigin();
+    return new Error(
+      `SocketFi simulated wallet dapp_invoker before your passkey signature was attached (${phase}). Mint-prep succeeded; the wallet needs a WebAuthn PasskeySignature, not empty invoke args. Ask SocketFi to enable the ARTS-1 mint handler for client ${clientId} on TESTNET (factory ${factory}, origin ${origin}) so their popup assembles dapp_invoker with passkey auth after you approve.`
+    );
+  }
+
+  if (
+    raw.includes("__check_auth") ||
+    raw.includes("require_auth") ||
+    (raw.includes("InvalidAction") &&
+      raw.includes("Auth") &&
+      !raw.includes("WasmVm"))
+  ) {
+    const clientId = getSocketFiClientId();
+    const factory = context?.factoryContractId ?? "your ARTS-1 factory";
+    const origin = getSocketFiAppOrigin();
+    return new Error(
+      `This mint must be authorized through your SocketFi smart wallet, not a direct factory call (${phase}). Mint-prep succeeded; the failure is in the SocketFi popup. Ask SocketFi to enable the ARTS-1 mint handler for client ${clientId} on TESTNET (factory ${factory}, origin ${origin}) so they assemble wallet dapp_invoker with passkey auth.`
+    );
+  }
+
   if (raw.toLowerCase().includes("prepare transaction")) {
     const clientId = getSocketFiClientId();
     const factory = context?.factoryContractId ?? "your ARTS-1 factory";
@@ -251,11 +310,192 @@ function formatSocketFiTransactionError(
   return new Error(raw);
 }
 
+function getSocketFiClientPaymaster(): string {
+  return (
+    process.env.NEXT_PUBLIC_SOCKETFI_CLIENT_PAYMASTER?.trim() ||
+    "SERVER_SIDE_PAYMASTER"
+  );
+}
+
+function extractSignedAuthEntriesXdr(result: unknown): string[] | undefined {
+  if (!result || typeof result !== "object") return undefined;
+  const record = result as Record<string, unknown>;
+  const entries = record.signedAuthEntriesXdr;
+  if (
+    Array.isArray(entries) &&
+    entries.length > 0 &&
+    entries.every((entry) => typeof entry === "string")
+  ) {
+    return entries;
+  }
+
+  const nested = record.data;
+  if (nested && typeof nested === "object") {
+    return extractSignedAuthEntriesXdr(nested);
+  }
+
+  return undefined;
+}
+
+function extractInvokeArgsXdr(result: unknown): string[] | undefined {
+  if (!result || typeof result !== "object") return undefined;
+  const record = result as Record<string, unknown>;
+
+  for (const key of [
+    "argsXdr",
+    "invokeArgsXdr",
+    "dappInvokerArgsXdr",
+    "callArgsXdr",
+    "signedArgsXdr",
+  ]) {
+    const value = record[key];
+    if (
+      Array.isArray(value) &&
+      value.length > 0 &&
+      value.every((entry) => typeof entry === "string")
+    ) {
+      return value;
+    }
+  }
+
+  const nested = record.data;
+  if (nested && typeof nested === "object") {
+    return extractInvokeArgsXdr(nested);
+  }
+
+  return undefined;
+}
+
+async function buildArts1DappInvokerHostedPayload(opts: {
+  prep: MintPrepData;
+  saleId: string;
+  targetFunction: string;
+  targetArgsXdr: string[];
+  txDetailsExtras?: Record<string, unknown>;
+}): Promise<{
+  validUntilLedger: number;
+  dappInvokerArgsXdr: string[];
+  txDetails: Record<string, unknown>;
+}> {
+  const validUntilLedger = await resolveWalletAuthValidUntilLedger(
+    opts.prep.chain.rpcUrl
+  );
+
+  const dappInvokerArgsXdr = buildWalletDappInvokerArgsXdr({
+    factoryContractId: opts.prep.chain.arts1FactoryContractId,
+    targetFunction: opts.targetFunction,
+    targetArgsXdr: opts.targetArgsXdr,
+    validUntilLedger,
+  });
+
+  return {
+    validUntilLedger,
+    dappInvokerArgsXdr,
+    txDetails: {
+      ...buildArts1MintTxDetails(opts.prep, opts.saleId, opts.txDetailsExtras),
+      arts1UseDappInvoker: true,
+      invokeContractId: opts.prep.ownerAddress,
+      invokeFunction: "dapp_invoker",
+      mintArgsXdr: opts.targetArgsXdr,
+      targetContractId: opts.prep.chain.arts1FactoryContractId,
+      targetFunction: opts.targetFunction,
+      walletAddress: opts.prep.ownerAddress,
+      validUntilLedger,
+      dappInvokerArgsXdr,
+    },
+  };
+}
+
+async function relaySignedWalletDappInvokerMint(opts: {
+  session: SocketFiSession;
+  prep: MintPrepData;
+  saleId: string;
+  targetFunction: string;
+  targetArgsXdr: string[];
+}): Promise<{ mintTxHash: string; raw: unknown }> {
+  const accessToken = getSocketFiAccessToken(opts.session);
+  if (!accessToken) {
+    throw new Error(
+      "SocketFi access token is missing. Reconnect your wallet and try Claim again."
+    );
+  }
+
+  const hostedPayload = await buildArts1DappInvokerHostedPayload({
+    prep: opts.prep,
+    saleId: opts.saleId,
+    targetFunction: opts.targetFunction,
+    targetArgsXdr: opts.targetArgsXdr,
+    txDetailsExtras: {
+      arts1Phase: "mint",
+      submitViaRelayer: true,
+    },
+  });
+
+  // Full 7-arg skeleton (Void passkey placeholders). SocketFi must replace
+  // passkey_sig after passkey approval; empty argsXdr causes MismatchingParameterLen.
+  const signed = await openSocketFiHostedTransaction({
+    accessToken,
+    contractId: opts.prep.ownerAddress,
+    callFunction: { name: "dapp_invoker" },
+    argsXdr: hostedPayload.dappInvokerArgsXdr,
+    txDetails: hostedPayload.txDetails,
+    display: {
+      title: "Claim artwork",
+      description: `Mint ${opts.prep.onChainArtworkId} to your wallet`,
+      action: "Authorize mint on Stellar",
+      app: "Neftwerk",
+    },
+    clientPaymaster: getSocketFiClientPaymaster(),
+    mode: "sign",
+  });
+
+  const signedAuthEntriesXdr = extractSignedAuthEntriesXdr(signed);
+  if (!signedAuthEntriesXdr?.length) {
+    throw new Error(
+      "SocketFi did not return signedAuthEntriesXdr. Approve the transaction in your wallet popup and try Claim again."
+    );
+  }
+
+  const invokeArgsXdr =
+    extractInvokeArgsXdr(signed) ?? hostedPayload.dappInvokerArgsXdr;
+
+  const relayResponse = await authedFetch<{
+    data?: { mintTxHash?: string; status?: string };
+  }>(API_ENDPOINTS.SALES.MINT_RELAY(opts.saleId), {
+    method: "POST",
+    body: JSON.stringify({
+      contractId: opts.prep.ownerAddress,
+      functionName: "dapp_invoker",
+      argsXdr: invokeArgsXdr,
+      signedAuthEntriesXdr,
+    }),
+  });
+
+  if (!relayResponse.ok || !relayResponse.data?.data?.mintTxHash) {
+    throw new Error(
+      relayResponse.message ?? "Backend could not submit the signed mint."
+    );
+  }
+
+  return {
+    mintTxHash: relayResponse.data.data.mintTxHash,
+    raw: { signed, relay: relayResponse.data.data },
+  };
+}
+
 async function requestArts1MintTransaction(opts: {
   session: SocketFiSession;
   prep: MintPrepData;
+  saleId: string;
   callFunction: { name: string };
   argsXdr: string[];
+  txDetails: Record<string, unknown>;
+  display: {
+    title: string;
+    description: string;
+    action: string;
+    app: string;
+  };
   signOnly?: boolean;
   clientPaymaster?: string;
 }): Promise<unknown> {
@@ -266,24 +506,27 @@ async function requestArts1MintTransaction(opts: {
     );
   }
 
-  const input = {
+  // SocketFi wallets authorize external calls via dapp_invoker (passkey_sig in
+  // invoke args). Direct factory.mint triggers owner.require_auth → __check_auth,
+  // which these wallets do not implement.
+  const hostedPayload = await buildArts1DappInvokerHostedPayload({
+    prep: opts.prep,
+    saleId: opts.saleId,
+    targetFunction: opts.callFunction.name,
+    targetArgsXdr: opts.argsXdr,
+    txDetailsExtras: opts.txDetails,
+  });
+
+  return openSocketFiHostedTransaction({
     accessToken,
-    contractId: opts.prep.chain.arts1FactoryContractId,
-    callFunction: opts.callFunction,
-    argsXdr: opts.argsXdr,
-    ...(opts.clientPaymaster ? { clientPaymaster: opts.clientPaymaster } : {}),
-  };
-
-  if (opts.signOnly) {
-    if (!input.clientPaymaster) {
-      throw new Error(
-        "SocketFi client paymaster is required for sign-only mint transactions. Set NEXT_PUBLIC_SOCKETFI_CLIENT_PAYMASTER."
-      );
-    }
-    return getSocketFiClient().signTx(input);
-  }
-
-  return getSocketFiClient().signAndSubmitTx(input);
+    contractId: opts.prep.ownerAddress,
+    callFunction: { name: "dapp_invoker" },
+    argsXdr: hostedPayload.dappInvokerArgsXdr,
+    txDetails: hostedPayload.txDetails,
+    display: opts.display,
+    clientPaymaster: opts.clientPaymaster,
+    mode: opts.signOnly ? "sign" : "sign_and_submit",
+  });
 }
 
 /**
@@ -310,8 +553,20 @@ export async function signArts1MintDigestViaSocketFi(opts: {
     txResult = await requestArts1MintTransaction({
       session: opts.session,
       prep: opts.prep,
+      saleId: opts.saleId,
       callFunction: { name: "compute_mint_auth_digest" },
       argsXdr: digestArgsXdr,
+      txDetails: buildArts1MintTxDetails(opts.prep, opts.saleId, {
+        arts1Phase: "sign_digest",
+        signDigestOnly: true,
+        submitViaRelayer: false,
+      }),
+      display: {
+        title: "Sign ownership proof",
+        description: `Approve ownership of ${opts.prep.onChainArtworkId} with your passkey`,
+        action: "Sign ownership proof",
+        app: "Neftwerk",
+      },
       signOnly: true,
       clientPaymaster: process.env.NEXT_PUBLIC_SOCKETFI_CLIENT_PAYMASTER,
     });
@@ -358,8 +613,21 @@ export async function requestArts1MintOwnerAuthViaSocketFi(opts: {
     txResult = await requestArts1MintTransaction({
       session: opts.session,
       prep: opts.prep,
+      saleId: opts.saleId,
       callFunction: { name: "mint" },
       argsXdr: opts.prep.mintArgsXdr,
+      txDetails: buildArts1MintTxDetails(opts.prep, opts.saleId, {
+        arts1Phase: "owner_auth",
+        skipDigestSign: true,
+        submitViaRelayer: false,
+        collectorSignature: opts.collectorSignature,
+      }),
+      display: {
+        title: "Claim artwork",
+        description: `Mint ${opts.prep.onChainArtworkId} to your wallet`,
+        action: "Authorize mint on Stellar",
+        app: "Neftwerk",
+      },
       signOnly: true,
       clientPaymaster: process.env.NEXT_PUBLIC_SOCKETFI_CLIENT_PAYMASTER,
     });
@@ -394,13 +662,6 @@ export async function requestArts1MintApprovalViaSocketFi(opts: {
   prep: MintPrepData;
   saleId: string;
 }): Promise<SignMintAuthDigestResult & { raw: unknown }> {
-  const accessToken = getSocketFiAccessToken(opts.session);
-  if (!accessToken) {
-    throw new Error(
-      "SocketFi access token is missing. Reconnect your wallet and try Claim again."
-    );
-  }
-
   if (!opts.prep.mintArgsXdr?.length) {
     throw new Error(
       "Mint preparation did not return transaction arguments. Try Claim again."
@@ -408,21 +669,63 @@ export async function requestArts1MintApprovalViaSocketFi(opts: {
   }
 
   let txResult: unknown;
+  let mintTxHash: string | undefined;
+
+  const mintTxDetails = buildArts1MintTxDetails(opts.prep, opts.saleId, {
+    arts1Phase: "mint",
+    submitViaRelayer: false,
+  });
+
+  const mintDisplay = {
+    title: "Claim artwork",
+    description: `Mint ${opts.prep.onChainArtworkId} to your wallet`,
+    action: "Authorize mint on Stellar",
+    app: "Neftwerk",
+  };
+
+  // Prefer sign + backend relay: sign_and_submit sometimes routes factory.mint
+  // directly and hits __check_auth (wallet has no __check_auth; needs dapp_invoker).
   try {
-    txResult = await requestArts1MintTransaction({
+    const relayed = await relaySignedWalletDappInvokerMint({
       session: opts.session,
       prep: opts.prep,
-      callFunction: { name: "mint" },
-      argsXdr: opts.prep.mintArgsXdr,
+      saleId: opts.saleId,
+      targetFunction: "mint",
+      targetArgsXdr: opts.prep.mintArgsXdr,
     });
-  } catch (error) {
-    throw formatSocketFiTransactionError(error, "mint approval", {
-      factoryContractId: opts.prep.chain.arts1FactoryContractId,
-    });
+    mintTxHash = relayed.mintTxHash;
+    txResult = relayed.raw;
+  } catch (relayError) {
+    console.warn(
+      "[SocketFi] sign + relay mint failed, trying sign_and_submit:",
+      relayError
+    );
+    mintTxHash = undefined;
+    txResult = undefined;
+  }
+
+  if (!mintTxHash) {
+    try {
+      txResult = await requestArts1MintTransaction({
+        session: opts.session,
+        prep: opts.prep,
+        saleId: opts.saleId,
+        callFunction: { name: "mint" },
+        argsXdr: opts.prep.mintArgsXdr,
+        txDetails: mintTxDetails,
+        display: mintDisplay,
+        signOnly: false,
+        clientPaymaster: getSocketFiClientPaymaster(),
+      });
+      mintTxHash = extractTransactionHash(txResult);
+    } catch (submitError) {
+      throw formatSocketFiTransactionError(submitError, "mint approval", {
+        factoryContractId: opts.prep.chain.arts1FactoryContractId,
+      });
+    }
   }
 
   const signature = extractCollectorSignature(txResult);
-  const mintTxHash = extractTransactionHash(txResult);
   const collectorPubkey = extractCollectorPubkey(txResult);
 
   if (!mintTxHash) {

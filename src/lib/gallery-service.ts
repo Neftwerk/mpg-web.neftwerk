@@ -5,8 +5,11 @@
 import { API_ENDPOINTS } from "./api";
 import { authedFetch, type ApiResponse } from "./auth-service";
 
-const ARTWORKS_CACHE_KEY = "neft_public_artworks_v1";
+const ARTWORKS_CACHE_KEY = "neft_public_artworks_v4";
+/** Buffer before in-memory expiry — avoids serving at the last second. */
 const ARTWORK_CACHE_MS = 60_000;
+/** Match backend Redis catalog TTL so list prices refresh promptly. */
+const CATALOG_LIST_CACHE_MS = 300_000;
 
 // ─── Types ───
 
@@ -146,6 +149,18 @@ function earliestMediaExpiry(items: ArtworkItem[]): string | null {
   return new Date(Math.min(...times)).toISOString();
 }
 
+/** Cap catalog cache so price/title changes are not tied to 7-day media URLs. */
+function catalogCacheExpiresAt(items: ArtworkItem[]): string {
+  const catalogExpiry = Date.now() + CATALOG_LIST_CACHE_MS;
+  const mediaExpiry = earliestMediaExpiry(items);
+  if (!mediaExpiry) {
+    return new Date(catalogExpiry).toISOString();
+  }
+  return new Date(
+    Math.min(new Date(mediaExpiry).getTime(), catalogExpiry),
+  ).toISOString();
+}
+
 function readSessionArtworksCache(): ArtworkItem[] | null {
   if (typeof window === "undefined") return null;
 
@@ -168,10 +183,10 @@ function readSessionArtworksCache(): ArtworkItem[] | null {
 function writeSessionArtworksCache(items: ArtworkItem[]): void {
   if (typeof window === "undefined" || !items.length) return;
 
-  const expiresAt = earliestMediaExpiry(items);
-  if (!expiresAt) return;
-
-  const payload: CachedArtworksPayload = { items, expiresAt };
+  const payload: CachedArtworksPayload = {
+    items,
+    expiresAt: catalogCacheExpiresAt(items),
+  };
   sessionStorage.setItem(ARTWORKS_CACHE_KEY, JSON.stringify(payload));
 }
 
@@ -229,7 +244,7 @@ export async function fetchPublicArtwork(
 
 /**
  * Fetch all public artworks in a single API call.
- * Cached in memory and sessionStorage until media URLs expire.
+ * Cached in memory and sessionStorage for up to 5 minutes (matches backend catalog TTL).
  */
 export async function fetchAllPublicArtworks(): Promise<ArtworkItem[]> {
   if (inMemoryArtworks && inMemoryExpiresAt > Date.now() + ARTWORK_CACHE_MS) {
@@ -239,9 +254,7 @@ export async function fetchAllPublicArtworks(): Promise<ArtworkItem[]> {
   const sessionCached = readSessionArtworksCache();
   if (sessionCached) {
     inMemoryArtworks = sessionCached;
-    inMemoryExpiresAt = new Date(
-      earliestMediaExpiry(sessionCached) ?? Date.now() + 3_600_000,
-    ).getTime();
+    inMemoryExpiresAt = new Date(catalogCacheExpiresAt(sessionCached)).getTime();
     return sessionCached;
   }
 
@@ -253,12 +266,22 @@ export async function fetchAllPublicArtworks(): Promise<ArtworkItem[]> {
 
   const items = await inFlightArtworks;
   inMemoryArtworks = items;
-  inMemoryExpiresAt = new Date(
-    earliestMediaExpiry(items) ?? Date.now() + 3_600_000,
-  ).getTime();
+  inMemoryExpiresAt = new Date(catalogCacheExpiresAt(items)).getTime();
   writeSessionArtworksCache(items);
 
   return items;
+}
+
+/** Drop cached public artwork lists (e.g. after admin sale resets). */
+export function clearPublicArtworksCache(): void {
+  inMemoryArtworks = null;
+  inMemoryExpiresAt = 0;
+  inFlightArtworks = null;
+  if (typeof window !== "undefined") {
+    sessionStorage.removeItem(ARTWORKS_CACHE_KEY);
+    sessionStorage.removeItem("neft_public_artworks_v1");
+    sessionStorage.removeItem("neft_public_artworks_v2");
+  }
 }
 
 /** List public galleries with catalog stats (fast — no full artwork fetch). */
