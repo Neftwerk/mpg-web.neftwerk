@@ -3,7 +3,7 @@ import { authedFetch } from "./auth-service";
 import { fetchChainConfig } from "./chain-service";
 import {
   authenticateSocketFi,
-  requestArts1MintApprovalViaSocketFi,
+  signAndSubmitMintViaSocketFi,
 } from "./socketfi-auth";
 import {
   enrichSocketFiSession,
@@ -170,27 +170,14 @@ export async function registerSaleOwnership(
     });
 
     try {
-      const approval = await requestArts1MintApprovalViaSocketFi({
+      const approval = await signAndSubmitMintViaSocketFi({
         session,
         prep,
         saleId,
       });
 
-      let collectorPubkey =
-        approval.collectorPubkey ??
-        getSocketFiCollectorPubkey(session) ??
-        recoverCollectorPubkeyFromDigestSignature(
-          prep.mintAuthDigest,
-          approval.signature
-        );
-
-      if (!collectorPubkey) {
-        return {
-          ok: false,
-          message:
-            "Wallet approved the claim but your passkey public key could not be determined. Try Claim again or contact support.",
-        };
-      }
+      console.log("the approval is", approval);
+      let collectorPubkey = approval?.collectorPubkey;
 
       const submit = await submitSaleMint(saleId, {
         mintTxHash: approval.mintTxHash!,
