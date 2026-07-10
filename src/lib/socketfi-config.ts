@@ -56,6 +56,12 @@ export function getUsdTokenContractId(): string {
   return contractId;
 }
 
+/** StellarExpert transaction URL for the configured SocketFi network. */
+export function getStellarExplorerTxUrl(txHash: string): string {
+  const network = getSocketFiNetwork() === "MAINNET" ? "public" : "testnet";
+  return `https://stellar.expert/explorer/${network}/tx/${txHash.trim().toLowerCase()}`;
+}
+
 export function getSocketFiConfig(): SocketFiConfig {
   return {
     clientId: getSocketFiClientId(),

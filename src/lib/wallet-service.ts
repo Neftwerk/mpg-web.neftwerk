@@ -24,6 +24,8 @@ export interface OwnedAsset {
   mediaUrl: string;
   mediaExpiresAt?: string;
   mintStatus: OwnedAssetMintStatus;
+  /** On-chain mint transaction hash; present after successful claim. */
+  mintTxHash?: string;
   /** When payment settled. */
   purchasedAt: string;
   /** When on-chain claim completed; omitted until minted. */
