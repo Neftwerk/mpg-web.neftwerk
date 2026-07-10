@@ -28,6 +28,7 @@ export type MintSubmitResult = {
   mintedAt?: string;
   transactionId?: string;
   onChainArtworkId?: string;
+  ownerAddress?: string;
 };
 
 export type RegisterOwnershipResult =

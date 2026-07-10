@@ -4,6 +4,7 @@ import Link from "next/link";
 import { NeftwerkImage } from "@/components/NeftwerkImage";
 import { RegisterOwnershipButton } from "@/components/wallet/RegisterOwnershipButton";
 import { OwnedArtworkDates } from "@/components/wallet/OwnedArtworkDates";
+import { StellarExplorerLink } from "@/components/wallet/StellarExplorerLink";
 import type { OwnedAsset, OwnedAssetMintStatus } from "@/lib/wallet-service";
 
 function mintStatusLabel(status: OwnedAssetMintStatus): string {
@@ -33,6 +34,8 @@ export function OwnedAssetCard({
   showMintActions = true,
 }: OwnedAssetCardProps) {
   const purchasedAt = asset.purchasedAt ?? asset.acquiredAt;
+  const showExplorer =
+    asset.mintStatus === "minted" && Boolean(asset.mintTxHash);
 
   return (
     <article className="card-neumorph overflow-hidden">
@@ -51,8 +54,11 @@ export function OwnedAssetCard({
               {asset.title}
             </p>
           </Link>
-          <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider bg-[#1A3F6C]/10 text-[#1A3F6C] px-2 py-0.5">
+          <span className="shrink-0 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-[#1A3F6C]/10 text-[#1A3F6C] px-2 py-0.5">
             {mintStatusLabel(asset.mintStatus)}
+            {showExplorer && asset.mintTxHash ? (
+              <StellarExplorerLink mintTxHash={asset.mintTxHash} />
+            ) : null}
           </span>
         </div>
 

@@ -9,6 +9,7 @@ import { ArtworkDetailSkeleton } from "@/components/Skeletons";
 import { ArtworkPriceBuy } from "@/components/artwork/ArtworkPriceBuy";
 import { RegisterOwnershipButton } from "@/components/wallet/RegisterOwnershipButton";
 import { OwnedArtworkDates } from "@/components/wallet/OwnedArtworkDates";
+import { StellarExplorerLink } from "@/components/wallet/StellarExplorerLink";
 import { formatListPrice } from "@/lib/format";
 import { useUser } from "@/lib/UserContext";
 import {
@@ -188,8 +189,11 @@ export default function ArtworkPage({ params }: { params: Promise<Params> }) {
                     <p className="text-[14px] text-[#464646]">
                       You already own this artwork.
                     </p>
-                    <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider bg-[#1A3F6C]/10 text-[#1A3F6C] px-2 py-0.5">
+                    <span className="shrink-0 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-[#1A3F6C]/10 text-[#1A3F6C] px-2 py-0.5">
                       {ownedStatusLabel(ownedAsset.mintStatus)}
+                      {ownedAsset.mintStatus === "minted" && ownedAsset.mintTxHash ? (
+                        <StellarExplorerLink mintTxHash={ownedAsset.mintTxHash} />
+                      ) : null}
                     </span>
                   </div>
                   <OwnedArtworkDates

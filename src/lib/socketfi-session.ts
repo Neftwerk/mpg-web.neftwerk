@@ -2,6 +2,7 @@ import type { SocketFiSession } from "@socketfi/react";
 
 const SESSION_KEY = "socketfi_session";
 const STELLAR_ADDRESS_RE = /^[CG][A-Z2-7]{55}$/;
+const STELLAR_CONTRACT_ADDRESS_RE = /^C[A-Z2-7]{55}$/;
 
 /** Log SocketFi session details when auth succeeds (browser console only). */
 export function logSocketFiConnected(session: SocketFiSession, source: string): void {
@@ -36,29 +37,37 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-function walkForStellarAddress(value: unknown, depth = 0): string | undefined {
-  if (depth > 8) return undefined;
+function preferSmartAccountAddress(candidates: string[]): string | undefined {
+  const unique = [...new Set(candidates.filter((value) => STELLAR_ADDRESS_RE.test(value)))];
+  return unique.find((address) => STELLAR_CONTRACT_ADDRESS_RE.test(address)) ?? unique[0];
+}
+
+function collectStellarAddresses(value: unknown, depth = 0, out: string[] = []): string[] {
+  if (depth > 8) return out;
 
   if (typeof value === "string" && STELLAR_ADDRESS_RE.test(value)) {
-    return value;
+    out.push(value);
+    return out;
   }
 
   if (Array.isArray(value)) {
     for (const item of value) {
-      const found = walkForStellarAddress(item, depth + 1);
-      if (found) return found;
+      collectStellarAddresses(item, depth + 1, out);
     }
-    return undefined;
+    return out;
   }
 
   if (isPlainObject(value)) {
     for (const candidate of Object.values(value)) {
-      const found = walkForStellarAddress(candidate, depth + 1);
-      if (found) return found;
+      collectStellarAddresses(candidate, depth + 1, out);
     }
   }
 
-  return undefined;
+  return out;
+}
+
+function walkForStellarAddress(value: unknown, depth = 0): string | undefined {
+  return preferSmartAccountAddress(collectStellarAddresses(value, depth));
 }
 
 function walkForCollectorPubkey(value: unknown, depth = 0): string | undefined {
@@ -230,21 +239,23 @@ function collectAddressCandidates(session: SocketFiSession): string[] {
       : undefined;
   const payload = decodeJwtPayload(getSocketFiAccessToken(enriched) ?? "");
 
+  // Prefer smart-account (C…) fields over passkey-linked classic (G…) accounts.
   const explicit = [
+    wallet?.smartWalletAddress,
+    wallet?.contractAddress,
+    wallet?.contractId,
+    profileWallet?.smartWalletAddress,
+    profileWallet?.contractAddress,
+    profileWallet?.contractId,
     root.address,
     payload?.accountId,
     wallet?.address,
     wallet?.walletAddress,
-    wallet?.publicKey,
-    wallet?.smartWalletAddress,
-    wallet?.contractAddress,
-    wallet?.contractId,
     profile?.address,
     profile?.accountId,
     profile?.walletAddress,
     profileWallet?.address,
     profileWallet?.walletAddress,
-    profileWallet?.publicKey,
   ].filter(
     (value): value is string =>
       typeof value === "string" && STELLAR_ADDRESS_RE.test(value),
@@ -257,12 +268,13 @@ function collectAddressCandidates(session: SocketFiSession): string[] {
     walkForStellarAddress(payload),
   ].filter((value): value is string => typeof value === "string");
 
-  return [...new Set([...explicit, ...discovered])];
+  const preferred = preferSmartAccountAddress([...explicit, ...discovered]);
+  return preferred ? [preferred, ...new Set([...explicit, ...discovered].filter((a) => a !== preferred))] : [];
 }
 
 export function getSocketFiWalletAddress(session: SocketFiSession | null): string | undefined {
   if (!session) return undefined;
-  return collectAddressCandidates(session)[0];
+  return preferSmartAccountAddress(collectAddressCandidates(session));
 }
 
 function normalizeCollectorPubkeyHex(value: string): string | undefined {
