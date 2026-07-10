@@ -53,7 +53,7 @@ async function submitSaleMint(
   saleId: string,
   body: {
     mintTxHash: string;
-    collectorPubkey?: string;
+    ownerAddress: string;
   }
 ): Promise<MintSubmitResult> {
   const response = await authedFetch<{ data?: MintSubmitResult }>(
@@ -176,12 +176,17 @@ export async function registerSaleOwnership(
         saleId,
       });
 
-      console.log("the approval is", approval);
-      let collectorPubkey = approval?.collectorPubkey;
+      if (!approval.mintTxHash) {
+        return {
+          ok: false,
+          message:
+            "Wallet approved the claim but did not return a transaction hash. Try Claim again.",
+        };
+      }
 
       const submit = await submitSaleMint(saleId, {
-        mintTxHash: approval.mintTxHash!,
-        collectorPubkey,
+        mintTxHash: approval.mintTxHash,
+        ownerAddress,
       });
 
       return { ok: true, data: submit };
