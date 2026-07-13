@@ -222,6 +222,7 @@ export default function ArtworkPage({ params }: { params: Promise<Params> }) {
                   artworkId={artwork.id}
                   artworkTitle={artwork.title}
                   listPriceCents={artwork.listPriceCents}
+                  sold={artwork.sold}
                 />
               ) : (
                 <p className="text-[14px] text-[#464646]">Checking your collection…</p>
@@ -264,6 +265,7 @@ export default function ArtworkPage({ params }: { params: Promise<Params> }) {
               artworkTitle={artwork.title}
               listPriceCents={artwork.listPriceCents}
               galleryName={artwork.galleryName}
+              sold={artwork.sold}
             />
           </div>
         </div>

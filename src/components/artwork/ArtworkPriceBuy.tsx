@@ -13,6 +13,7 @@ interface ArtworkPriceBuyProps {
   listPriceCents?: number | null;
   artworkTitle?: string;
   galleryName?: string;
+  sold?: boolean;
   compact?: boolean;
   className?: string;
 }
@@ -22,6 +23,7 @@ export function ArtworkPriceBuy({
   listPriceCents,
   artworkTitle,
   galleryName,
+  sold = false,
   compact = false,
   className = "",
 }: ArtworkPriceBuyProps) {
@@ -32,7 +34,7 @@ export function ArtworkPriceBuy({
   const [checkoutLink, setCheckoutLink] = useState<string | null>(null);
   const [purchaseComplete, setPurchaseComplete] = useState(false);
   const priceLabel = formatListPrice(listPriceCents);
-  const canBuy = (listPriceCents ?? 0) > 0;
+  const canBuy = !sold && (listPriceCents ?? 0) > 0;
   const enquireHref = (() => {
     const params = new URLSearchParams({ artworkId });
     if (artworkTitle) params.set("artwork", artworkTitle);
@@ -40,6 +42,9 @@ export function ArtworkPriceBuy({
   })();
   const actionClassName = `btn-neumorph shrink-0 ${
     compact ? "!px-4 !py-2 text-[13px]" : "!px-8"
+  }`;
+  const soldClassName = `shrink-0 cursor-not-allowed bg-red-600 text-white font-semibold rounded-md ${
+    compact ? "px-4 py-2 text-[13px]" : "px-8 py-3 text-[15px]"
   }`;
 
   const handleBuy = async () => {
@@ -101,7 +106,11 @@ export function ArtworkPriceBuy({
           </p>
         </div>
 
-        {canBuy ? (
+        {sold ? (
+          <button type="button" disabled className={soldClassName} aria-label="Sold">
+            Sold
+          </button>
+        ) : canBuy ? (
           <button
             type="button"
             onClick={handleBuy}

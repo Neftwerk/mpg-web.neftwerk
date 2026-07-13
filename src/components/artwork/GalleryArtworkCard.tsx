@@ -34,6 +34,7 @@ export function GalleryArtworkCard({ item, priority = false }: GalleryArtworkCar
           artworkTitle={item.title}
           listPriceCents={item.listPriceCents}
           galleryName={item.galleryName}
+          sold={item.sold}
           compact
         />
       </div>

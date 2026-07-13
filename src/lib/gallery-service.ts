@@ -5,7 +5,7 @@
 import { API_ENDPOINTS } from "./api";
 import { authedFetch, type ApiResponse } from "./auth-service";
 
-const ARTWORKS_CACHE_KEY = "neft_public_artworks_v5";
+const ARTWORKS_CACHE_KEY = "neft_public_artworks_v6";
 /** Soft buffer before treating a cache entry as expired. */
 const ARTWORK_CACHE_MS = 5_000;
 /** Short client TTL so admin price edits show up on the next page load. */
@@ -98,6 +98,7 @@ export interface ArtworkItem {
   description?: string;
   listPriceCents?: number;
   royaltyBps?: number;
+  sold?: boolean;
   mediaUrl: string;
   mediaExpiresAt?: string;
   galleryName?: string;
@@ -280,10 +281,6 @@ export function clearPublicArtworksCache(): void {
   inFlightArtworks = null;
   if (typeof window !== "undefined") {
     sessionStorage.removeItem(ARTWORKS_CACHE_KEY);
-    sessionStorage.removeItem("neft_public_artworks_v1");
-    sessionStorage.removeItem("neft_public_artworks_v2");
-    sessionStorage.removeItem("neft_public_artworks_v3");
-    sessionStorage.removeItem("neft_public_artworks_v4");
   }
 }
 
