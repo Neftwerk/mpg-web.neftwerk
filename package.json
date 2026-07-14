@@ -6,11 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@noble/curves": "^1.9.7",
-    "@socketfi/react": "^2.0.0",
+    "@socketfi/react": "2.0.0",
     "@stellar/stellar-sdk": "^15.1.0",
     "lucide-react": "^1.16.0",
     "next": "16.2.4",
@@ -25,6 +26,7 @@
     "autoprefixer": "^10.4.19",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
+    "patch-package": "^8.0.1",
     "postcss": "^8.4.39",
     "tailwindcss": "^3.4.19",
     "typescript": "^5"
