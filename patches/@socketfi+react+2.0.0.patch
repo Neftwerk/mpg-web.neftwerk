@@ -1,0 +1,188 @@
+diff --git a/node_modules/@socketfi/react/dist/index.cjs b/node_modules/@socketfi/react/dist/index.cjs
+index 6a1f24b..de6813b 100644
+--- a/node_modules/@socketfi/react/dist/index.cjs
++++ b/node_modules/@socketfi/react/dist/index.cjs
+@@ -168,6 +168,17 @@ var SocketFi = class {
+     }
+   }
+   async handleHostedAuthPopup(mode = "signin") {
++    const { features } = getCenteredPopupFeatures();
++    const popup = window.open(
++      "about:blank",
++      "socketfi_auth_popup",
++      features
++    );
++    if (!popup) {
++      throw new Error(
++        "Popup was blocked. Please allow popups for this site."
++      );
++    }
+     try {
+       this.setState({
+         modalOpen: false,
+@@ -198,17 +209,7 @@ var SocketFi = class {
+       )}&tempAccess=${encodeURIComponent(
+         initRes.tempAccess
+       )}&mode=${encodeURIComponent(mode)}`;
+-      const { features } = getCenteredPopupFeatures();
+-      const popup = window.open(
+-        authUrl,
+-        `socketfi_auth_${Date.now()}`,
+-        features
+-      );
+-      if (!popup) {
+-        window.location.href = authUrl;
+-        return new Promise(() => {
+-        });
+-      }
++      popup.location.href = authUrl;
+       return await new Promise((resolve, reject) => {
+         const authOrigin = new URL(DEFAULT_AUTH_URL).origin;
+         const cleanup = () => {
+@@ -267,6 +268,7 @@ var SocketFi = class {
+         window.addEventListener("message", handleMessage);
+       });
+     } catch (err) {
++      safeClosePopup(popup);
+       const error = err instanceof Error ? err : new Error("Auth failed");
+       this.setState({
+         modalOpen: false,
+@@ -350,6 +352,17 @@ var SocketFi = class {
+     );
+   }
+   async openHostedTransactionPopup(input, mode) {
++    const { features } = getCenteredPopupFeatures();
++    const popup = window.open(
++      "about:blank",
++      "socketfi_tx_popup",
++      features
++    );
++    if (!popup) {
++      throw new Error(
++        "Popup was blocked. Please allow popups for this site."
++      );
++    }
+     try {
+       this.setState({
+         loading: true,
+@@ -381,17 +394,7 @@ var SocketFi = class {
+       )}&txSession=${encodeURIComponent(
+         intentRes.txSession
+       )}&mode=${encodeURIComponent(mode)}`;
+-      const { features } = getCenteredPopupFeatures();
+-      const popup = window.open(
+-        transactionUrl,
+-        `socketfi_transaction_${Date.now()}`,
+-        features
+-      );
+-      if (!popup) {
+-        throw new Error(
+-          "Popup was blocked. Please allow popups for this site."
+-        );
+-      }
++      popup.location.href = transactionUrl;
+       return await new Promise((resolve, reject) => {
+         const authOrigin = new URL(DEFAULT_AUTH_URL).origin;
+         const cleanup = () => {
+@@ -455,6 +458,7 @@ var SocketFi = class {
+         window.addEventListener("message", handleMessage);
+       });
+     } catch (err) {
++      safeClosePopup(popup);
+       const error = err instanceof Error ? err : new Error("Failed to open hosted transaction");
+       this.setState({
+         loading: false,
+diff --git a/node_modules/@socketfi/react/dist/index.js b/node_modules/@socketfi/react/dist/index.js
+index e5362ae..9b0844c 100644
+--- a/node_modules/@socketfi/react/dist/index.js
++++ b/node_modules/@socketfi/react/dist/index.js
+@@ -140,6 +140,17 @@ var SocketFi = class {
+     }
+   }
+   async handleHostedAuthPopup(mode = "signin") {
++    const { features } = getCenteredPopupFeatures();
++    const popup = window.open(
++      "about:blank",
++      "socketfi_auth_popup",
++      features
++    );
++    if (!popup) {
++      throw new Error(
++        "Popup was blocked. Please allow popups for this site."
++      );
++    }
+     try {
+       this.setState({
+         modalOpen: false,
+@@ -170,17 +181,7 @@ var SocketFi = class {
+       )}&tempAccess=${encodeURIComponent(
+         initRes.tempAccess
+       )}&mode=${encodeURIComponent(mode)}`;
+-      const { features } = getCenteredPopupFeatures();
+-      const popup = window.open(
+-        authUrl,
+-        `socketfi_auth_${Date.now()}`,
+-        features
+-      );
+-      if (!popup) {
+-        window.location.href = authUrl;
+-        return new Promise(() => {
+-        });
+-      }
++      popup.location.href = authUrl;
+       return await new Promise((resolve, reject) => {
+         const authOrigin = new URL(DEFAULT_AUTH_URL).origin;
+         const cleanup = () => {
+@@ -239,6 +240,7 @@ var SocketFi = class {
+         window.addEventListener("message", handleMessage);
+       });
+     } catch (err) {
++      safeClosePopup(popup);
+       const error = err instanceof Error ? err : new Error("Auth failed");
+       this.setState({
+         modalOpen: false,
+@@ -322,6 +324,17 @@ var SocketFi = class {
+     );
+   }
+   async openHostedTransactionPopup(input, mode) {
++    const { features } = getCenteredPopupFeatures();
++    const popup = window.open(
++      "about:blank",
++      "socketfi_tx_popup",
++      features
++    );
++    if (!popup) {
++      throw new Error(
++        "Popup was blocked. Please allow popups for this site."
++      );
++    }
+     try {
+       this.setState({
+         loading: true,
+@@ -353,17 +366,7 @@ var SocketFi = class {
+       )}&txSession=${encodeURIComponent(
+         intentRes.txSession
+       )}&mode=${encodeURIComponent(mode)}`;
+-      const { features } = getCenteredPopupFeatures();
+-      const popup = window.open(
+-        transactionUrl,
+-        `socketfi_transaction_${Date.now()}`,
+-        features
+-      );
+-      if (!popup) {
+-        throw new Error(
+-          "Popup was blocked. Please allow popups for this site."
+-        );
+-      }
++      popup.location.href = transactionUrl;
+       return await new Promise((resolve, reject) => {
+         const authOrigin = new URL(DEFAULT_AUTH_URL).origin;
+         const cleanup = () => {
+@@ -427,6 +430,7 @@ var SocketFi = class {
+         window.addEventListener("message", handleMessage);
+       });
+     } catch (err) {
++      safeClosePopup(popup);
+       const error = err instanceof Error ? err : new Error("Failed to open hosted transaction");
+       this.setState({
+         loading: false,
