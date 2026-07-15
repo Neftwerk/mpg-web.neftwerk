@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { getProfile, getAccessToken, UserProfile, refreshAccessToken, clearTokens, setTokens } from "@/lib/auth-service";
 import { resolveProfilePictureUrl } from "@/lib/storage-service";
+import { mergeSavedOnLogin, resetSavedMergeState } from "@/lib/saved-service";
 
 interface UserContextValue {
   user: UserProfile | null;
@@ -80,6 +81,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     if (!token) {
       setUser(null);
       setLoading(false);
+      resetSavedMergeState();
       return;
     }
 
@@ -128,9 +130,18 @@ export function UserProvider({ children }: { children: ReactNode }) {
         profile.avatarUrl = storedPicture
           ? await resolveProfilePictureUrl(String(storedPicture))
           : "";
+
+        if (!profile.id && profile._id) {
+          profile.id = String(profile._id);
+        }
       }
 
       setUser(profile);
+
+      const userKey = profile?.id ? String(profile.id) : profile?.email ? String(profile.email) : null;
+      if (userKey) {
+        void mergeSavedOnLogin(userKey);
+      }
     } else {
       setUser(null);
     }

@@ -167,6 +167,21 @@ export const API_ENDPOINTS = {
     SOCKETFI_VERIFY: `${API_BASE_URL}/api/wallet/socketfi/verify`,
   },
 
+  SAVED: {
+    /** GET /api/saved */
+    LIST: `${API_BASE_URL}/api/saved`,
+    /** GET /api/saved/ids */
+    IDS: `${API_BASE_URL}/api/saved/ids`,
+    /** POST /api/saved/merge  { artworkIds } */
+    MERGE: `${API_BASE_URL}/api/saved/merge`,
+    /** POST /api/saved/:artworkId */
+    SAVE: (artworkId: string) => `${API_BASE_URL}/api/saved/${artworkId}`,
+    /** DELETE /api/saved/:artworkId */
+    UNSAVE: (artworkId: string) => `${API_BASE_URL}/api/saved/${artworkId}`,
+    /** GET /api/saved/:artworkId */
+    STATUS: (artworkId: string) => `${API_BASE_URL}/api/saved/${artworkId}`,
+  },
+
   STORAGE: {
     /** POST /api/storage/upload/image — multipart field: file */
     UPLOAD_IMAGE: `${API_BASE_URL}/api/storage/upload/image`,

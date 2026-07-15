@@ -7,6 +7,7 @@ import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
 import { NeftwerkImage } from "@/components/NeftwerkImage";
 import { ArtworkDetailSkeleton } from "@/components/Skeletons";
 import { ArtworkPriceBuy } from "@/components/artwork/ArtworkPriceBuy";
+import { SaveArtworkButton } from "@/components/artwork/SaveArtworkButton";
 import { RegisterOwnershipButton } from "@/components/wallet/RegisterOwnershipButton";
 import { OwnedArtworkDates } from "@/components/wallet/OwnedArtworkDates";
 import { StellarExplorerLink } from "@/components/wallet/StellarExplorerLink";
@@ -143,9 +144,16 @@ export default function ArtworkPage({ params }: { params: Promise<Params> }) {
               />
             </div>
 
-            <h2 className="text-[19px] font-bold text-[#1A3F6C] mb-4">
-              {title}
-            </h2>
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <h2 className="text-[19px] font-bold text-[#1A3F6C]">
+                {title}
+              </h2>
+              <SaveArtworkButton
+                artworkId={id}
+                hidden={isOwned}
+                className="shrink-0 mt-1"
+              />
+            </div>
 
             <div className="flex items-center gap-4 mb-6">
               <div className="h-[46px] w-[46px] rounded-full border-[2px] border-[#38A8AB] overflow-hidden flex-shrink-0">

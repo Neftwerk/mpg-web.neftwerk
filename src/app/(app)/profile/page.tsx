@@ -2,12 +2,16 @@
 import Link from "next/link";
 import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
 import { useState, useRef, useEffect } from "react";
-import { fetchAllPublicArtworks, ArtworkItem } from "@/lib/gallery-service";
+import { ArtworkItem } from "@/lib/gallery-service";
 import { useUser } from "@/lib/UserContext";
 import { updateProfile } from "@/lib/auth-service";
 import { uploadImage } from "@/lib/storage-service";
 import { NeftwerkImage } from "@/components/NeftwerkImage";
 import { ProfileSkeleton, ActivityGridSkeleton } from "@/components/Skeletons";
+import {
+  listSavedArtworksForDisplay,
+  subscribeToSaved,
+} from "@/lib/saved-service";
 
 export default function ProfilePage() {
   return <ProfileContent />;
@@ -26,16 +30,34 @@ function ProfileContent() {
   const [saveError, setSaveError] = useState("");
   const [saveSuccess, setSaveSuccess] = useState("");
 
-  // Fetch recent artworks for "activity"
-  const [activityItems, setActivityItems] = useState<ArtworkItem[]>([]);
-  const [activityLoading, setActivityLoading] = useState(true);
+  // Saved works — device-local (and account when signed in); excludes purchases
+  const [savedItems, setSavedItems] = useState<ArtworkItem[]>([]);
+  const [savedLoading, setSavedLoading] = useState(true);
 
   useEffect(() => {
-    fetchAllPublicArtworks()
-      .then((items) => setActivityItems(items.slice(0, 2)))
-      .catch(() => {})
-      .finally(() => setActivityLoading(false));
-  }, []);
+    let cancelled = false;
+
+    const load = () => {
+      setSavedLoading(true);
+      listSavedArtworksForDisplay()
+        .then((items) => {
+          if (!cancelled) setSavedItems(items);
+        })
+        .catch(() => {
+          if (!cancelled) setSavedItems([]);
+        })
+        .finally(() => {
+          if (!cancelled) setSavedLoading(false);
+        });
+    };
+
+    load();
+    const unsub = subscribeToSaved(load);
+    return () => {
+      cancelled = true;
+      unsub();
+    };
+  }, [user?.id]);
 
   const displayName = user?.fullName || "";
   const displayBio = user?.bio || "";
@@ -350,20 +372,20 @@ function ProfileContent() {
           </div>
         )}
 
-        {/* My activity section */}
+        {/* Saved — works kept while browsing or scanning (not purchases) */}
         <div className="mt-10">
           <div className="flex items-center gap-3 mb-5">
             <span className="text-[16px] font-bold text-[#1A3F6C] whitespace-nowrap">
-              My activity
+              Saved
             </span>
             <div className="flex-1 border-t-[1.5px] border-dotted border-[#C4BCB6]" />
           </div>
 
-          {activityLoading ? (
+          {savedLoading ? (
             <ActivityGridSkeleton count={2} />
-          ) : activityItems.length > 0 ? (
+          ) : savedItems.length > 0 ? (
           <div className="grid grid-cols-2 gap-3">
-            {activityItems.map((item) => (
+            {savedItems.map((item) => (
                <Link
                 key={item.id}
                 href={`/artwork/${item.id}`}
@@ -384,7 +406,10 @@ function ProfileContent() {
             ))}
           </div>
           ) : (
-            <p className="text-xs text-slate-400 text-center">No recent activity.</p>
+            <p className="text-xs text-slate-400 text-center leading-relaxed px-4">
+              Works you save while browsing or scanning stay here — even before you create an account.
+              Purchases live in My Gallery.
+            </p>
           )}
         </div>
       </div>
