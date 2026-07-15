@@ -10,6 +10,7 @@ import {
 import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
 import { GalleryGridSkeleton } from "@/components/Skeletons";
 import { GalleryArtworkCard } from "@/components/artwork/GalleryArtworkCard";
+import { ArtworkMasonry } from "@/components/artwork/ArtworkMasonry";
 
 type Params = { id: string };
 
@@ -49,9 +50,6 @@ export default function DiscoverGalleryDetailPage({
     load();
   }, [id]);
 
-  const leftItems = artworks.filter((_, index) => index % 2 === 0);
-  const rightItems = artworks.filter((_, index) => index % 2 === 1);
-
   return (
     <>
       <MobileTopBar title={galleryName} onMenuOpen={() => setMenuOpen(true)} />
@@ -90,23 +88,15 @@ export default function DiscoverGalleryDetailPage({
         )}
 
         {!loading && artworks.length > 0 && (
-          <div className="grid grid-cols-2 gap-3 items-start">
-            <div className="flex flex-col gap-3">
-              {leftItems.map((item, index) => (
-                <GalleryArtworkCard
-                  key={item.id}
-                  item={item}
-                  priority={index === 0}
-                />
-              ))}
-            </div>
-
-            <div className="flex flex-col gap-3">
-              {rightItems.map((item) => (
-                <GalleryArtworkCard key={item.id} item={item} />
-              ))}
-            </div>
-          </div>
+          <ArtworkMasonry>
+            {artworks.map((item, index) => (
+              <GalleryArtworkCard
+                key={item.id}
+                item={item}
+                priority={index === 0}
+              />
+            ))}
+          </ArtworkMasonry>
         )}
       </div>
 

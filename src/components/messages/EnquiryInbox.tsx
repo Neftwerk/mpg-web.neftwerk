@@ -56,14 +56,17 @@ export function EnquiryInbox({ enquiries, viewerRole }: EnquiryInboxProps) {
         >
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
         </svg>
-        <p className="text-[15px] font-semibold text-[#1A3F6C] mb-1">
-          No enquiries yet
-        </p>
-        <p className="text-xs text-slate-400">
+        <p className="text-[15px] font-semibold text-[#1A3F6C] mb-1 px-4">
           {isGalleryOwner
-            ? "Collector enquiries about your artworks will appear here."
-            : "Tap Enquire on an artwork to start a price enquiry."}
+            ? "No messages yet"
+            : "No messages yet — start a conversation about an artwork you love."}
         </p>
+        {isGalleryOwner && (
+          <p className="text-xs text-slate-400 px-4">
+            When collectors message you about an artwork, their conversations
+            will appear here.
+          </p>
+        )}
       </div>
     );
   }

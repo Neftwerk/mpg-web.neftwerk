@@ -367,12 +367,15 @@ function ProfileContent() {
                <Link
                 key={item.id}
                 href={`/artwork/${item.id}`}
-                className="block card-neumorph"
+                className="block card-neumorph overflow-hidden"
               >
                <NeftwerkImage
                  src={item.mediaUrl}
                  alt={item.title}
-                 className="w-full aspect-[4/3] object-cover"
+                 fit="natural"
+                 width={item.mediaWidth}
+                 height={item.mediaHeight}
+                 className="w-full"
                />
                <p className="px-2 py-2 text-[13px] font-medium text-[#11181c]">
                  {item.title}

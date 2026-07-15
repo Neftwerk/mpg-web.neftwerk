@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import { getGalleryListImageUrl, type GalleryListItem } from "@/lib/gallery-service";
-import { formatListPrice } from "@/lib/format";
 import { NeftwerkImage } from "@/components/NeftwerkImage";
 
 interface GalleriesListProps {
@@ -59,8 +58,9 @@ export function GalleriesList({
             <NeftwerkImage
               src={imageUrl}
               alt={gallery.name}
+              fit="cover"
               className="h-16 w-16 flex-shrink-0"
-              imgClassName="h-16 w-16 object-cover"
+              imgClassName="h-16 w-16"
               priority={false}
             />
           ) : (
@@ -76,10 +76,6 @@ export function GalleriesList({
               {gallery.country ? ` · ${gallery.country}` : ""}
             </p>
           </div>
-
-          <p className="text-[15px] font-bold text-[#1A3F6C] whitespace-nowrap">
-            from {formatListPrice(gallery.minPriceCents)}
-          </p>
         </Link>
         );
       })}

@@ -34,13 +34,14 @@ export function ArtworkCard({ artwork, onEdit, onViewOnChain }: ArtworkCardProps
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {/* Aspect Ratio 4:3 Image Container */}
-      <div className="relative w-full aspect-[4/3] bg-black/5 overflow-hidden">
+      {/* Intrinsic aspect image — no crop */}
+      <div className="relative w-full bg-black/5 overflow-hidden">
         <NeftwerkImage
           src={artwork.imageUrl}
           alt={artwork.title}
-          className="w-full h-full"
-          imgClassName="transition-transform duration-300 group-hover:scale-105"
+          fit="natural"
+          className="w-full"
+          imgClassName="transition-transform duration-300 group-hover:scale-[1.02]"
         />
 
         {/* Dynamic Overlay Actions on Hover */}

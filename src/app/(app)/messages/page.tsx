@@ -130,8 +130,8 @@ function MessagesContent() {
         {!loading && showRoleWarning && (
           <div className="card-neumorph text-center py-10 mt-4 space-y-3">
             <p className="text-sm text-[#616161]">
-              Only collectors can submit price enquiries. You can still view and
-              reply to enquiries in your inbox.
+              Only collectors can message galleries about artworks. You can still
+              view and reply to conversations in your inbox.
             </p>
             <button
               type="button"

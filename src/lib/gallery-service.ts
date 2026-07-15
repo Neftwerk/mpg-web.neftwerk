@@ -5,7 +5,7 @@
 import { API_ENDPOINTS } from "./api";
 import { authedFetch, type ApiResponse } from "./auth-service";
 
-const ARTWORKS_CACHE_KEY = "neft_public_artworks_v6";
+const ARTWORKS_CACHE_KEY = "neft_public_artworks_v7";
 /** Soft buffer before treating a cache entry as expired. */
 const ARTWORK_CACHE_MS = 5_000;
 /** Short client TTL so admin price edits show up on the next page load. */
@@ -101,6 +101,10 @@ export interface ArtworkItem {
   sold?: boolean;
   mediaUrl: string;
   mediaExpiresAt?: string;
+  /** Intrinsic media width in pixels (when known). */
+  mediaWidth?: number;
+  /** Intrinsic media height in pixels (when known). */
+  mediaHeight?: number;
   galleryName?: string;
   collectionName?: string;
 }

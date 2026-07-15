@@ -11,6 +11,7 @@ import {
 import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
 import { GalleryGridSkeleton, SkeletonBar } from "@/components/Skeletons";
 import { GalleryArtworkCard } from "@/components/artwork/GalleryArtworkCard";
+import { ArtworkMasonry } from "@/components/artwork/ArtworkMasonry";
 import { GalleriesList } from "@/components/gallery/GalleriesList";
 import { NeftwerkImage } from "@/components/NeftwerkImage";
 
@@ -33,16 +34,16 @@ function DiscoverSectionsSkeleton() {
       <SkeletonBar className="h-4 w-36 mb-3" />
       <div className="grid grid-cols-3 gap-3 mb-8">
         {Array.from({ length: 3 }).map((_, index) => (
-          <div key={index} className="card-neumorph">
-            <SkeletonBar className="w-full aspect-square" />
+          <div key={index} className="card-neumorph overflow-hidden">
+            <SkeletonBar className="w-full min-h-[6rem] aspect-[3/4]" />
             <SkeletonBar className="h-3 w-3/4 mx-1 my-2" />
           </div>
         ))}
       </div>
 
       <SkeletonBar className="h-4 w-40 mb-3" />
-      <div className="card-neumorph mb-8">
-        <SkeletonBar className="w-full aspect-[2/1]" />
+      <div className="card-neumorph mb-8 overflow-hidden">
+        <SkeletonBar className="w-full min-h-[10rem] aspect-[4/5]" />
         <SkeletonBar className="h-3 w-2/3 mx-2 my-2" />
       </div>
 
@@ -77,13 +78,7 @@ export default function DiscoverPage() {
     load();
   }, []);
 
-  const popularArtworks = useMemo(
-    () =>
-      [...artworks]
-        .sort((a, b) => (b.listPriceCents ?? 0) - (a.listPriceCents ?? 0))
-        .slice(0, 3),
-    [artworks],
-  );
+  const popularArtworks = useMemo(() => artworks.slice(0, 3), [artworks]);
 
   const newWork = useMemo(() => artworks[0] ?? null, [artworks]);
 
@@ -106,8 +101,6 @@ export default function DiscoverPage() {
     });
   }, [artworks, search]);
 
-  const leftItems = filteredArtworks.filter((_, index) => index % 2 === 0);
-  const rightItems = filteredArtworks.filter((_, index) => index % 2 === 1);
   const isSearching = search.trim().length > 0;
 
   return (
@@ -174,12 +167,15 @@ export default function DiscoverPage() {
                 <Link
                   key={item.id}
                   href={`/artwork/${item.id}`}
-                  className="card-neumorph"
+                  className="card-neumorph overflow-hidden"
                 >
                   <NeftwerkImage
                     src={item.mediaUrl}
                     alt={item.title}
-                    className="w-full aspect-square object-cover"
+                    fit="natural"
+                    width={item.mediaWidth}
+                    height={item.mediaHeight}
+                    className="w-full"
                     priority={index === 0}
                   />
                   <p className="px-1 py-2 text-[11px] font-medium text-[#464646] truncate">
@@ -197,11 +193,14 @@ export default function DiscoverPage() {
               Discover new works
             </h3>
             <div className="mb-8">
-              <Link href={`/artwork/${newWork.id}`} className="block card-neumorph">
+              <Link href={`/artwork/${newWork.id}`} className="block card-neumorph overflow-hidden">
                 <NeftwerkImage
                   src={newWork.mediaUrl}
                   alt={newWork.title}
-                  className="w-full object-cover aspect-[2/1]"
+                  fit="natural"
+                  width={newWork.mediaWidth}
+                  height={newWork.mediaHeight}
+                  className="w-full"
                 />
                 <p className="px-2 py-2 text-[13px] font-medium text-[#464646]">
                   {newWork.title}
@@ -227,23 +226,15 @@ export default function DiscoverPage() {
             <h3 className="text-[16px] font-bold text-[#1A3F6C] mb-3">
               {isSearching ? "Search results" : "All artworks"}
             </h3>
-            <div className="grid grid-cols-2 gap-3 items-start">
-              <div className="flex flex-col gap-3">
-                {leftItems.map((item, index) => (
-                  <GalleryArtworkCard
-                    key={item.id}
-                    item={item}
-                    priority={!isSearching && index === 0}
-                  />
-                ))}
-              </div>
-
-              <div className="flex flex-col gap-3">
-                {rightItems.map((item) => (
-                  <GalleryArtworkCard key={item.id} item={item} />
-                ))}
-              </div>
-            </div>
+            <ArtworkMasonry>
+              {filteredArtworks.map((item, index) => (
+                <GalleryArtworkCard
+                  key={item.id}
+                  item={item}
+                  priority={!isSearching && index === 0}
+                />
+              ))}
+            </ArtworkMasonry>
           </>
         )}
       </div>

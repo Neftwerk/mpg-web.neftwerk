@@ -122,7 +122,7 @@ export function SignupForm() {
 
   return (
     <form className="flex flex-col gap-0" onSubmit={step === "details" ? handleCreateAccount : handleVerifyOtp}>
-      <p className="mb-2 text-xl font-semibold text-slate-900">Create your account</p>
+      <p className="mb-2 text-xl font-semibold text-slate-900">Everything here is open to view. Create a free account, just your name and email, to build your own gallery and join the community.</p>
       <div className="mb-2 h-1.5 w-[9%] max-w-[72px]  bg-sky-900" />
 
       {error && (
@@ -201,13 +201,24 @@ export function SignupForm() {
       )}
 
       <div className="mt-7 flex flex-col items-center gap-6">
-        <button
-          type="submit"
-          disabled={loading}
-          className="btn-neumorph w-[85%] max-w-[320px] disabled:opacity-50"
-        >
-          {loading ? "Please wait..." : step === "details" ? "Create account" : "Verify & continue"}
-        </button>
+        <div className="flex w-full flex-col items-center gap-3">
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn-neumorph w-[85%] max-w-[320px] disabled:opacity-50"
+          >
+            {loading ? "Please wait..." : step === "details" ? "Create account" : "Verify & continue"}
+          </button>
+
+          {step === "details" && (
+            <p className="text-center text-sm text-slate-500">
+              Already have an account?{" "}
+              <Link href="/login" className="font-semibold text-sky-900 underline underline-offset-2 hover:text-sky-700">
+                Log in
+              </Link>
+            </p>
+          )}
+        </div>
 
         {step === "details" && (
           <>
@@ -233,13 +244,6 @@ export function SignupForm() {
           </>
         )}
       </div>
-
-      <p className="mt-6 text-center text-sm text-slate-500">
-        Already have an account?{" "}
-        <Link href="/login" className="font-semibold text-sky-900 underline underline-offset-2 hover:text-sky-700">
-          Log in
-        </Link>
-      </p>
     </form>
   );
 }
