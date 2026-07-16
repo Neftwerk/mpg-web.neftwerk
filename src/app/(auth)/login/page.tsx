@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <AuthShell title="Log in">
+    <AuthShell title="Welcome! you're free to browse">
       <div className="auth-card">
         <Suspense fallback={<p className="text-sm text-slate-500">Loading…</p>}>
           <LoginForm />
