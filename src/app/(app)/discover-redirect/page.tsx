@@ -16,7 +16,7 @@ export default function DiscoverRedirectPage() {
 
       <div className="card-neumorph text-center">
         <p className="mb-5 text-lg font-semibold text-slate-900">
-          Buy now flow will happen in a third party application
+          Purchase flow will happen in a third party application
         </p>
         <Link
           href="/discover"

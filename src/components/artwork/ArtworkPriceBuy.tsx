@@ -117,7 +117,7 @@ export function ArtworkPriceBuy({
             disabled={loading}
             className={`${actionClassName} disabled:opacity-50`}
           >
-            {loading ? status ?? "Loading…" : "Buy now"}
+            {loading ? status ?? "Loading…" : "Purchase"}
           </button>
         ) : (
           <button
