@@ -1,5 +1,11 @@
 "use client";
-import Image from "next/image";
+
+import { AppTopBar } from "@/components/AppTopBar";
+
+/**
+ * Mid-flow shell (link card / bank / wallet). Same back icon + placement;
+ * history step-back so people don't lose progress.
+ */
 export function AppShell({
   title,
   children,
@@ -7,16 +13,10 @@ export function AppShell({
   title: string;
   children: React.ReactNode;
 }) {
-  const onBack = () => {
-    window.history.back();
-  }
   return (
-    <section className="bg-white">
-      <header className="flex items-center gap-4 ps-2 bg-white py-3 lg:px-3">
-        <Image alt='' onClick={onBack} src="/arrow.svg" width={22} height={22} />
-        <h1 className="text-xl font-semibold text-slate-900">{title}</h1>
-      </header>
-      <div className="p-2">{children}</div>
+    <section className="bg-[#F7F4F3] min-h-[100dvh]">
+      <AppTopBar title={title} historyBack />
+      <div className="px-5 pb-10 lg:px-6">{children}</div>
     </section>
   );
 }

@@ -43,7 +43,10 @@ export function OwnedAssetCard({
         <NeftwerkImage
           src={asset.mediaUrl}
           alt={asset.title}
-          className="w-full object-cover"
+          fit="natural"
+          width={asset.mediaWidth}
+          height={asset.mediaHeight}
+          className="w-full"
         />
       </Link>
 

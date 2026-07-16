@@ -46,8 +46,16 @@ function mapSocketFiError(error: unknown): SocketFiAuthResult {
   const err = error as SocketFiError;
   const message =
     err?.message ?? "Wallet authentication failed. Please try again.";
+  const lower = message.toLowerCase();
 
   if (err?.code === "USER_CANCELLED" || isUserCancelled(message)) {
+    if (lower.includes("closed")) {
+      return {
+        ok: false,
+        message:
+          "The SocketFi window closed before sign-in finished. Leave that window open until authentication completes, then try Claim again.",
+      };
+    }
     return { ok: false, cancelled: true, message };
   }
 
@@ -59,10 +67,7 @@ function mapSocketFiError(error: unknown): SocketFiAuthResult {
     };
   }
 
-  if (
-    err?.code === "POPUP_BLOCKED" ||
-    message.toLowerCase().includes("popup")
-  ) {
+  if (err?.code === "POPUP_BLOCKED" || lower.includes("popup was blocked")) {
     return {
       ok: false,
       message:

@@ -36,7 +36,8 @@ export default function DiscoverArtworkPage({
           <NeftwerkImage
             src={imageUrl}
             alt={title}
-            className="w-full object-cover aspect-[4/3]"
+            fit="contain"
+            className="mx-auto max-w-full max-h-[min(70dvh,calc(100dvh-13rem))] bg-[#f4f2ef]"
             onError={(e) => { e.currentTarget.src = "https://picsum.photos/seed/fallback/800/600" }}
           />
         </div>

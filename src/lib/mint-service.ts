@@ -82,7 +82,13 @@ async function ensureSocketFiSession(
 
   const auth = await authenticateSocketFi("wallet");
   if (!auth.ok) {
-    throw new Error(auth.message ?? "Wallet authentication was cancelled.");
+    const err = new Error(
+      auth.message ?? "Wallet authentication was cancelled."
+    );
+    if (auth.cancelled) {
+      (err as Error & { cancelled?: boolean }).cancelled = true;
+    }
+    throw err;
   }
 
   let session = enrichSocketFiSession(auth.session);
@@ -145,7 +151,8 @@ export async function registerSaleOwnership(
   saleId: string
 ): Promise<RegisterOwnershipResult> {
   try {
-    const session = await ensureSocketFiSession(true);
+    // Reuse claim-ready session when present so Claim does not re-open auth every time.
+    const session = await ensureSocketFiSession(false);
     setStoredSocketFiSession(session);
 
     const verified = await verifySocketFiSessionViaBackend(session);
@@ -202,7 +209,10 @@ export async function registerSaleOwnership(
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : "Claim failed.";
-    if (message.toLowerCase().includes("cancel")) {
+    const cancelled =
+      Boolean((error as Error & { cancelled?: boolean })?.cancelled) ||
+      (/cancel/i.test(message) && !/closed/i.test(message));
+    if (cancelled) {
       return { ok: false, cancelled: true, message };
     }
     return { ok: false, message };

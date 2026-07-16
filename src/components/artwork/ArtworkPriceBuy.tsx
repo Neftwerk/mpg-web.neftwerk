@@ -41,7 +41,7 @@ export function ArtworkPriceBuy({
     return `/messages?${params.toString()}`;
   })();
   const actionClassName = `btn-neumorph shrink-0 ${
-    compact ? "!px-4 !py-2 text-[13px]" : "!px-8"
+    compact ? "!px-3 !py-2 text-[11px] leading-tight max-w-[9.5rem] text-center whitespace-normal" : "!px-8"
   }`;
   const soldClassName = `shrink-0 cursor-not-allowed bg-red-600 text-white font-semibold rounded-md ${
     compact ? "px-4 py-2 text-[13px]" : "px-8 py-3 text-[15px]"
@@ -131,7 +131,7 @@ export function ArtworkPriceBuy({
             }}
             className={actionClassName}
           >
-            Enquire
+            Message the gallery
           </button>
         )}
       </div>

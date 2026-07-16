@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function OtpPage() {
   return (
-    <AuthShell title="Verify OTP">
+    <AuthShell title="Verify OTP" historyBack>
       <div className="auth-card">
         <OtpForm />
       </div>

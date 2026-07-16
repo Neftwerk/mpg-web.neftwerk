@@ -7,10 +7,10 @@ import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
 import { NeftwerkImage } from "@/components/NeftwerkImage";
 import { ArtworkDetailSkeleton } from "@/components/Skeletons";
 import { ArtworkPriceBuy } from "@/components/artwork/ArtworkPriceBuy";
+import { SaveArtworkButton } from "@/components/artwork/SaveArtworkButton";
 import { RegisterOwnershipButton } from "@/components/wallet/RegisterOwnershipButton";
 import { OwnedArtworkDates } from "@/components/wallet/OwnedArtworkDates";
 import { StellarExplorerLink } from "@/components/wallet/StellarExplorerLink";
-import { formatListPrice } from "@/lib/format";
 import { useUser } from "@/lib/UserContext";
 import {
   fetchOwnedAssetForArtwork,
@@ -98,7 +98,6 @@ export default function ArtworkPage({ params }: { params: Promise<Params> }) {
     artwork?.description ??
     "This piece reimagines a familiar motif through contemporary materials and scale.";
   const imageUrl = artwork?.mediaUrl ?? "/images/art1.png";
-  const priceLabel = formatListPrice(artwork?.listPriceCents);
   const royaltyPercent = artwork?.royaltyBps
     ? `${(artwork.royaltyBps / 100).toFixed(1)}%`
     : null;
@@ -116,7 +115,7 @@ export default function ArtworkPage({ params }: { params: Promise<Params> }) {
         </h1>
       </header>
 
-      <div className="p-5 pb-36 mt-20 lg:mt-0">
+      <div className="p-5 pb-10 mt-20 lg:mt-0">
         {loading && <ArtworkDetailSkeleton />}
 
         {!loading && !artwork && (
@@ -133,7 +132,10 @@ export default function ArtworkPage({ params }: { params: Promise<Params> }) {
               <NeftwerkImage
                 src={imageUrl}
                 alt={title}
-                className="w-full object-cover aspect-[4/3]"
+                fit="contain"
+                width={artwork.mediaWidth}
+                height={artwork.mediaHeight}
+                className="mx-auto max-w-full max-h-[70dvh] bg-[#f4f2ef]"
                 priority
                 onError={(e) => {
                   e.currentTarget.src =
@@ -142,9 +144,16 @@ export default function ArtworkPage({ params }: { params: Promise<Params> }) {
               />
             </div>
 
-            <h2 className="text-[19px] font-bold text-[#1A3F6C] mb-4">
-              {title}
-            </h2>
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <h2 className="text-[19px] font-bold text-[#1A3F6C]">
+                {title}
+              </h2>
+              <SaveArtworkButton
+                artworkId={id}
+                hidden={isOwned}
+                className="shrink-0 mt-1"
+              />
+            </div>
 
             <div className="flex items-center gap-4 mb-6">
               <div className="h-[46px] w-[46px] rounded-full border-[2px] border-[#38A8AB] overflow-hidden flex-shrink-0">
@@ -160,28 +169,45 @@ export default function ArtworkPage({ params }: { params: Promise<Params> }) {
               </p>
             </div>
 
+            {(artwork.galleryName || artwork.collection) && (
+              <div className="mb-6 space-y-1">
+                {artwork.galleryName && (
+                  <p className="text-[14px] text-[#616161]">
+                    Gallery:{" "}
+                    <span className="font-semibold text-[#1A3F6C]">
+                      {artwork.galleryName}
+                    </span>
+                  </p>
+                )}
+                {artwork.collection && (
+                  <p className="text-[14px] text-[#616161]">
+                    Collection:{" "}
+                    <span className="font-semibold text-[#1A3F6C]">
+                      {artwork.collection.name}
+                    </span>
+                  </p>
+                )}
+              </div>
+            )}
+
+            <h3 className="text-[17px] font-medium text-[#1A3F6C] mb-3">
+              Description
+            </h3>
+            <p className="text-[15px] leading-[1.6] text-[#464646] mb-8">
+              {description}
+            </p>
+
+            {royaltyPercent && (
+              <p className="text-[13px] text-[#616161] mb-6">
+                Royalty:{" "}
+                <span className="font-semibold text-[#1A3F6C]">{royaltyPercent}</span>
+              </p>
+            )}
+
             <section className="card-neumorph p-5 mb-6 bg-white">
               <h3 className="text-xs font-bold uppercase tracking-widest text-[#334E57]/60 mb-3">
                 {isOwned ? "Your collection" : "Purchase"}
               </h3>
-
-              {artwork.galleryName && (
-                <p className="text-[14px] text-[#616161] mb-1">
-                  Gallery:{" "}
-                  <span className="font-semibold text-[#1A3F6C]">
-                    {artwork.galleryName}
-                  </span>
-                </p>
-              )}
-
-              {artwork.collection && (
-                <p className="text-[14px] text-[#616161] mb-4">
-                  Collection:{" "}
-                  <span className="font-semibold text-[#1A3F6C]">
-                    {artwork.collection.name}
-                  </span>
-                </p>
-              )}
 
               {isOwned && ownedAsset ? (
                 <div className="space-y-3">
@@ -228,48 +254,9 @@ export default function ArtworkPage({ params }: { params: Promise<Params> }) {
                 <p className="text-[14px] text-[#464646]">Checking your collection…</p>
               )}
             </section>
-
-            <div className="bg-[#F8FAFB] border border-[#BAC4C8] p-5 mb-6 flex items-center justify-between">
-              <div className="flex flex-col items-start gap-1 flex-1">
-                <span className="text-[14px] text-[#464646]">Price</span>
-                <span className="text-[20px] font-medium text-[#1A3F6C] mt-1">
-                  {priceLabel}
-                </span>
-              </div>
-              <div className="h-12 w-px bg-[#BAC4C8] opacity-60" />
-              <div className="flex flex-col items-start gap-1 flex-1 pl-4">
-                <span className="text-[14px] text-[#464646] leading-tight">
-                  Royalty
-                </span>
-                <span className="text-[20px] font-medium text-[#1A3F6C]">
-                  {royaltyPercent || "—"}
-                </span>
-              </div>
-            </div>
-
-            <h3 className="text-[17px] font-medium text-[#1A3F6C] mb-3">
-              Description
-            </h3>
-            <p className="text-[15px] leading-[1.6] text-[#464646] mb-8">
-              {description}
-            </p>
           </>
         )}
       </div>
-
-      {artwork && showBuy && (
-        <div className="fixed bottom-6 left-0 right-0 z-30 flex justify-center px-4 pointer-events-none">
-          <div className="w-[85%] max-w-md pointer-events-auto card-neumorph px-4 py-3 bg-white/95 backdrop-blur-sm">
-            <ArtworkPriceBuy
-              artworkId={artwork.id}
-              artworkTitle={artwork.title}
-              listPriceCents={artwork.listPriceCents}
-              galleryName={artwork.galleryName}
-              sold={artwork.sold}
-            />
-          </div>
-        </div>
-      )}
 
       <MobileMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
     </>

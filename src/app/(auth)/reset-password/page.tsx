@@ -19,7 +19,7 @@ function ResetPasswordFallback() {
 
 export default function ResetPasswordPage() {
   return (
-    <AuthShell title="New password">
+    <AuthShell title="New password" historyBack>
       <div className="auth-card">
         <Suspense fallback={<ResetPasswordFallback />}>
           <ResetPasswordForm />

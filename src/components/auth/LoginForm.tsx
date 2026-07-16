@@ -112,7 +112,7 @@ export function LoginForm() {
 
   return (
     <form className="flex flex-col gap-0" onSubmit={step === "email" ? handleRequestOtp : handleVerifyOtp}>
-      <p className="mb-2 text-xl font-semibold text-slate-900">Welcome back</p>
+      <p className="mb-2 text-xl font-semibold text-slate-900">Welcome back! Everything here is open to view. Log in to your account to build your own gallery and join the community.</p>
       <div className="mb-2 h-1.5 w-[9%] max-w-[72px] bg-sky-900 log" />
 
       {error && (
@@ -178,13 +178,24 @@ export function LoginForm() {
       )}
 
       <div className="mt-7 flex flex-col items-center gap-6">
-        <button
-          type="submit"
-          disabled={loading}
-          className="btn-neumorph w-[85%] max-w-[320px] disabled:opacity-50"
-        >
-          {loading ? "Please wait..." : step === "email" ? "Login" : "Verify & Log in"}
-        </button>
+        <div className="flex w-full flex-col items-center gap-3">
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn-neumorph w-[85%] max-w-[320px] disabled:opacity-50"
+          >
+            {loading ? "Please wait..." : step === "email" ? "Login" : "Verify & Log in"}
+          </button>
+
+          {step === "email" && (
+            <p className="text-center text-sm text-slate-500">
+              Don&apos;t have an account?{" "}
+              <Link href="/signup" className="font-semibold text-sky-900 underline underline-offset-2 hover:text-sky-700">
+                Sign up
+              </Link>
+            </p>
+          )}
+        </div>
 
         {step === "email" && (
           <>
@@ -210,13 +221,6 @@ export function LoginForm() {
           </>
         )}
       </div>
-
-      <p className="mt-6 text-center text-sm text-slate-500">
-        Don&apos;t have an account?{" "}
-        <Link href="/signup" className="font-semibold text-sky-900 underline underline-offset-2 hover:text-sky-700">
-          Sign up
-        </Link>
-      </p>
     </form>
   );
 }

@@ -30,8 +30,8 @@ export function SkeletonCircle({
 /** Gallery card skeleton — image + caption placeholder */
 export function GalleryCardSkeleton({ className = "" }: { className?: string }) {
   return (
-    <div className={`card-neumorph ${className}`}>
-      <SkeletonBar className="w-full aspect-[4/3]" />
+    <div className={`card-neumorph break-inside-avoid mb-3 ${className}`}>
+      <SkeletonBar className="w-full min-h-[10rem] aspect-[3/4]" />
       <div className="px-2 py-2 space-y-1">
         <SkeletonBar className="h-3 w-3/4" />
       </div>
@@ -39,23 +39,13 @@ export function GalleryCardSkeleton({ className = "" }: { className?: string }) 
   );
 }
 
-/** Gallery grid skeleton — 2-column staggered */
+/** Gallery grid skeleton — masonry-style columns */
 export function GalleryGridSkeleton({ count = 6 }: { count?: number }) {
-  const left = Array.from({ length: Math.ceil(count / 2) }, (_, i) => i);
-  const right = Array.from({ length: Math.floor(count / 2) }, (_, i) => i);
-
   return (
-    <div className="grid grid-cols-2 gap-3 items-start">
-      <div className="flex flex-col gap-3">
-        {left.map((i) => (
-          <GalleryCardSkeleton key={`l-${i}`} />
-        ))}
-      </div>
-      <div className="flex flex-col gap-3 mt-6">
-        {right.map((i) => (
-          <GalleryCardSkeleton key={`r-${i}`} />
-        ))}
-      </div>
+    <div className="columns-2 gap-3 lg:columns-3 xl:columns-4">
+      {Array.from({ length: count }, (_, i) => (
+        <GalleryCardSkeleton key={i} />
+      ))}
     </div>
   );
 }
@@ -64,9 +54,9 @@ export function GalleryGridSkeleton({ count = 6 }: { count?: number }) {
 export function ArtworkDetailSkeleton() {
   return (
     <div className="animate-pulse">
-      {/* Image placeholder */}
+      {/* Image placeholder — reserved space, not a forced crop */}
       <div className="card-neumorph p-3 bg-white mb-6">
-        <SkeletonBar className="w-full aspect-[4/3]" />
+        <SkeletonBar className="w-full min-h-[16rem] max-h-[70dvh] aspect-[4/5]" />
       </div>
 
       {/* Title */}

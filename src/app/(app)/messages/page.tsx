@@ -4,7 +4,7 @@ import { Suspense, useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
 import { AuthGuard } from "@/components/auth/AuthGuard";
-import { EnquiryInbox } from "@/components/messages/EnquiryInbox";
+import { UnifiedInbox } from "@/components/messages/UnifiedInbox";
 import { EnquiryCompose } from "@/components/messages/EnquiryCompose";
 import { useUser } from "@/lib/UserContext";
 import type { EnquiryListItem } from "@/lib/enquiry-types";
@@ -13,6 +13,12 @@ import {
   listEnquiries,
 } from "@/lib/enquiry-service";
 import { useEnquirySocket } from "@/lib/use-enquiry-socket";
+import {
+  deleteNotification,
+  getNotifications,
+  markNotificationAsRead,
+  type Notification,
+} from "@/lib/notification-service";
 
 export default function MessagesPage() {
   return (
@@ -33,6 +39,7 @@ function MessagesContent() {
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [enquiries, setEnquiries] = useState<EnquiryListItem[]>([]);
+  const [notices, setNotices] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [composeReady, setComposeReady] = useState(!artworkId);
@@ -47,15 +54,24 @@ function MessagesContent() {
     if (append) setLoadingMore(true);
     else setLoading(true);
 
-    const res = await listEnquiries({ page: pageNum, limit: 20 });
+    const [enquiryRes, noticeRes] = await Promise.all([
+      listEnquiries({ page: pageNum, limit: 20 }),
+      pageNum === 1
+        ? getNotifications({ page: 1, limit: 40 })
+        : Promise.resolve(null),
+    ]);
 
-    if (res.ok) {
-      const fetched = res.data.enquiries;
+    if (enquiryRes.ok) {
+      const fetched = enquiryRes.data.enquiries;
       setEnquiries((prev) => (append ? [...prev, ...fetched] : fetched));
-      setHasMore(res.data.pagination.hasNextPage);
+      setHasMore(enquiryRes.data.pagination.hasNextPage);
       setError("");
     } else if (!append) {
-      setError(res.message || "Failed to load messages.");
+      setError(enquiryRes.message || "Could not load your inbox.");
+    }
+
+    if (noticeRes?.ok) {
+      setNotices(noticeRes.data.notifications || []);
     }
 
     setLoading(false);
@@ -105,12 +121,34 @@ function MessagesContent() {
     fetchInbox(next, true);
   };
 
+  const handleOpenNotice = async (notification: Notification) => {
+    if (!notification.isRead) {
+      await markNotificationAsRead(notification._id);
+      setNotices((prev) =>
+        prev.map((n) =>
+          n._id === notification._id ? { ...n, isRead: true } : n,
+        ),
+      );
+    }
+  };
+
+  const handleDismissNotice = async (id: string) => {
+    const res = await deleteNotification(id);
+    if (res.ok) {
+      setNotices((prev) => prev.filter((n) => n._id !== id));
+    }
+  };
+
   const showCompose = Boolean(artworkId && composeReady && canCreateEnquiry);
   const showRoleWarning = Boolean(artworkId && composeReady && !canCreateEnquiry);
 
   return (
     <>
-      <MobileTopBar title="Messages" onMenuOpen={() => setMenuOpen(true)} />
+      <MobileTopBar
+        title="Messages"
+        onMenuOpen={() => setMenuOpen(true)}
+        historyBack={Boolean(artworkId)}
+      />
 
       <header className="hidden lg:flex items-center justify-between border-b border-slate-200 bg-slate-50/95 p-4">
         <h1 className="text-xl font-semibold text-slate-900">Messages</h1>
@@ -130,8 +168,8 @@ function MessagesContent() {
         {!loading && showRoleWarning && (
           <div className="card-neumorph text-center py-10 mt-4 space-y-3">
             <p className="text-sm text-[#616161]">
-              Only collectors can submit price enquiries. You can still view and
-              reply to enquiries in your inbox.
+              Only collectors can message galleries about artworks. You can still
+              view conversations in your inbox.
             </p>
             <button
               type="button"
@@ -145,7 +183,7 @@ function MessagesContent() {
 
         {!loading && !artworkId && error && (
           <div className="card-neumorph text-center py-10 mt-4">
-            <p className="text-sm text-red-500 mb-3">{error}</p>
+            <p className="text-sm text-[#616161] mb-3">{error}</p>
             <button
               type="button"
               onClick={() => fetchInbox(1)}
@@ -157,7 +195,13 @@ function MessagesContent() {
         )}
 
         {!loading && !artworkId && !error && (
-          <EnquiryInbox enquiries={enquiries} viewerRole={viewerRole} />
+          <UnifiedInbox
+            enquiries={enquiries}
+            notices={notices}
+            viewerRole={viewerRole}
+            onOpenNotice={handleOpenNotice}
+            onDismissNotice={handleDismissNotice}
+          />
         )}
 
         {!loading && !artworkId && !error && hasMore && (
@@ -168,7 +212,7 @@ function MessagesContent() {
               disabled={loadingMore}
               className="btn-neumorph px-10 disabled:opacity-50"
             >
-              {loadingMore ? "Loading…" : "Load more"}
+              {loadingMore ? "Loading…" : "Show earlier"}
             </button>
           </div>
         )}

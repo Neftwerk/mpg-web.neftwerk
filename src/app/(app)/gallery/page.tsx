@@ -7,6 +7,7 @@ import { GalleryGridSkeleton } from "@/components/Skeletons";
 import { useUser } from "@/lib/UserContext";
 import { fetchOwnedAssets, type OwnedAsset } from "@/lib/wallet-service";
 import { OwnedAssetCard } from "@/components/wallet/OwnedAssetCard";
+import { ArtworkMasonry } from "@/components/artwork/ArtworkMasonry";
 
 export default function GalleryPage() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -102,7 +103,7 @@ export default function GalleryPage() {
         )}
 
         {user && !loading && assets.length > 0 && (
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-4">
+          <ArtworkMasonry>
             {assets.map((asset) => (
               <OwnedAssetCard
                 key={asset.saleId}
@@ -110,7 +111,7 @@ export default function GalleryPage() {
                 onMintSuccess={reloadAssets}
               />
             ))}
-          </div>
+          </ArtworkMasonry>
         )}
       </div>
 

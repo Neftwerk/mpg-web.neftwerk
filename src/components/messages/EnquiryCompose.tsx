@@ -81,7 +81,8 @@ export function EnquiryCompose({ artworkId, artworkTitle }: EnquiryComposeProps)
           <NeftwerkImage
             src={mediaUrl}
             alt={displayTitle || "Artwork"}
-            className="w-16 h-16 rounded-lg object-cover shrink-0 bg-slate-100"
+            fit="cover"
+            className="w-16 h-16 rounded-lg shrink-0 bg-slate-100"
             priority
           />
         ) : (
@@ -89,13 +90,14 @@ export function EnquiryCompose({ artworkId, artworkTitle }: EnquiryComposeProps)
         )}
         <div className="min-w-0">
           <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#4D91A7]">
-            New enquiry
+            New message
           </p>
           <h2 className="text-lg font-semibold text-[#11181c] mt-1">
-            {displayTitle ? `Enquiry about ${displayTitle}` : "Price enquiry"}
+            {displayTitle ? `About ${displayTitle}` : "Message the gallery"}
           </h2>
           <p className="text-sm text-[#616161] mt-2 leading-relaxed">
-            Ask the gallery about pricing for this artwork. They will reply here.
+            Start a conversation with the gallery about this artwork. They will
+            reply here.
           </p>
         </div>
       </div>
@@ -114,7 +116,7 @@ export function EnquiryCompose({ artworkId, artworkTitle }: EnquiryComposeProps)
             onChange={(e) => setMessage(e.target.value)}
             rows={5}
             maxLength={5000}
-            placeholder="I am interested in this artwork. Could you share the price and availability?"
+            placeholder="I love this piece — could you tell me more about it?"
             className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-[#11181c] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#38A8AB]/40 resize-none"
           />
           <p className="text-[10px] text-slate-400 mt-1 text-right">
@@ -131,7 +133,7 @@ export function EnquiryCompose({ artworkId, artworkTitle }: EnquiryComposeProps)
           disabled={submitting}
           className="btn-neumorph w-full disabled:opacity-50"
         >
-          {submitting ? "Sending…" : "Send enquiry"}
+          {submitting ? "Sending…" : "Send message"}
         </button>
       </form>
     </div>

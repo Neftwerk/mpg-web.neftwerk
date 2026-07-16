@@ -23,6 +23,10 @@ export interface OwnedAsset {
   artistName?: string;
   mediaUrl: string;
   mediaExpiresAt?: string;
+  /** Intrinsic media width in pixels (when known). */
+  mediaWidth?: number;
+  /** Intrinsic media height in pixels (when known). */
+  mediaHeight?: number;
   mintStatus: OwnedAssetMintStatus;
   /** On-chain mint transaction hash; present after successful claim. */
   mintTxHash?: string;

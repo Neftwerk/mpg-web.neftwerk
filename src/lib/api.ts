@@ -129,6 +129,8 @@ export const API_ENDPOINTS = {
     ARTWORKS: `${API_BASE_URL}/api/public/artworks`,
     /** GET /api/public/artworks/:artworkId */
     ARTWORK: (artworkId: string) => `${API_BASE_URL}/api/public/artworks/${artworkId}`,
+    /** GET /api/public/discovery */
+    DISCOVERY: `${API_BASE_URL}/api/public/discovery`,
   },
 
   PAYMENTS: {
@@ -165,6 +167,26 @@ export const API_ENDPOINTS = {
   WALLET: {
     /** POST /api/wallet/socketfi/verify */
     SOCKETFI_VERIFY: `${API_BASE_URL}/api/wallet/socketfi/verify`,
+  },
+
+  SAVED: {
+    /** GET /api/saved */
+    LIST: `${API_BASE_URL}/api/saved`,
+    /** GET /api/saved/ids */
+    IDS: `${API_BASE_URL}/api/saved/ids`,
+    /** POST /api/saved/merge  { artworkIds } */
+    MERGE: `${API_BASE_URL}/api/saved/merge`,
+    /** POST /api/saved/:artworkId */
+    SAVE: (artworkId: string) => `${API_BASE_URL}/api/saved/${artworkId}`,
+    /** DELETE /api/saved/:artworkId */
+    UNSAVE: (artworkId: string) => `${API_BASE_URL}/api/saved/${artworkId}`,
+    /** GET /api/saved/:artworkId */
+    STATUS: (artworkId: string) => `${API_BASE_URL}/api/saved/${artworkId}`,
+  },
+
+  SUPPORT: {
+    /** POST /api/support/contact  { name, email, subject, message, appVersion? } */
+    CONTACT: `${API_BASE_URL}/api/support/contact`,
   },
 
   STORAGE: {

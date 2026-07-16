@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { NeftwerkImage } from "@/components/NeftwerkImage";
-import { ArtworkPriceBuy } from "@/components/artwork/ArtworkPriceBuy";
 import type { ArtworkItem } from "@/lib/gallery-service";
 
 interface GalleryArtworkCardProps {
@@ -17,27 +16,23 @@ export function GalleryArtworkCard({ item, priority = false }: GalleryArtworkCar
         <NeftwerkImage
           src={item.mediaUrl}
           alt={item.title}
-          className="w-full object-cover"
+          fit="natural"
+          width={item.mediaWidth}
+          height={item.mediaHeight}
+          className="w-full"
           priority={priority}
         />
-      </Link>
-
-      <div className="px-3 py-3">
-        <Link href={`/artwork/${item.id}`} className="block">
+        <div className="px-3 py-3">
           <p className="text-[13px] font-medium text-[#11181c] line-clamp-2">
             {item.title}
           </p>
-        </Link>
-
-        <ArtworkPriceBuy
-          artworkId={item.id}
-          artworkTitle={item.title}
-          listPriceCents={item.listPriceCents}
-          galleryName={item.galleryName}
-          sold={item.sold}
-          compact
-        />
-      </div>
+          {item.galleryName ? (
+            <p className="mt-1 text-[11px] uppercase tracking-wider text-[#334E57]/60 truncate">
+              {item.galleryName}
+            </p>
+          ) : null}
+        </div>
+      </Link>
     </article>
   );
 }

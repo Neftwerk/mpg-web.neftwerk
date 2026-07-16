@@ -23,7 +23,11 @@ function ThreadContent() {
 
   return (
     <>
-      <MobileTopBar title="Messages" onMenuOpen={() => setMenuOpen(true)} />
+      <MobileTopBar
+        title="Messages"
+        backHref="/messages"
+        onMenuOpen={() => setMenuOpen(true)}
+      />
 
       <header className="hidden lg:flex items-center justify-between border-b border-slate-200 bg-slate-50/95 p-4">
         <h1 className="text-xl font-semibold text-slate-900">Messages</h1>
@@ -45,7 +49,7 @@ function ThreadContent() {
 function ThreadFallback() {
   return (
     <>
-      <MobileTopBar title="Messages" onMenuOpen={() => {}} />
+      <MobileTopBar title="Messages" backHref="/messages" onMenuOpen={() => {}} />
       <div className="flex justify-center py-16 mt-20">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#1A3F6C] border-t-transparent" />
       </div>
