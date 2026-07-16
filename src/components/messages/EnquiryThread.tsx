@@ -236,7 +236,7 @@ export function EnquiryThread({
       <div className="card-neumorph text-center py-10 mt-4">
         <p className="text-sm text-red-500 mb-3">{error || "Enquiry not found."}</p>
         <Link href={backHref} className="btn-neumorph px-6 inline-block">
-          Back
+          Open Messages
         </Link>
       </div>
     );
@@ -264,20 +264,14 @@ export function EnquiryThread({
 
           <div className="flex-1 min-w-0 flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <Link
-                href={backHref}
-                className="text-xs font-bold text-[#38A8AB] uppercase tracking-wider hover:underline"
-              >
-                ← Back
-              </Link>
               {artworkPageId ? (
-                <Link href={`/artwork/${artworkPageId}`} className="block mt-1">
+                <Link href={`/artwork/${artworkPageId}`} className="block">
                   <h2 className="text-lg font-semibold text-[#11181c] truncate hover:text-[#1A3F6C]">
                     {displayTitle}
                   </h2>
                 </Link>
               ) : (
-                <h2 className="text-lg font-semibold text-[#11181c] mt-1 truncate">
+                <h2 className="text-lg font-semibold text-[#11181c] truncate">
                   {displayTitle}
                 </h2>
               )}

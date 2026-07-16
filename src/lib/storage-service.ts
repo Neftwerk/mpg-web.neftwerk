@@ -1,5 +1,10 @@
 import { API_ENDPOINTS } from "./api";
-import { ApiResponse, authedFetch, getAccessToken } from "./auth-service";
+import {
+  ApiResponse,
+  authedFetch,
+  ensureFreshAccessToken,
+  getAccessToken,
+} from "./auth-service";
 
 export interface UploadedImage {
   key: string;
@@ -45,19 +50,17 @@ export function isPresignedMediaUrl(url?: string): boolean {
   }
 }
 
-export async function uploadImage(file: File): Promise<ApiResponse<UploadedImage>> {
-  const token = getAccessToken();
-  if (!token) {
-    return { ok: false, status: 401, data: {} as UploadedImage, message: "Not authenticated" };
-  }
-
+async function postUpload(
+  file: File,
+  accessToken: string,
+): Promise<ApiResponse<UploadedImage>> {
   const formData = new FormData();
   formData.append("file", file);
 
   try {
     const res = await fetch(API_ENDPOINTS.STORAGE.UPLOAD_IMAGE, {
       method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${accessToken}` },
       body: formData,
     });
 
@@ -78,6 +81,51 @@ export async function uploadImage(file: File): Promise<ApiResponse<UploadedImage
     const message = err instanceof Error ? err.message : "Network error";
     return { ok: false, status: 0, data: {} as UploadedImage, message };
   }
+}
+
+export async function uploadImage(file: File): Promise<ApiResponse<UploadedImage>> {
+  let token = getAccessToken();
+  if (!token) {
+    const refreshed = await ensureFreshAccessToken();
+    if (!refreshed) {
+      return {
+        ok: false,
+        status: 401,
+        data: {} as UploadedImage,
+        message: "Not authenticated",
+      };
+    }
+    token = getAccessToken();
+  }
+
+  if (!token) {
+    return {
+      ok: false,
+      status: 401,
+      data: {} as UploadedImage,
+      message: "Not authenticated",
+    };
+  }
+
+  const first = await postUpload(file, token);
+  if (first.ok || (first.status !== 401 && first.status !== 403)) {
+    return first;
+  }
+
+  const refreshed = await ensureFreshAccessToken();
+  if (!refreshed) return first;
+
+  const next = getAccessToken();
+  if (!next) {
+    return {
+      ok: false,
+      status: 401,
+      data: {} as UploadedImage,
+      message: "Not authenticated",
+    };
+  }
+
+  return postUpload(file, next);
 }
 
 export async function presignStorageKey(key: string): Promise<string | null> {

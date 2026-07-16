@@ -8,6 +8,10 @@ import {
   ArtworkItem,
   GalleryListItem,
 } from "@/lib/gallery-service";
+import {
+  fetchPublicDiscoveryModules,
+  type PublicDiscoveryModule,
+} from "@/lib/discovery-service";
 import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
 import { GalleryGridSkeleton, SkeletonBar } from "@/components/Skeletons";
 import { GalleryArtworkCard } from "@/components/artwork/GalleryArtworkCard";
@@ -31,20 +35,18 @@ function DiscoverSectionsSkeleton() {
         ))}
       </div>
 
-      <SkeletonBar className="h-4 w-36 mb-3" />
-      <div className="grid grid-cols-3 gap-3 mb-8">
-        {Array.from({ length: 3 }).map((_, index) => (
-          <div key={index} className="card-neumorph overflow-hidden">
-            <SkeletonBar className="w-full min-h-[6rem] aspect-[3/4]" />
-            <SkeletonBar className="h-3 w-3/4 mx-1 my-2" />
-          </div>
-        ))}
-      </div>
-
-      <SkeletonBar className="h-4 w-40 mb-3" />
-      <div className="card-neumorph mb-8 overflow-hidden">
-        <SkeletonBar className="w-full min-h-[10rem] aspect-[4/5]" />
-        <SkeletonBar className="h-3 w-2/3 mx-2 my-2" />
+      <div className="mb-8 space-y-3">
+        <SkeletonBar className="h-4 w-48" />
+        <SkeletonBar className="h-3 w-full max-w-md" />
+        <SkeletonBar className="h-3 w-32" />
+        <div className="grid grid-cols-3 gap-3">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div key={index} className="card-neumorph overflow-hidden">
+              <SkeletonBar className="w-full min-h-[6rem] aspect-[3/4]" />
+              <SkeletonBar className="h-3 w-3/4 mx-1 my-2" />
+            </div>
+          ))}
+        </div>
       </div>
 
       <GalleryGridSkeleton count={6} />
@@ -52,10 +54,57 @@ function DiscoverSectionsSkeleton() {
   );
 }
 
+function DiscoveryModuleSection({
+  module,
+  priority,
+}: {
+  module: PublicDiscoveryModule;
+  priority?: boolean;
+}) {
+  return (
+    <section className="mb-8">
+      <h3 className="text-[16px] font-bold text-[#1A3F6C] mb-2">{module.title}</h3>
+      <p className="text-[14px] text-[#616161] leading-relaxed mb-2">{module.text}</p>
+      {module.curatorName ? (
+        <p className="text-[12px] text-[#334E57] mb-3">
+          Curated by {module.curatorName}
+        </p>
+      ) : null}
+      {module.artworks.length > 0 ? (
+        <div className="grid grid-cols-3 gap-3">
+          {module.artworks.map((item, index) => (
+            <Link
+              key={item.id}
+              href={`/artwork/${item.id}`}
+              className="card-neumorph overflow-hidden"
+            >
+              <NeftwerkImage
+                src={item.mediaUrl}
+                alt={item.title}
+                fit="natural"
+                width={item.mediaWidth}
+                height={item.mediaHeight}
+                className="w-full"
+                priority={Boolean(priority) && index === 0}
+              />
+              <p className="px-1 py-2 text-[11px] font-medium text-[#464646] truncate">
+                {item.title}
+              </p>
+            </Link>
+          ))}
+        </div>
+      ) : (
+        <p className="text-xs text-slate-400">Works for this spotlight coming soon.</p>
+      )}
+    </section>
+  );
+}
+
 export default function DiscoverPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [artworks, setArtworks] = useState<ArtworkItem[]>([]);
   const [galleries, setGalleries] = useState<GalleryListItem[]>([]);
+  const [modules, setModules] = useState<PublicDiscoveryModule[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -63,12 +112,14 @@ export default function DiscoverPage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [artworkItems, galleryItems] = await Promise.all([
+        const [artworkItems, galleryItems, discoveryModules] = await Promise.all([
           fetchAllPublicArtworks(),
           fetchPublicGalleries(),
+          fetchPublicDiscoveryModules().catch(() => [] as PublicDiscoveryModule[]),
         ]);
         setArtworks(artworkItems);
         setGalleries(galleryItems);
+        setModules(discoveryModules);
       } catch (e) {
         setError((e as Error).message);
       } finally {
@@ -77,10 +128,6 @@ export default function DiscoverPage() {
     };
     load();
   }, []);
-
-  const popularArtworks = useMemo(() => artworks.slice(0, 3), [artworks]);
-
-  const newWork = useMemo(() => artworks[0] ?? null, [artworks]);
 
   const filteredArtworks = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -146,6 +193,29 @@ export default function DiscoverPage() {
           </section>
         )}
 
+        {!loading && !isSearching && modules.length > 0 && (
+          <div id="curated">
+            {modules.map((module, index) => (
+              <DiscoveryModuleSection
+                key={module.id}
+                module={module}
+                priority={index === 0}
+              />
+            ))}
+          </div>
+        )}
+
+        {!loading && !isSearching && modules.length === 0 && (
+          <div className="mb-8 text-center py-8">
+            <p className="font-bold text-sm uppercase tracking-wider text-[#334E57]/60">
+              Spotlights coming soon
+            </p>
+            <p className="text-xs text-slate-400 mt-1">
+              Check back soon — curated selections are on the way.
+            </p>
+          </div>
+        )}
+
         {!loading && !isSearching && artworks.length === 0 && galleries.length === 0 && (
           <div className="text-center py-16">
             <p className="font-bold text-sm uppercase tracking-wider text-[#334E57]/60">
@@ -155,59 +225,6 @@ export default function DiscoverPage() {
               Check back soon — new pieces are being curated.
             </p>
           </div>
-        )}
-
-        {!loading && !isSearching && popularArtworks.length > 0 && (
-          <>
-            <h3 className="text-[16px] font-bold text-[#1A3F6C] mb-3">
-              Popular artworks
-            </h3>
-            <div className="grid grid-cols-3 gap-3 mb-8">
-              {popularArtworks.map((item, index) => (
-                <Link
-                  key={item.id}
-                  href={`/artwork/${item.id}`}
-                  className="card-neumorph overflow-hidden"
-                >
-                  <NeftwerkImage
-                    src={item.mediaUrl}
-                    alt={item.title}
-                    fit="natural"
-                    width={item.mediaWidth}
-                    height={item.mediaHeight}
-                    className="w-full"
-                    priority={index === 0}
-                  />
-                  <p className="px-1 py-2 text-[11px] font-medium text-[#464646] truncate">
-                    {item.title}
-                  </p>
-                </Link>
-              ))}
-            </div>
-          </>
-        )}
-
-        {!loading && !isSearching && newWork && (
-          <>
-            <h3 className="text-[16px] font-bold text-[#1A3F6C] mb-3">
-              Discover new works
-            </h3>
-            <div className="mb-8">
-              <Link href={`/artwork/${newWork.id}`} className="block card-neumorph overflow-hidden">
-                <NeftwerkImage
-                  src={newWork.mediaUrl}
-                  alt={newWork.title}
-                  fit="natural"
-                  width={newWork.mediaWidth}
-                  height={newWork.mediaHeight}
-                  className="w-full"
-                />
-                <p className="px-2 py-2 text-[13px] font-medium text-[#464646]">
-                  {newWork.title}
-                </p>
-              </Link>
-            </div>
-          </>
         )}
 
         {!loading && isSearching && filteredArtworks.length === 0 && (

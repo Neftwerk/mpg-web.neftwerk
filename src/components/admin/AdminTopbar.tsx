@@ -99,10 +99,13 @@ export function AdminTopbar({ onMenuToggle }: AdminTopbarProps) {
           </span>
         )}
 
-        {/* Notification Bell */}
-        <button className="p-2 text-[#1A3F6C] hover:bg-[#1A3F6C]/5 transition-colors relative">
+        {/* Inbox — no urgency badge */}
+        <button
+          type="button"
+          className="p-2 text-[#1A3F6C] hover:bg-[#1A3F6C]/5 transition-colors"
+          aria-label="Messages"
+        >
           <Bell className="w-4 h-4" />
-          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-600"></span>
         </button>
 
         {/* User Info — dynamically shows the logged-in admin's data */}

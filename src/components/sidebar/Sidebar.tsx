@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { navItems } from "@/lib/content";
 import { useState } from "react";
 import { useUser } from "@/lib/UserContext";
+import { AppTopBar } from "@/components/AppTopBar";
 
 /* ─── Bottom-nav icon map: use the Figma-exported button SVGs ─── */
 const bottomNavIconMap: Record<string, string> = {
@@ -234,35 +235,27 @@ function MobileMenu({
 }
 
 /* ---------- Top bar (mobile): FIXED ← Title ··· ≡ ---------- */
-/* Uses the IMPORTED backarrow.svg and hamburger.svg */
 export function MobileTopBar({
   title,
   onMenuOpen,
+  /** Default /home. Mid-flow screens may pass a step parent (e.g. /messages). */
+  backHref = "/home",
+  /** Mid-flow only: use browser history instead of a fixed href. */
+  historyBack = false,
 }: {
   title: string;
   onMenuOpen: () => void;
+  backHref?: string;
+  historyBack?: boolean;
 }) {
   return (
-    <header className="lg:hidden fixed left-0 right-0 m top-0 z-30 flex items-center justify-between px-5 py-4 bg-[#F7F4F3]">
-      {/* Left: Back arrow + Title */}
-      <div className="flex items-center gap-3">
-        <Link href="/home" className="flex-shrink-0 flex items-center justify-center w-10 h-10 -ml-2">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/images/backarrow.svg" alt="Back" className="h-4 w-5" />
-        </Link>
-        <h1 className="text-[18px] font-extrabold text-[#11181c] tracking-tight">{title}</h1>
-      </div>
-      {/* Right: Hamburger menu — imported SVG */}
-      <button
-        type="button"
-        onClick={onMenuOpen}
-        className="flex-shrink-0 w-10 h-10 flex items-center justify-center"
-        aria-label="Open menu"
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/images/hamburger.svg" alt="" className="h-5 w-7" aria-hidden />
-      </button>
-    </header>
+    <AppTopBar
+      title={title}
+      onMenuOpen={onMenuOpen}
+      backHref={backHref}
+      historyBack={historyBack}
+      fixed
+    />
   );
 }
 

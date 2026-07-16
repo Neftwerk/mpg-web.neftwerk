@@ -490,7 +490,7 @@ export default function ForumPostDetailPage() {
           <div className="card-neumorph text-center py-12 mt-4">
             <p className="text-sm text-red-500 mb-3">{error || "Post not found"}</p>
             <Link href="/forum" className="btn-neumorph px-6 inline-block">
-              ← Back to Forum
+              Open Forum
             </Link>
           </div>
         </div>
@@ -504,20 +504,8 @@ export default function ForumPostDetailPage() {
       <MobileTopBar title="Forum" onMenuOpen={() => setMenuOpen(true)} />
 
       <div className="px-4 pb-28 mt-20 lg:mt-0 max-w-2xl mx-auto">
-        {/* Back link */}
-        <Link
-          href="/forum"
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1A3F6C] uppercase tracking-wider mt-4 mb-4 hover:underline"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="19" y1="12" x2="5" y2="12" />
-            <polyline points="12 19 5 12 12 5" />
-          </svg>
-          Back
-        </Link>
-
         {/* Post */}
-        <article className="card-neumorph mb-6">
+        <article className="card-neumorph mb-6 mt-4">
           {/* Author & Date */}
           <div className="flex items-center gap-3 mb-4">
             <NeftwerkPostAvatar />

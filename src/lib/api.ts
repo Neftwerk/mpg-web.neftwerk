@@ -129,6 +129,8 @@ export const API_ENDPOINTS = {
     ARTWORKS: `${API_BASE_URL}/api/public/artworks`,
     /** GET /api/public/artworks/:artworkId */
     ARTWORK: (artworkId: string) => `${API_BASE_URL}/api/public/artworks/${artworkId}`,
+    /** GET /api/public/discovery */
+    DISCOVERY: `${API_BASE_URL}/api/public/discovery`,
   },
 
   PAYMENTS: {
@@ -180,6 +182,11 @@ export const API_ENDPOINTS = {
     UNSAVE: (artworkId: string) => `${API_BASE_URL}/api/saved/${artworkId}`,
     /** GET /api/saved/:artworkId */
     STATUS: (artworkId: string) => `${API_BASE_URL}/api/saved/${artworkId}`,
+  },
+
+  SUPPORT: {
+    /** POST /api/support/contact  { name, email, subject, message, appVersion? } */
+    CONTACT: `${API_BASE_URL}/api/support/contact`,
   },
 
   STORAGE: {

@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
-import { getProfile, getAccessToken, UserProfile, refreshAccessToken, clearTokens, setTokens } from "@/lib/auth-service";
+import { getProfile, getAccessToken, UserProfile, clearTokens, setTokens } from "@/lib/auth-service";
 import { resolveProfilePictureUrl } from "@/lib/storage-service";
 import { mergeSavedOnLogin, resetSavedMergeState } from "@/lib/saved-service";
 
@@ -85,19 +85,14 @@ export function UserProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    // getProfile → authedFetch already refreshes the access token on expiry
     let result = await getProfile();
 
     if (!result.ok && (result.status === 401 || result.status === 403)) {
-      const refreshRes = await refreshAccessToken();
-
-      if (refreshRes.ok) {
-        result = await getProfile();
-      } else {
-        clearTokens();
-        setUser(null);
-        setLoading(false);
-        return;
-      }
+      clearTokens();
+      setUser(null);
+      setLoading(false);
+      return;
     }
 
     if (result.ok && result.data) {

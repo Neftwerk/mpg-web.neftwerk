@@ -15,13 +15,19 @@ export function getRefreshToken(): string | null {
   return localStorage.getItem(REFRESH_TOKEN_KEY);
 }
 
-export function setTokens(accessToken: string, refreshToken?: string) {
+export function setTokens(
+  accessToken: string,
+  refreshToken?: string,
+  opts?: { notify?: boolean },
+) {
   localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
   if (refreshToken) {
     localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
   }
-  // Notify UserProvider that auth state changed (same-tab)
-  window.dispatchEvent(new Event("neft-auth-change"));
+  if (opts?.notify !== false) {
+    // Notify UserProvider that auth state changed (same-tab)
+    window.dispatchEvent(new Event("neft-auth-change"));
+  }
 }
 
 export function clearTokens() {
@@ -85,22 +91,76 @@ export async function apiFetch<T = unknown>(
   }
 }
 
-/** Convenience wrapper: apiFetch with Bearer token auto-attached */
+/** Single-flight refresh so parallel 401s share one refresh request. */
+let refreshInFlight: Promise<boolean> | null = null;
+
+/**
+ * Exchange the refresh token for a new access (+ rotated refresh) token.
+ * Returns true when the session was successfully extended.
+ */
+export async function ensureFreshAccessToken(): Promise<boolean> {
+  if (!getRefreshToken()) return false;
+
+  if (!refreshInFlight) {
+    refreshInFlight = (async () => {
+      const result = await refreshAccessToken({ notify: false });
+      if (!result.ok) {
+        clearTokens();
+        return false;
+      }
+      return true;
+    })().finally(() => {
+      refreshInFlight = null;
+    });
+  }
+
+  return refreshInFlight;
+}
+
+/** Convenience wrapper: Bearer token + automatic refresh retry on expiry. */
 export async function authedFetch<T = unknown>(
   url: string,
   options: Omit<RequestInit, "headers"> & { headers?: Record<string, string> } = {}
 ): Promise<ApiResponse<T>> {
   const token = getAccessToken();
   if (!token) {
+    // Access gone but refresh may still be valid (e.g. after idle tab)
+    const refreshed = await ensureFreshAccessToken();
+    if (!refreshed) {
+      return { ok: false, status: 401, data: {} as T, message: "Not authenticated" };
+    }
+  }
+
+  const run = (accessToken: string) =>
+    apiFetch<T>(url, {
+      ...options,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        ...(options.headers || {}),
+      },
+    });
+
+  const active = getAccessToken();
+  if (!active) {
     return { ok: false, status: 401, data: {} as T, message: "Not authenticated" };
   }
-  return apiFetch<T>(url, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      ...(options.headers || {}),
-    },
-  });
+
+  const first = await run(active);
+  if (first.ok || (first.status !== 401 && first.status !== 403)) {
+    return first;
+  }
+
+  const refreshed = await ensureFreshAccessToken();
+  if (!refreshed) {
+    return first;
+  }
+
+  const next = getAccessToken();
+  if (!next) {
+    return { ok: false, status: 401, data: {} as T, message: "Not authenticated" };
+  }
+
+  return run(next);
 }
 
 // ─── Auth API functions ───
@@ -121,7 +181,7 @@ export async function verifyLoginOtp(payload: { email: string; otp: string }) {
   return apiFetch(API_ENDPOINTS.AUTH.LOGIN_OTP_VERIFY, { method: "POST", body: JSON.stringify(payload) });
 }
 
-export async function refreshAccessToken() {
+export async function refreshAccessToken(opts?: { notify?: boolean }) {
   const refreshToken = getRefreshToken();
   if (!refreshToken) {
     return { ok: false, status: 0, data: {}, message: "No refresh token" };
@@ -133,9 +193,16 @@ export async function refreshAccessToken() {
   );
 
   if (result.ok) {
-    const nested = (result.data?.data || result.data) as { accessToken?: string; refreshToken?: string };
+    const nested = (result.data?.data || result.data) as {
+      accessToken?: string;
+      refreshToken?: string;
+    };
     if (nested?.accessToken) {
-      setTokens(nested.accessToken, nested.refreshToken);
+      setTokens(nested.accessToken, nested.refreshToken, {
+        notify: opts?.notify ?? false,
+      });
+    } else {
+      return { ok: false, status: result.status, data: result.data, message: "Missing access token" };
     }
   }
 
@@ -161,38 +228,22 @@ export interface UserProfile {
 }
 
 export async function getProfile() {
-  const token = getAccessToken();
-  if (!token) {
-    return { ok: false, status: 401, data: {} as UserProfile, message: "Not authenticated" };
-  }
-
-  return apiFetch<UserProfile>(API_ENDPOINTS.AUTH.PROFILE, {
+  return authedFetch<UserProfile>(API_ENDPOINTS.AUTH.PROFILE, {
     method: "GET",
-    headers: { Authorization: `Bearer ${token}` },
   });
 }
 
 export async function getMe() {
-  const token = getAccessToken();
-  if (!token) return { ok: false, status: 401, data: null, message: "Not authenticated" };
-
-  return apiFetch(API_ENDPOINTS.AUTH.ME, {
+  return authedFetch(API_ENDPOINTS.AUTH.ME, {
     method: "GET",
-    headers: { Authorization: `Bearer ${token}` },
   });
 }
 
 export async function updateProfile(
   payload: Partial<Pick<UserProfile, "fullName" | "bio" | "profilePicture">>,
 ) {
-  const token = getAccessToken();
-  if (!token) {
-    return { ok: false, status: 401, data: {} as UserProfile, message: "Not authenticated" };
-  }
-
-  return apiFetch<UserProfile>(API_ENDPOINTS.AUTH.PROFILE, {
+  return authedFetch<UserProfile>(API_ENDPOINTS.AUTH.PROFILE, {
     method: "PUT",
-    headers: { Authorization: `Bearer ${token}` },
     body: JSON.stringify(payload),
   });
 }
@@ -200,12 +251,8 @@ export async function updateProfile(
 // ─── Account Management ───
 
 export async function changePassword(payload: any) {
-  const token = getAccessToken();
-  if (!token) return { ok: false, status: 401, data: null, message: "Not authenticated" };
-
-  return apiFetch(API_ENDPOINTS.AUTH.CHANGE_PASSWORD, {
+  return authedFetch(API_ENDPOINTS.AUTH.CHANGE_PASSWORD, {
     method: "PUT",
-    headers: { Authorization: `Bearer ${token}` },
     body: JSON.stringify(payload),
   });
 }
@@ -247,23 +294,15 @@ export async function logoutAll() {
 }
 
 export async function deactivateAccount() {
-  const token = getAccessToken();
-  if (!token) return { ok: false, status: 401, data: null, message: "Not authenticated" };
-
-  return apiFetch(API_ENDPOINTS.AUTH.DEACTIVATE, {
+  return authedFetch(API_ENDPOINTS.AUTH.DEACTIVATE, {
     method: "PUT",
-    headers: { Authorization: `Bearer ${token}` },
     body: JSON.stringify({ confirmation: "DEACTIVATE" }),
   });
 }
 
 export async function deleteAccount() {
-  const token = getAccessToken();
-  if (!token) return { ok: false, status: 401, data: null, message: "Not authenticated" };
-
-  return apiFetch(API_ENDPOINTS.AUTH.DELETE_ACCOUNT, {
+  return authedFetch(API_ENDPOINTS.AUTH.DELETE_ACCOUNT, {
     method: "DELETE",
-    headers: { Authorization: `Bearer ${token}` },
     body: JSON.stringify({ confirmation: "DELETE" }),
   });
 }
