@@ -122,7 +122,9 @@ export function SignupForm() {
 
   return (
     <form className="flex flex-col gap-0" onSubmit={step === "details" ? handleCreateAccount : handleVerifyOtp}>
-      <p className="mb-2 text-xl font-semibold text-slate-900">Everything here is open to view. Create a free account, just your name and email, to build your own gallery and join the community.</p>
+      <p className="mb-2 text-xl font-semibold text-slate-900">
+      Everything here is open to view. Create a free account, just your name and email, to build your own gallery and join the community.
+      </p>
       <div className="mb-2 h-1.5 w-[9%] max-w-[72px]  bg-sky-900" />
 
       {error && (

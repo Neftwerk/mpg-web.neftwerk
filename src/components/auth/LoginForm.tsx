@@ -112,7 +112,9 @@ export function LoginForm() {
 
   return (
     <form className="flex flex-col gap-0" onSubmit={step === "email" ? handleRequestOtp : handleVerifyOtp}>
-      <p className="mb-2 text-xl font-semibold text-slate-900">Welcome back! Everything here is open to view. Log in to your account to build your own gallery and join the community.</p>
+      <p className="mb-2 text-xl font-semibold text-slate-900">
+        Log in to build your own gallery and join the community.
+      </p>
       <div className="mb-2 h-1.5 w-[9%] max-w-[72px] bg-sky-900 log" />
 
       {error && (
