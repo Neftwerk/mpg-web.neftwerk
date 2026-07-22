@@ -3,9 +3,11 @@
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { verifyEmail } from "@/lib/auth-service";
 
 function VerifyEmailContent() {
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const token = searchParams.get("token") || "";
 
@@ -15,7 +17,7 @@ function VerifyEmailContent() {
   useEffect(() => {
     if (!token) {
       setStatus("error");
-      setMessage("No verification token found. Please check your email link.");
+      setMessage(t("auth.verifyEmail.noToken"));
       return;
     }
 
@@ -24,15 +26,15 @@ function VerifyEmailContent() {
 
       if (result.ok) {
         setStatus("success");
-        setMessage("Your email has been verified successfully!");
+        setMessage(t("auth.verifyEmail.successMessage"));
       } else {
         setStatus("error");
-        setMessage(result.message || "Verification failed. The link may have expired.");
+        setMessage(result.message || t("auth.verifyEmail.failedMessage"));
       }
     }
 
     verify();
-  }, [token]);
+  }, [token, t]);
 
   return (
     <div className="min-h-[100dvh] flex items-center justify-center px-5">
@@ -52,7 +54,7 @@ function VerifyEmailContent() {
         {status === "loading" && (
           <div className="flex flex-col items-center gap-4">
             <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-slate-200 border-t-[#1A3F6C]" />
-            <p className="text-sm text-slate-500">Verifying your email...</p>
+            <p className="text-sm text-slate-500">{t("auth.verifyEmail.verifying")}</p>
           </div>
         )}
 
@@ -66,16 +68,16 @@ function VerifyEmailContent() {
               </svg>
             </div>
 
-            <h2 className="text-xl font-bold text-[#1A3F6C]">Email Verified!</h2>
+            <h2 className="text-xl font-bold text-[#1A3F6C]">{t("auth.verifyEmail.verifiedTitle")}</h2>
             <p className="text-sm text-slate-600 leading-relaxed">
-              {message} You can now log in to your Neft account.
+              {message} {t("auth.verifyEmail.proceedToLogin")}
             </p>
 
             <Link
               href="/login"
               className="btn-neumorph w-[85%] max-w-[280px] mt-4"
             >
-              Proceed to Login
+              {t("auth.verifyEmail.proceedToLogin")}
             </Link>
           </div>
         )}
@@ -91,7 +93,7 @@ function VerifyEmailContent() {
               </svg>
             </div>
 
-            <h2 className="text-xl font-bold text-[#1A3F6C]">Verification Failed</h2>
+            <h2 className="text-xl font-bold text-[#1A3F6C]">{t("auth.verifyEmail.failedTitle")}</h2>
             <p className="text-sm text-slate-600 leading-relaxed">
               {message}
             </p>
@@ -101,13 +103,13 @@ function VerifyEmailContent() {
                 href="/signup"
                 className="btn-neumorph w-[85%] max-w-[280px]"
               >
-                Try signing up again
+                {t("auth.verifyEmail.trySignupAgain")}
               </Link>
               <Link
                 href="/login"
                 className="text-sm font-medium text-slate-500 hover:text-slate-700 underline underline-offset-2"
               >
-                Go to login
+                {t("auth.verifyEmail.goToLogin")}
               </Link>
             </div>
           </div>

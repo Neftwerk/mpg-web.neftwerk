@@ -1,11 +1,13 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
 import { useUser } from "@/lib/UserContext";
 import { APP_VERSION, submitSupportContact } from "@/lib/support";
 
 export default function SupportPage() {
+  const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   const { user } = useUser();
 
@@ -36,19 +38,19 @@ export default function SupportPage() {
     };
 
     if (!trimmed.name || trimmed.name.length < 2) {
-      setError("Please enter your name.");
+      setError(t("support.errors.enterName"));
       return;
     }
     if (!trimmed.email || !trimmed.email.includes("@")) {
-      setError("Please enter a valid email.");
+      setError(t("support.errors.invalidEmail"));
       return;
     }
     if (!trimmed.subject || trimmed.subject.length < 3) {
-      setError("Please add a short subject.");
+      setError(t("support.errors.addSubject"));
       return;
     }
     if (!trimmed.message || trimmed.message.length < 10) {
-      setError("Please share a little more in your message.");
+      setError(t("support.errors.moreMessage"));
       return;
     }
 
@@ -57,21 +59,21 @@ export default function SupportPage() {
     setSubmitting(false);
 
     if (!res.ok) {
-      setError(res.message || "Could not send your note. Please try again.");
+      setError(res.message || t("support.errors.sendFailed"));
       return;
     }
 
     setSuccess(
-      res.message || "Your Message was sent. We'll write back shortly.",
+      res.message || t("support.successMessage"),
     );
   }
 
   return (
     <>
-      <MobileTopBar title="Support" onMenuOpen={() => setMenuOpen(true)} />
+      <MobileTopBar title={t("support.title")} onMenuOpen={() => setMenuOpen(true)} />
 
       <header className="hidden lg:flex items-center justify-between border-b border-slate-200 bg-slate-50/95 p-4">
-        <h1 className="text-xl font-semibold text-slate-900">Support</h1>
+        <h1 className="text-xl font-semibold text-slate-900">{t("support.title")}</h1>
       </header>
 
       <div className="px-5 pb-28 mt-20 lg:mt-6 max-w-lg mx-auto space-y-6">
@@ -85,10 +87,10 @@ export default function SupportPage() {
           <form onSubmit={handleSubmit} className="card-neumorph p-5 space-y-4">
             <div>
               <h2 className="text-[13px] font-bold text-[#1A3F6C] tracking-wide uppercase">
-                Write to us
+                {t("support.writeToUs")}
               </h2>
               <p className="text-[13px] text-slate-400 mt-1 leading-relaxed">
-                Tell us what you need. We include your app version automatically.
+                {t("support.subtitle")}
               </p>
             </div>
 
@@ -100,7 +102,7 @@ export default function SupportPage() {
 
             <div>
               <label className="block text-sm font-medium text-slate-600 mb-2" htmlFor="support-name">
-                Name
+                {t("support.nameLabel")}
               </label>
               <input
                 id="support-name"
@@ -114,7 +116,7 @@ export default function SupportPage() {
 
             <div>
               <label className="block text-sm font-medium text-slate-600 mb-2" htmlFor="support-email">
-                Email
+                {t("support.emailLabel")}
               </label>
               <input
                 id="support-email"
@@ -129,7 +131,7 @@ export default function SupportPage() {
 
             <div>
               <label className="block text-sm font-medium text-slate-600 mb-2" htmlFor="support-subject">
-                Subject
+                {t("support.subjectLabel")}
               </label>
               <input
                 id="support-subject"
@@ -142,7 +144,7 @@ export default function SupportPage() {
 
             <div>
               <label className="block text-sm font-medium text-slate-600 mb-2" htmlFor="support-message">
-                Message
+                {t("support.messageLabel")}
               </label>
               <textarea
                 id="support-message"
@@ -159,10 +161,10 @@ export default function SupportPage() {
               disabled={submitting}
               className="btn-neumorph w-full disabled:opacity-50"
             >
-              {submitting ? "Sending…" : "Send message"}
+              {submitting ? t("support.sending") : t("support.sendMessage")}
             </button>
             <p className="text-[12px] text-slate-400 text-center">
-              App version {APP_VERSION}
+              {t("support.appVersion", { version: APP_VERSION })}
             </p>
           </form>
         )}

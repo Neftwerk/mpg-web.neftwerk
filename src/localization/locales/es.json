@@ -11,7 +11,10 @@
     "processing": "Procesando...",
     "or": "o",
     "yes": "Sí",
-    "no": "No"
+    "no": "No",
+    "edit": "Editar",
+    "saving": "Guardando",
+    "send": "Enviar"
   },
   "nav": {
     "home": "Inicio",
@@ -42,11 +45,51 @@
     "otpSentTo": "Enviamos un código de 6 dígitos a",
     "notYou": "¿No eres tú?",
     "enterOtpCode": "Introduce el código OTP",
+    "signupHeading": "Todo lo que ves aquí es de acceso libre. Crea una cuenta gratuita, solo con tu nombre y correo, para crear tu propia galería y unirte a la comunidad.",
+    "nameLabel": "Nombre completo",
+    "namePlaceholder": "Como te gustaría que aparezca",
+    "createAccount": "Crear cuenta",
+    "verifyAndContinue": "Verificar y continuar",
+    "alreadyHaveAccount": "¿Ya tienes una cuenta?",
+    "checkEmailTitle": "Revisa tu correo",
+    "forgotPasswordSuccess": "Si existe una cuenta para <0>{{email}}</0>, recibirás instrucciones para restablecer tu contraseña en breve.",
+    "haveResetLink": "Tengo un enlace de restablecimiento",
+    "useDifferentEmail": "Usar un correo diferente",
+    "rememberPassword": "¿Recuerdas tu contraseña? <0>Iniciar sesión</0>",
+    "forgotPasswordInstructions": "Introduce el correo electrónico de tu cuenta. Te enviaremos un enlace para elegir una nueva contraseña.",
+    "sendResetLink": "Enviar enlace de restablecimiento",
+    "passwordUpdatedTitle": "Contraseña actualizada",
+    "passwordUpdatedBody": "Tu contraseña ha sido actualizada. Ahora puedes iniciar sesión con tu nueva contraseña.",
+    "backToLogin": "Volver a iniciar sesión",
+    "cancelAndReturnToLogin": "Cancelar y volver a iniciar sesión",
+    "chooseNewPasswordTitle": "Elige una nueva contraseña",
+    "forEmail": "Para <0>{{emailHint}}</0>",
+    "enterNewPasswordInstructions": "Introduce una nueva contraseña para tu cuenta.",
+    "newPasswordLabel": "Nueva contraseña",
+    "newPasswordPlaceholder": "Al menos 8 caracteres",
+    "confirmPasswordLabel": "Confirmar contraseña",
+    "confirmPasswordPlaceholder": "Vuelve a introducir tu contraseña",
+    "updatePasswordButton": "Actualizar contraseña",
+    "verifyEmail": {
+      "noToken": "No se encontró ningún token de verificación. Revisa el enlace de tu correo.",
+      "verifying": "Verificando tu correo electrónico...",
+      "successMessage": "¡Tu correo electrónico ha sido verificado con éxito!",
+      "failedMessage": "La verificación falló. Es posible que el enlace haya expirado.",
+      "verifiedTitle": "¡Correo verificado!",
+      "proceedToLogin": "Proceder al inicio de sesión",
+      "failedTitle": "Verificación fallida",
+      "trySignupAgain": "Intenta registrarte de nuevo",
+      "goToLogin": "Ir a iniciar sesión"
+    },
     "errors": {
       "otpSendFailed": "No se pudo enviar el OTP. Inténtalo de nuevo.",
       "otpFull": "Introduce el código completo de 6 dígitos.",
       "otpInvalid": "OTP no válido. Inténtalo de nuevo.",
-      "noToken": "El inicio de sesión se realizó pero no se recibió ningún token."
+      "noToken": "El inicio de sesión se realizó pero no se recibió ningún token.",
+      "enterDetails": "Introduce tu nombre completo y correo electrónico.",
+      "createAccountFailed": "No se pudo crear tu cuenta. Inténtalo de nuevo.",
+      "accountCreatedOtpFailed": "Cuenta creada, pero no pudimos enviar tu código. Intenta iniciar sesión.",
+      "passwordsDoNotMatch": "Las contraseñas no coinciden."
     }
   },
   "settings": {
@@ -85,6 +128,117 @@
       "confirm": "Eliminar para siempre",
       "mustType": "Escribe \"DELETE\" para confirmar.",
       "failed": "No se pudo eliminar la cuenta."
+    }
+  },
+  "support": {
+    "title": "Soporte",
+    "writeToUs": "Escríbenos",
+    "subtitle": "Cuéntanos qué necesitas. Incluimos la versión de tu aplicación automáticamente.",
+    "nameLabel": "Nombre",
+    "emailLabel": "Correo electrónico",
+    "subjectLabel": "Asunto",
+    "messageLabel": "Mensaje",
+    "sending": "Enviando…",
+    "sendMessage": "Enviar mensaje",
+    "appVersion": "Versión de la aplicación {{version}}",
+    "successMessage": "Tu mensaje ha sido enviado. Te responderemos pronto.",
+    "errors": {
+      "enterName": "Introduce tu nombre.",
+      "invalidEmail": "Introduce un correo electrónico válido.",
+      "addSubject": "Añade un asunto corto.",
+      "moreMessage": "Comparte un poco más en tu mensaje.",
+      "sendFailed": "No se pudo enviar tu nota. Inténtalo de nuevo."
+    }
+  },
+  "discover": {
+    "searchPlaceholder": "Buscar obras de arte",
+    "curatedBy": "Comisariada por {{curatorName}}",
+    "spotlightComingSoon": "Las obras de este foco estarán disponibles pronto.",
+    "galleriesTitle": "Galerías",
+    "spotlightsComingSoonTitle": "Focos disponibles pronto",
+    "spotlightsComingSoonBody": "Vuelve pronto — las selecciones comisariadas están en camino.",
+    "noArtworksTitle": "Aún no hay obras de arte disponibles.",
+    "noArtworksBody": "Vuelve pronto — se están comisariando nuevas piezas.",
+    "noSearchMatchesTitle": "Ninguna obra coincide con tu búsqueda.",
+    "noSearchMatchesBody": "Prueba con un título o nombre de galería diferente.",
+    "searchResultsTitle": "Resultados de búsqueda",
+    "allArtworksTitle": "Todas las obras de arte"
+  },
+  "forum": {
+    "searchPlaceholder": "Buscar publicaciones en el foro...",
+    "tryAgain": "Intentar de nuevo",
+    "noPostsFoundTitle": "No se encontraron publicaciones",
+    "noPostsFoundSearch": "Prueba ajustando tu búsqueda o filtros.",
+    "noPostsFoundDefault": "Vuelve más tarde para ver nuevo contenido.",
+    "loadMore": "Cargar más"
+  },
+  "messages": {
+    "collectorOnlyMessage": "Solo los coleccionistas pueden enviar mensajes a las galerías sobre obras de arte. Aún puedes ver las conversaciones en tu bandeja de entrada.",
+    "viewInboxButton": "Ver bandeja de entrada",
+    "showEarlierButton": "Mostrar anteriores",
+    "inboxQuietTitle": "Tu bandeja de entrada está tranquila",
+    "inboxQuietCollectorTitle": "Tu bandeja de entrada está tranquila — guarda un mensaje para cuando estés listo.",
+    "inboxQuietGalleryDesc": "Las conversaciones con los coleccionistas y las notas de Neftwerk aparecerán aquí.",
+    "inboxQuietCollectorDesc": "Las conversaciones de la galería y las notas de Neftwerk viven aquí juntas. Compruébalas cuando quieras.",
+    "galleryConversation": "Conversación de la galería",
+    "threadClosed": "Esta consulta está cerrada. No se pueden enviar más respuestas.",
+    "threadUnassigned": "Asígnate esta consulta antes de responder.",
+    "writeMessagePlaceholder": "Escribe un mensaje…",
+    "enquiryNotFound": "Consulta no encontrada.",
+    "openMessagesButton": "Abrir mensajes",
+    "time": {
+      "justNow": "Ahora mismo",
+      "minutesAgo": "hace {{count}}m",
+      "hoursAgo": "hace {{count}}h",
+      "daysAgo": "hace {{count}}d"
+    },
+    "status": {
+      "inProgress": "En progreso",
+      "closed": "Cerrado",
+      "open": "Abierto"
+    },
+    "compose": {
+      "errorMinLength": "El mensaje debe tener al menos {{count}} caracteres.",
+      "errorSubmitFailed": "No se pudo enviar la consulta. Inténtalo de nuevo.",
+      "newMessageBadge": "Nuevo mensaje",
+      "aboutTitle": "Sobre {{title}}",
+      "defaultTitle": "Mensaje a la galería",
+      "subtitle": "Inicia una conversación con la galería sobre esta obra de arte. Te responderán aquí.",
+      "label": "Tu mensaje",
+      "placeholder": "¿Me puedes contar más sobre esta obra?",
+      "sendButton": "Enviar mensaje",
+      "sendingButton": "Enviando…"
+    }
+  },
+  "wallet": {
+    "comingSoonBadge": "Próximamente",
+    "comingSoonTitle": "La cartera está en desarrollo",
+    "comingSoonBody": "Estamos creando herramientas de propiedad en la cadena, acuñación y cartera para tus obras de arte adquiridas. Vuelve pronto."
+  },
+  "profile": {
+    "editProfileButton": "Editar perfil",
+    "noBioYet": "Aún no hay biografía — edita tu perfil para añadir una.",
+    "savedTitle": "Guardadas",
+    "savedEmptyDesc": "Las obras que guardas al explorar o escanear se quedan aquí — incluso antes de crear una cuenta. Las compras viven en Mi galería.",
+    "edit": {
+      "changePhoto": "Cambiar foto",
+      "photoUpdated": "Foto actualizada.",
+      "detailsSaved": "Detalles de la cuenta guardados.",
+      "sectionTitle": "Cuenta",
+      "namePlaceholder": "Tu nombre",
+      "bioPlaceholder": "Una nota corta sobre ti (opcional)",
+      "saveButton": "Guardar cambios",
+      "savingButton": "Guardando…",
+      "emailInstructions": "Los códigos de inicio de sesión se envían aquí. No hay contraseña que recordar — solicita un código nuevo cada vez que regreses. Contacta con soporte si necesitas cambiar este correo electrónico.",
+      "errors": {
+        "nameRequired": "El nombre completo es obligatorio (al menos 2 caracteres).",
+        "bioTooLong": "La biografía no debe superar los 500 caracteres.",
+        "saveFailed": "No se pudieron guardar tus detalles.",
+        "notImageFile": "Por favor selecciona un archivo de imagen.",
+        "imageTooLarge": "La imagen es demasiado grande. Elige una de menos de 10MB.",
+        "uploadFailed": "No se pudo subir la imagen.",
+        "updatePhotoFailed": "No se pudo actualizar la foto."
+      }
     }
   }
 }

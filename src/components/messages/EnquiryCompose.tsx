@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import {
   createEnquiry,
   findEnquiryByArtworkId,
@@ -18,6 +19,7 @@ interface EnquiryComposeProps {
 const MIN_MESSAGE_LENGTH = 10;
 
 export function EnquiryCompose({ artworkId, artworkTitle }: EnquiryComposeProps) {
+  const { t } = useTranslation();
   const router = useRouter();
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -48,7 +50,7 @@ export function EnquiryCompose({ artworkId, artworkTitle }: EnquiryComposeProps)
 
     const trimmed = message.trim();
     if (trimmed.length < MIN_MESSAGE_LENGTH) {
-      setError(`Message must be at least ${MIN_MESSAGE_LENGTH} characters.`);
+      setError(t("messages.compose.errorMinLength", { count: MIN_MESSAGE_LENGTH }));
       return;
     }
 
@@ -70,7 +72,7 @@ export function EnquiryCompose({ artworkId, artworkTitle }: EnquiryComposeProps)
       }
     }
 
-    setError(res.message || "Could not submit enquiry. Please try again.");
+    setError(res.message || t("messages.compose.errorSubmitFailed"));
     setSubmitting(false);
   };
 
@@ -90,14 +92,13 @@ export function EnquiryCompose({ artworkId, artworkTitle }: EnquiryComposeProps)
         )}
         <div className="min-w-0">
           <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#4D91A7]">
-            New message
+            {t("messages.compose.newMessageBadge")}
           </p>
           <h2 className="text-lg font-semibold text-[#11181c] mt-1">
-            {displayTitle ? `About ${displayTitle}` : "Message the gallery"}
+            {displayTitle ? t("messages.compose.aboutTitle", { title: displayTitle }) : t("messages.compose.defaultTitle")}
           </h2>
           <p className="text-sm text-[#616161] mt-2 leading-relaxed">
-            Start a conversation with the gallery about this artwork. They will
-            reply here.
+            {t("messages.compose.subtitle")}
           </p>
         </div>
       </div>
@@ -108,7 +109,7 @@ export function EnquiryCompose({ artworkId, artworkTitle }: EnquiryComposeProps)
             htmlFor="enquiry-message"
             className="block text-xs font-semibold text-[#1A3F6C] mb-2"
           >
-            Your message
+            {t("messages.compose.label")}
           </label>
           <textarea
             id="enquiry-message"
@@ -116,7 +117,7 @@ export function EnquiryCompose({ artworkId, artworkTitle }: EnquiryComposeProps)
             onChange={(e) => setMessage(e.target.value)}
             rows={5}
             maxLength={5000}
-            placeholder="I love this piece — could you tell me more about it?"
+            placeholder={t("messages.compose.placeholder")}
             className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-[#11181c] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#38A8AB]/40 resize-none"
           />
           <p className="text-[10px] text-slate-400 mt-1 text-right">
@@ -133,7 +134,7 @@ export function EnquiryCompose({ artworkId, artworkTitle }: EnquiryComposeProps)
           disabled={submitting}
           className="btn-neumorph w-full disabled:opacity-50"
         >
-          {submitting ? "Sending…" : "Send message"}
+          {submitting ? t("messages.compose.sendingButton") : t("messages.compose.sendButton")}
         </button>
       </form>
     </div>

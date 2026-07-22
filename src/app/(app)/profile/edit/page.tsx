@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { useUser } from "@/lib/UserContext";
@@ -17,6 +18,7 @@ export default function EditProfilePage() {
 }
 
 function EditProfileContent() {
+  const { t } = useTranslation();
   const { user, loading, refresh, patchUser } = useUser();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -41,10 +43,10 @@ function EditProfileContent() {
     const trimmedBio = nextBio.trim();
 
     if (!trimmedName || trimmedName.length < 2) {
-      return "Full name is required (at least 2 characters).";
+      return t("profile.edit.errors.nameRequired");
     }
     if (trimmedBio.length > 500) {
-      return "Bio must not exceed 500 characters.";
+      return t("profile.edit.errors.bioTooLong");
     }
     return null;
   }
@@ -67,13 +69,13 @@ function EditProfileContent() {
 
     if (result.ok) {
       patchUser({ fullName: fullName.trim(), bio: bio.trim() });
-      setSuccess("Account details saved.");
+      setSuccess(t("profile.edit.detailsSaved"));
       setSaving(false);
       void refresh();
       return;
     }
 
-    setError(result.message || "Could not save your details.");
+    setError(result.message || t("profile.edit.errors.saveFailed"));
     setSaving(false);
   }
 
@@ -82,13 +84,13 @@ function EditProfileContent() {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      setError("Please select an image file.");
+      setError(t("profile.edit.errors.notImageFile"));
       e.target.value = "";
       return;
     }
 
     if (file.size > 10 * 1024 * 1024) {
-      setError("Image is too large. Please choose one under 10MB.");
+      setError(t("profile.edit.errors.imageTooLarge"));
       e.target.value = "";
       return;
     }
@@ -99,7 +101,7 @@ function EditProfileContent() {
 
     const uploadResult = await uploadImage(file);
     if (!uploadResult.ok) {
-      setError(uploadResult.message || "Could not upload image.");
+      setError(uploadResult.message || t("profile.edit.errors.uploadFailed"));
       setUploading(false);
       e.target.value = "";
       return;
@@ -115,10 +117,10 @@ function EditProfileContent() {
     });
 
     if (result.ok) {
-      setSuccess("Photo updated.");
+      setSuccess(t("profile.edit.photoUpdated"));
       void refresh();
     } else {
-      setError(result.message || "Could not update photo.");
+      setError(result.message || t("profile.edit.errors.updatePhotoFailed"));
     }
 
     setUploading(false);
@@ -128,12 +130,12 @@ function EditProfileContent() {
   return (
     <>
       <MobileTopBar
-        title="Edit profile"
+        title={t("profile.editProfileButton")}
         onMenuOpen={() => setMenuOpen(true)}
       />
 
       <header className="hidden lg:flex items-center justify-between border-b border-slate-200 bg-slate-50/95 p-4 mt-20 lg:mt-0">
-        <h1 className="text-xl font-semibold text-slate-900">Edit profile</h1>
+        <h1 className="text-xl font-semibold text-slate-900">{t("profile.editProfileButton")}</h1>
       </header>
 
       <div className="px-5 pb-28 mt-20 lg:mt-6 max-w-lg mx-auto space-y-6">
@@ -151,7 +153,7 @@ function EditProfileContent() {
                   background: "linear-gradient(135deg, #D4CCC7, #E8E2DD)",
                   boxShadow: "0 4px 14px rgba(0,0,0,0.08)",
                 }}
-                title="Change photo"
+                title={t("profile.edit.changePhoto")}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -161,13 +163,13 @@ function EditProfileContent() {
                 />
                 <div className="absolute inset-1 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                   <span className="text-[10px] uppercase tracking-widest font-bold text-white">
-                    Change
+                    {t("profile.edit.changePhoto")}
                   </span>
                 </div>
                 {uploading && (
                   <div className="absolute inset-1 rounded-full bg-black/60 flex items-center justify-center">
                     <span className="text-[10px] uppercase tracking-widest font-black text-white animate-pulse">
-                      Saving
+                      {t("common.saving")}
                     </span>
                   </div>
                 )}
@@ -184,14 +186,14 @@ function EditProfileContent() {
                 onClick={() => fileInputRef.current?.click()}
                 className="mt-3 text-xs font-bold text-[#1A3F6C] uppercase tracking-widest hover:underline"
               >
-                Change photo
+                {t("profile.edit.changePhoto")}
               </button>
             </div>
 
             {/* Account details */}
             <div className="card-neumorph p-5 space-y-4">
               <h2 className="text-[13px] font-bold text-[#1A3F6C] tracking-wide uppercase">
-                Account
+                {t("profile.edit.sectionTitle")}
               </h2>
 
               {error && (
@@ -207,20 +209,20 @@ function EditProfileContent() {
 
               <div>
                 <label className="block text-sm font-medium text-slate-600 mb-2">
-                  Full name
+                  {t("auth.nameLabel")}
                 </label>
                 <input
                   className="w-full rounded-none border border-slate-300 bg-white px-3 py-3 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Your name"
+                  placeholder={t("profile.edit.namePlaceholder")}
                   autoComplete="name"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-slate-600 mb-2">
-                  Email
+                  {t("auth.emailLabel")}
                 </label>
                 <input
                   className="w-full rounded-none border border-slate-200 bg-[#F7F8FA] px-3 py-3 text-sm text-slate-600 outline-none"
@@ -229,9 +231,7 @@ function EditProfileContent() {
                   autoComplete="email"
                 />
                 <p className="mt-1.5 text-[12px] text-slate-400 leading-relaxed">
-                  Sign-in codes are sent here. No password to remember — request a
-                  fresh code whenever you return. Contact support if you need to
-                  change this email.
+                  {t("profile.edit.emailInstructions")}
                 </p>
               </div>
 
@@ -244,7 +244,7 @@ function EditProfileContent() {
                   rows={3}
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
-                  placeholder="A short note about yourself (optional)"
+                  placeholder={t("profile.edit.bioPlaceholder")}
                 />
               </div>
 
@@ -254,7 +254,7 @@ function EditProfileContent() {
                 disabled={saving || uploading}
                 className="btn-neumorph w-full disabled:opacity-50"
               >
-                {saving ? "Saving…" : "Save changes"}
+                {saving ? t("profile.edit.savingButton") : t("profile.edit.saveButton")}
               </button>
             </div>
           </>

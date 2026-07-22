@@ -3,9 +3,11 @@
 import { ForumPostCard } from "@/components/forum/ForumPostCard";
 import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { getForumPosts, type ForumPost } from "@/lib/forum-service";
 
 export default function ForumPage() {
+  const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [posts, setPosts] = useState<ForumPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -96,21 +98,21 @@ export default function ForumPage() {
 
   return (
     <>
-      <MobileTopBar title="Forum" onMenuOpen={() => setMenuOpen(true)} />
+      <MobileTopBar title={t("nav.forum")} onMenuOpen={() => setMenuOpen(true)} />
 
       <div className="px-4 pb-28 mt-20 lg:mt-0">
         {/* Search bar */}
         <form onSubmit={handleSearch} className="relative mb-4 mt-4">
           <input
             className="w-full border border-slate-200 bg-white/60 pl-4 pr-10 py-3 text-[15px] placeholder:text-[#888] outline-none transition focus:border-[#4D91A7] focus:ring-1 focus:ring-[#4D91A7]/20 shadow-sm"
-            placeholder="Search forum posts..."
+            placeholder={t("forum.searchPlaceholder")}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
           />
           <button
             type="submit"
             className="absolute right-3 top-1/2 -translate-y-1/2 text-[#888] hover:text-[#1A3F6C] transition"
-            aria-label="Search"
+            aria-label={t("forum.searchPlaceholder")}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8" />
@@ -170,7 +172,7 @@ export default function ForumPage() {
               onClick={() => fetchPosts(1, false)}
               className="btn-neumorph px-6"
             >
-              Try again
+              {t("forum.tryAgain")}
             </button>
           </div>
         )}
@@ -181,11 +183,11 @@ export default function ForumPage() {
             <svg className="mx-auto mb-3 text-slate-300" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
             </svg>
-            <p className="text-[15px] font-semibold text-[#1A3F6C] mb-1">No posts found</p>
+            <p className="text-[15px] font-semibold text-[#1A3F6C] mb-1">{t("forum.noPostsFoundTitle")}</p>
             <p className="text-xs text-slate-400">
               {search || activeTag
-                ? "Try adjusting your search or filters."
-                : "Check back later for new content."}
+                ? t("forum.noPostsFoundSearch")
+                : t("forum.noPostsFoundDefault")}
             </p>
           </div>
         )}
@@ -208,7 +210,7 @@ export default function ForumPage() {
               disabled={loadingMore}
               className="btn-neumorph px-10 disabled:opacity-50"
             >
-              {loadingMore ? "Loading..." : "Load more"}
+              {loadingMore ? t("common.loading") : t("forum.loadMore")}
             </button>
           </div>
         )}

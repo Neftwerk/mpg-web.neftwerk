@@ -11,7 +11,10 @@
     "processing": "Processing...",
     "or": "or",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "edit": "Edit",
+    "saving": "Saving",
+    "send": "Send"
   },
   "nav": {
     "home": "Home",
@@ -42,11 +45,51 @@
     "otpSentTo": "We sent a 6-digit code to",
     "notYou": "Not you?",
     "enterOtpCode": "Enter OTP code",
+    "signupHeading": "Everything here is open to view. Create a free account, just your name and email, to build your own gallery and join the community.",
+    "nameLabel": "Full name",
+    "namePlaceholder": "As you would like it to appear",
+    "createAccount": "Create account",
+    "verifyAndContinue": "Verify & continue",
+    "alreadyHaveAccount": "Already have an account?",
+    "checkEmailTitle": "Check your email",
+    "forgotPasswordSuccess": "If an account exists for <0>{{email}}</0., you will receive instructions to reset your password shortly.",
+    "haveResetLink": "I have a reset link",
+    "useDifferentEmail": "Use a different email",
+    "rememberPassword": "Remember your password? <0>Log in</0>",
+    "forgotPasswordInstructions": "Enter the email for your account. We will send you a link to choose a new password.",
+    "sendResetLink": "Send reset link",
+    "passwordUpdatedTitle": "Password updated",
+    "passwordUpdatedBody": "Your password has been updated. You can now log in with your new password.",
+    "backToLogin": "Back to log in",
+    "cancelAndReturnToLogin": "Cancel and return to log in",
+    "chooseNewPasswordTitle": "Choose a new password",
+    "forEmail": "For <0>{{emailHint}}</0>",
+    "enterNewPasswordInstructions": "Enter a new password for your account.",
+    "newPasswordLabel": "New password",
+    "newPasswordPlaceholder": "At least 8 characters",
+    "confirmPasswordLabel": "Confirm password",
+    "confirmPasswordPlaceholder": "Re-enter your password",
+    "updatePasswordButton": "Update password",
+    "verifyEmail": {
+      "noToken": "No verification token found. Please check your email link.",
+      "verifying": "Verifying your email...",
+      "successMessage": "Your email has been verified successfully!",
+      "failedMessage": "Verification failed. The link may have expired.",
+      "verifiedTitle": "Email Verified!",
+      "proceedToLogin": "Proceed to Login",
+      "failedTitle": "Verification Failed",
+      "trySignupAgain": "Try signing up again",
+      "goToLogin": "Go to login"
+    },
     "errors": {
       "otpSendFailed": "Failed to send OTP. Please try again.",
       "otpFull": "Please enter the full 6-digit code.",
       "otpInvalid": "Invalid OTP. Please try again.",
-      "noToken": "Login succeeded but no token received."
+      "noToken": "Login succeeded but no token received.",
+      "enterDetails": "Please enter your full name and email.",
+      "createAccountFailed": "Could not create your account. Please try again.",
+      "accountCreatedOtpFailed": "Account created, but we couldn't send your code. Try logging in.",
+      "passwordsDoNotMatch": "Passwords do not match."
     }
   },
   "settings": {
@@ -85,6 +128,117 @@
       "confirm": "Delete Forever",
       "mustType": "Please type \"DELETE\" to confirm.",
       "failed": "Failed to delete account."
+    }
+  },
+  "support": {
+    "title": "Support",
+    "writeToUs": "Write to us",
+    "subtitle": "Tell us what you need. We include your app version automatically.",
+    "nameLabel": "Name",
+    "emailLabel": "Email",
+    "subjectLabel": "Subject",
+    "messageLabel": "Message",
+    "sending": "Sending…",
+    "sendMessage": "Send message",
+    "appVersion": "App version {{version}}",
+    "successMessage": "Your Message was sent. We'll write back shortly.",
+    "errors": {
+      "enterName": "Please enter your name.",
+      "invalidEmail": "Please enter a valid email.",
+      "addSubject": "Please add a short subject.",
+      "moreMessage": "Please share a little more in your message.",
+      "sendFailed": "Could not send your note. Please try again."
+    }
+  },
+  "discover": {
+    "searchPlaceholder": "Search artworks",
+    "curatedBy": "Curated by {{curatorName}}",
+    "spotlightComingSoon": "Works for this spotlight coming soon.",
+    "galleriesTitle": "Galleries",
+    "spotlightsComingSoonTitle": "Spotlights coming soon",
+    "spotlightsComingSoonBody": "Check back soon — curated selections are on the way.",
+    "noArtworksTitle": "No artworks available yet.",
+    "noArtworksBody": "Check back soon — new pieces are being curated.",
+    "noSearchMatchesTitle": "No artworks match your search.",
+    "noSearchMatchesBody": "Try a different title or gallery name.",
+    "searchResultsTitle": "Search results",
+    "allArtworksTitle": "All artworks"
+  },
+  "forum": {
+    "searchPlaceholder": "Search forum posts...",
+    "tryAgain": "Try again",
+    "noPostsFoundTitle": "No posts found",
+    "noPostsFoundSearch": "Try adjusting your search or filters.",
+    "noPostsFoundDefault": "Check back later for new content.",
+    "loadMore": "Load more"
+  },
+  "messages": {
+    "collectorOnlyMessage": "Only collectors can message galleries about artworks. You can still view conversations in your inbox.",
+    "viewInboxButton": "View inbox",
+    "showEarlierButton": "Show earlier",
+    "inboxQuietTitle": "Your inbox is quiet",
+    "inboxQuietCollectorTitle": "Your inbox is quiet — save a message for when you're ready.",
+    "inboxQuietGalleryDesc": "Conversations with collectors and notes from Neftwerk will appear here.",
+    "inboxQuietCollectorDesc": "Gallery conversations and notes from Neftwerk live here together. Check whenever you like.",
+    "galleryConversation": "Gallery conversation",
+    "threadClosed": "This enquiry is closed. No further replies can be sent.",
+    "threadUnassigned": "Assign this enquiry to yourself before replying.",
+    "writeMessagePlaceholder": "Write a message…",
+    "enquiryNotFound": "Enquiry not found.",
+    "openMessagesButton": "Open Messages",
+    "time": {
+      "justNow": "Just now",
+      "minutesAgo": "{{count}}m ago",
+      "hoursAgo": "{{count}}h ago",
+      "daysAgo": "{{count}}d ago"
+    },
+    "status": {
+      "inProgress": "In progress",
+      "closed": "Closed",
+      "open": "Open"
+    },
+    "compose": {
+      "errorMinLength": "Message must be at least {{count}} characters.",
+      "errorSubmitFailed": "Could not submit enquiry. Please try again.",
+      "newMessageBadge": "New message",
+      "aboutTitle": "About {{title}}",
+      "defaultTitle": "Message the gallery",
+      "subtitle": "Start a conversation with the gallery about this artwork. They will reply here.",
+      "label": "Your message",
+      "placeholder": "I love this piece — could you tell me more about it?",
+      "sendButton": "Send message",
+      "sendingButton": "Sending…"
+    }
+  },
+  "wallet": {
+    "comingSoonBadge": "Coming soon",
+    "comingSoonTitle": "Wallet is under development",
+    "comingSoonBody": "We are building on-chain ownership, minting, and wallet tools for your purchased artworks. Check back soon."
+  },
+  "profile": {
+    "editProfileButton": "Edit profile",
+    "noBioYet": "No bio yet — edit your profile to add one.",
+    "savedTitle": "Saved",
+    "savedEmptyDesc": "Works you save while browsing or scanning stay here — even before you create an account. Purchases live in My Gallery.",
+    "edit": {
+      "changePhoto": "Change photo",
+      "photoUpdated": "Photo updated.",
+      "detailsSaved": "Account details saved.",
+      "sectionTitle": "Account",
+      "namePlaceholder": "Your name",
+      "bioPlaceholder": "A short note about yourself (optional)",
+      "saveButton": "Save changes",
+      "savingButton": "Saving…",
+      "emailInstructions": "Sign-in codes are sent here. No password to remember — request a fresh code whenever you return. Contact support if you need to change this email.",
+      "errors": {
+        "nameRequired": "Full name is required (at least 2 characters).",
+        "bioTooLong": "Bio must not exceed 500 characters.",
+        "saveFailed": "Could not save your details.",
+        "notImageFile": "Please select an image file.",
+        "imageTooLarge": "Image is too large. Please choose one under 10MB.",
+        "uploadFailed": "Could not upload image.",
+        "updatePhotoFailed": "Could not update photo."
+      }
     }
   }
 }
