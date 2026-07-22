@@ -64,6 +64,7 @@ export async function apiFetch<T = unknown>(
   try {
     const res = await fetch(url, {
       ...options,
+      credentials: options.credentials ?? "include",
       headers: {
         "Content-Type": "application/json",
         ...(options.headers || {}),
@@ -99,13 +100,16 @@ let refreshInFlight: Promise<boolean> | null = null;
  * Returns true when the session was successfully extended.
  */
 export async function ensureFreshAccessToken(): Promise<boolean> {
-  if (!getRefreshToken()) return false;
-
+  // Cookie-based refresh can succeed even when localStorage refresh is missing.
   if (!refreshInFlight) {
     refreshInFlight = (async () => {
       const result = await refreshAccessToken({ notify: false });
       if (!result.ok) {
-        clearTokens();
+        // Only clear when we truly cannot renew — keep tokens if it was a network blip
+        // with no stored refresh and cookie also missing.
+        if (getRefreshToken() || result.status === 401 || result.status === 400) {
+          clearTokens();
+        }
         return false;
       }
       return true;
@@ -183,13 +187,15 @@ export async function verifyLoginOtp(payload: { email: string; otp: string }) {
 
 export async function refreshAccessToken(opts?: { notify?: boolean }) {
   const refreshToken = getRefreshToken();
-  if (!refreshToken) {
-    return { ok: false, status: 0, data: {}, message: "No refresh token" };
-  }
 
+  // Prefer body token; also send cookies so HttpOnly refresh cookie can work cross-port.
   const result = await apiFetch<Record<string, unknown>>(
     API_ENDPOINTS.AUTH.REFRESH_TOKEN,
-    { method: "POST", body: JSON.stringify({ refreshToken }) }
+    {
+      method: "POST",
+      credentials: "include",
+      body: JSON.stringify(refreshToken ? { refreshToken } : {}),
+    }
   );
 
   if (result.ok) {
