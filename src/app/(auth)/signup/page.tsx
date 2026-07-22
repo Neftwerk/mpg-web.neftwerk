@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function SignupPage() {
   return (
-    <AuthShell title="Welcome! you're free to browse">
+    <AuthShell titleKey="auth.shellWelcome">
       <div className="auth-card">
         <SignupForm />
       </div>

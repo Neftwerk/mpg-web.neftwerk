@@ -1,0 +1,90 @@
+{
+  "common": {
+    "continue": "Continue",
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "back": "Back",
+    "retry": "Retry",
+    "loading": "Loading…",
+    "pleaseWait": "Please wait...",
+    "processing": "Processing...",
+    "or": "or",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "nav": {
+    "home": "Home",
+    "forum": "Forum",
+    "discover": "Discover",
+    "gallery": "My Gallery",
+    "wallet": "Wallet",
+    "profile": "Profile",
+    "messages": "Messages",
+    "notifications": "Notifications",
+    "support": "Support",
+    "settings": "Settings"
+  },
+  "auth": {
+    "shellWelcome": "Welcome! you're free to browse",
+    "forgotPasswordTitle": "Forgot password",
+    "verifyOtpTitle": "Verify OTP",
+    "newPasswordTitle": "New password",
+    "loginTitle": "Log in",
+    "loginHeading": "Log in to build your own gallery and join the community.",
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@example.com",
+    "loginButton": "Login",
+    "verifyAndLogin": "Verify & Log in",
+    "noAccount": "Don't have an account?",
+    "signUp": "Sign up",
+    "continueWithGoogle": "Continue with Google",
+    "otpSentTo": "We sent a 6-digit code to",
+    "notYou": "Not you?",
+    "enterOtpCode": "Enter OTP code",
+    "errors": {
+      "otpSendFailed": "Failed to send OTP. Please try again.",
+      "otpFull": "Please enter the full 6-digit code.",
+      "otpInvalid": "Invalid OTP. Please try again.",
+      "noToken": "Login succeeded but no token received."
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "account": "Account",
+    "noNameSet": "No Name Set",
+    "userAvatarAlt": "User Avatar",
+    "editProfile": "Edit profile",
+    "privacy": "Privacy & Security",
+    "preferences": "Preferences",
+    "pushAlerts": "Push alerts",
+    "pushAlertsDesc": "Off by default — check Messages when you choose",
+    "pushOff": "Off",
+    "pushMinimal": "Minimal",
+    "language": "Language",
+    "support": "Support",
+    "chooseLanguage": "Choose language",
+    "dangerZone": "Danger Zone",
+    "deactivateAccount": "Deactivate Account",
+    "deleteAccountPermanently": "Delete Account Permanently",
+    "logout": "Logout",
+    "deactivate": {
+      "title": "Deactivate Account",
+      "body": "Your account will be deactivated. You can contact support to restore it later.",
+      "typeToConfirm": "Type <0>DEACTIVATE</0> to confirm:",
+      "placeholder": "DEACTIVATE",
+      "confirm": "Deactivate",
+      "mustType": "Please type \"DEACTIVATE\" to confirm.",
+      "failed": "Failed to deactivate account."
+    },
+    "delete": {
+      "title": "Delete Account",
+      "body": "This action is <0>irreversible</0>. Your account and all data will be permanently deleted.",
+      "typeToConfirm": "Type <0>DELETE</0> to confirm:",
+      "placeholder": "DELETE",
+      "confirm": "Delete Forever",
+      "mustType": "Please type \"DELETE\" to confirm.",
+      "failed": "Failed to delete account."
+    }
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "common": {
+    "continue": "Continuar",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "close": "Cerrar",
+    "back": "Atrás",
+    "retry": "Reintentar",
+    "loading": "Cargando…",
+    "pleaseWait": "Espera por favor...",
+    "processing": "Procesando...",
+    "or": "o",
+    "yes": "Sí",
+    "no": "No"
+  },
+  "nav": {
+    "home": "Inicio",
+    "forum": "Foro",
+    "discover": "Descubrir",
+    "gallery": "Mi galería",
+    "wallet": "Cartera",
+    "profile": "Perfil",
+    "messages": "Mensajes",
+    "notifications": "Notificaciones",
+    "support": "Soporte",
+    "settings": "Ajustes"
+  },
+  "auth": {
+    "shellWelcome": "¡Bienvenido! Eres libre de explorar",
+    "forgotPasswordTitle": "Recuperar contraseña",
+    "verifyOtpTitle": "Verificar OTP",
+    "newPasswordTitle": "Nueva contraseña",
+    "loginTitle": "Iniciar sesión",
+    "loginHeading": "Inicia sesión para crear tu propia galería y unirte a la comunidad.",
+    "emailLabel": "Correo electrónico",
+    "emailPlaceholder": "tu@ejemplo.com",
+    "loginButton": "Iniciar sesión",
+    "verifyAndLogin": "Verificar e iniciar sesión",
+    "noAccount": "¿No tienes una cuenta?",
+    "signUp": "Regístrate",
+    "continueWithGoogle": "Continuar con Google",
+    "otpSentTo": "Enviamos un código de 6 dígitos a",
+    "notYou": "¿No eres tú?",
+    "enterOtpCode": "Introduce el código OTP",
+    "errors": {
+      "otpSendFailed": "No se pudo enviar el OTP. Inténtalo de nuevo.",
+      "otpFull": "Introduce el código completo de 6 dígitos.",
+      "otpInvalid": "OTP no válido. Inténtalo de nuevo.",
+      "noToken": "El inicio de sesión se realizó pero no se recibió ningún token."
+    }
+  },
+  "settings": {
+    "title": "Ajustes",
+    "account": "Cuenta",
+    "noNameSet": "Sin nombre",
+    "userAvatarAlt": "Avatar del usuario",
+    "editProfile": "Editar perfil",
+    "privacy": "Privacidad y seguridad",
+    "preferences": "Preferencias",
+    "pushAlerts": "Alertas push",
+    "pushAlertsDesc": "Desactivadas por defecto — revisa Mensajes cuando quieras",
+    "pushOff": "Desactivadas",
+    "pushMinimal": "Mínimas",
+    "language": "Idioma",
+    "support": "Soporte",
+    "chooseLanguage": "Elige el idioma",
+    "dangerZone": "Zona de peligro",
+    "deactivateAccount": "Desactivar cuenta",
+    "deleteAccountPermanently": "Eliminar cuenta permanentemente",
+    "logout": "Cerrar sesión",
+    "deactivate": {
+      "title": "Desactivar cuenta",
+      "body": "Tu cuenta se desactivará. Puedes contactar con soporte para restaurarla más tarde.",
+      "typeToConfirm": "Escribe <0>DEACTIVATE</0> para confirmar:",
+      "placeholder": "DEACTIVATE",
+      "confirm": "Desactivar",
+      "mustType": "Escribe \"DEACTIVATE\" para confirmar.",
+      "failed": "No se pudo desactivar la cuenta."
+    },
+    "delete": {
+      "title": "Eliminar cuenta",
+      "body": "Esta acción es <0>irreversible</0>. Tu cuenta y todos los datos se eliminarán permanentemente.",
+      "typeToConfirm": "Escribe <0>DELETE</0> para confirmar:",
+      "placeholder": "DELETE",
+      "confirm": "Eliminar para siempre",
+      "mustType": "Escribe \"DELETE\" para confirmar.",
+      "failed": "No se pudo eliminar la cuenta."
+    }
+  }
+}

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { navItems } from "@/lib/content";
 import { useState } from "react";
 import { useUser } from "@/lib/UserContext";
@@ -31,22 +32,23 @@ const menuIconMap: Record<string, string> = {
 
 const messagesNavItem = {
   href: "/messages",
-  label: "Messages",
+  labelKey: "nav.messages",
   icon: "messages",
 } as const;
 
 const sidebarMenuItems = [
-  { href: "/home", label: "Home", icon: "home" },
+  { href: "/home", labelKey: "nav.home", icon: "home" },
   ...navItems.flatMap((item) =>
     item.href === "/gallery" ? [messagesNavItem, item] : [item],
   ),
-  { href: "/support", label: "Support", icon: "support" },
-  { href: "/settings", label: "Settings", icon: "settings" },
+  { href: "/support", labelKey: "nav.support", icon: "support" },
+  { href: "/settings", labelKey: "nav.settings", icon: "settings" },
 ];
 
 /* ---------- Desktop sidebar (hidden on mobile) ---------- */
 function DesktopSidebar() {
   const pathname = usePathname();
+  const { t } = useTranslation();
   const { user } = useUser();
 
   return (
@@ -89,7 +91,7 @@ function DesktopSidebar() {
               className="h-9 w-9"
               aria-hidden
             />
-            <span>{item.label}</span>
+            <span>{t(item.labelKey)}</span>
           </Link>
         );
       })}
@@ -100,6 +102,7 @@ function DesktopSidebar() {
 /* ---------- Mobile bottom nav — BIG neumorphic icons with shadows ---------- */
 function MobileBottomNav() {
   const pathname = usePathname();
+  const { t } = useTranslation();
 
   // Hide bottom nav on home page — hexagons are the navigation there
   if (pathname === "/home") return null;
@@ -130,7 +133,7 @@ function MobileBottomNav() {
                 className={`text-[13px] font-semibold leading-tight whitespace-nowrap ${active ? "text-[#38A8AB]" : "text-[#1A3F6C]"
                   }`}
               >
-                {item.label}
+                {t(item.labelKey)}
               </span>
             </Link>
           );
@@ -149,6 +152,7 @@ function MobileMenu({
   onClose: () => void;
 }) {
   const pathname = usePathname();
+  const { t } = useTranslation();
   const { user } = useUser();
 
   return (
@@ -222,7 +226,7 @@ function MobileMenu({
                     aria-hidden
                   />
                   <span className={`text-[17px] font-bold ${active ? "text-[#38A8AB]" : "text-[#11161C]"}`}>
-                    {item.label}
+                    {t(item.labelKey)}
                   </span>
                 </Link>
               );
