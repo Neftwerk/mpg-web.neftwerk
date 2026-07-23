@@ -162,7 +162,14 @@
     "noSearchMatchesTitle": "Ninguna obra coincide con tu búsqueda.",
     "noSearchMatchesBody": "Prueba con un título o nombre de galería diferente.",
     "searchResultsTitle": "Resultados de búsqueda",
-    "allArtworksTitle": "Todas las obras de arte"
+    "allArtworksTitle": "Todas las obras de arte",
+    "allGalleriesLink": "← Todas las galerías",
+    "noArtworksInGalleryYet": "Aún no hay obras de arte en esta galería.",
+    "galleryNotFound": "Galería no encontrada.",
+    "noGalleriesTitle": "No hay galerías disponibles aún.",
+    "noGalleriesBody": "Vuelve pronto — se están seleccionando nuevas galerías.",
+    "artworkSingular": "obra de arte",
+    "artworkPlural": "obras de arte"
   },
   "forum": {
     "searchPlaceholder": "Buscar publicaciones en el foro...",
@@ -240,5 +247,42 @@
         "updatePhotoFailed": "No se pudo actualizar la foto."
       }
     }
+  },
+  "deleteAccountPage": {
+    "title": "Eliminar cuenta permanentemente",
+    "description": "Información y solicitudes sobre la eliminación de tu cuenta de My Pocket Gallery.",
+    "subtitle": "Cómo eliminar tu cuenta, qué datos se eliminan y opciones alternativas de solicitud.",
+    "inAppHeading": "Eliminación de cuenta desde la aplicación (Recomendado)",
+    "inAppBody": "Si puedes iniciar sesión en tu cuenta, la forma más rápida y segura de eliminarla es directamente dentro de la aplicación:",
+    "inAppStep1": "Abre la aplicación My Pocket Gallery.",
+    "inAppStep2": "Ve a Ajustes.",
+    "inAppStep3": "Toca Eliminar cuenta permanentemente.",
+    "inAppStep4": "Confirma tu decisión. Tu cuenta y datos se eliminarán instantáneamente.",
+    "webRequestHeading": "Solicitar eliminación mediante formulario web",
+    "webRequestBody": "Si has desinstalado la aplicación o no puedes iniciar sesión, completa el siguiente formulario. Una vez enviado, nuestro equipo de soporte verificará y procesará tu solicitud en un plazo de 7 días hábiles.",
+    "webRequestSubtitle": "Formulario de eliminación de cuenta",
+    "formFullName": "Nombre completo",
+    "formEmail": "Correo electrónico registrado",
+    "formEmailPlaceholder": "El correo asociado con tu cuenta",
+    "formConfirmCheckbox1": "Confirmo que deseo eliminar permanentemente mi cuenta de My Pocket Gallery y todos los datos asociados.",
+    "formConfirmCheckbox2": "Entiendo que esta acción es irreversible y que cualquier saldo activo de mi cartera debe ser retirado primero.",
+    "formAdditionalNotes": "Notas adicionales (Opcional)",
+    "formAdditionalNotesPlaceholder": "Cualquier contexto adicional para ayudarnos a procesar tu solicitud",
+    "formSubmit": "Enviar solicitud de eliminación",
+    "formSubmitting": "Enviando solicitud...",
+    "formSuccess": "Tu solicitud se ha enviado con éxito. Se enviará un correo de confirmación a {{email}} una vez que se complete el proceso.",
+    "formErrorPrefix": "Error: ",
+    "formErrorCheckbox": "Debes marcar ambas casillas de confirmación para continuar.",
+    "emailSupportHeading": "Método de solicitud alternativo",
+    "emailSupportBody": "Si lo prefieres, puedes enviarnos un correo electrónico directamente a support@mypocketgallery.com con el asunto 'Account Deletion Request'. Envía el correo desde tu dirección registrada e incluye tu nombre completo.",
+    "policyHeading": "Política de retención y eliminación de datos",
+    "whatDeletedTitle": "¿Qué datos de la cuenta se eliminarán?",
+    "whatDeletedBody": "Todos los detalles del perfil personal (incluyendo tu nombre, correo electrónico, biografía y foto de perfil), las listas de obras guardadas, los grupos de colecciones personalizadas y el historial de chat se eliminarán permanentemente de nuestros servidores principales.",
+    "whatRetainedTitle": "¿Qué datos deben ser retenidos, por qué y durante cuánto tiempo?",
+    "whatRetainedBody": "Para cumplir con los requisitos legales, financieros y normativos (como los estándares de historial de transacciones y auditoría), debemos conservar los registros de transacciones históricas y los detalles de facturas relacionados con cualquier compra. Estos registros se guardan de forma segura durante un máximo de 7 años, de acuerdo con las leyes aplicables, y no se pueden eliminar a petición.",
+    "prereqsTitle": "Pasos que debes completar primero",
+    "prereqsBody": "Antes de enviar una solicitud de eliminación, asegúrate de haber retirado o reclamado cualquier saldo restante de tu cartera. Una vez que se elimine tu cuenta, perderás de forma permanente el acceso a cualquier activo digital no reclamado.",
+    "confirmationTitle": "Cómo recibirás la confirmación",
+    "confirmationBody": "Si se elimina dentro de la aplicación, la eliminación es inmediata y se cerrará tu sesión. Para solicitudes web o por correo electrónico, nuestro equipo de soporte te enviará un correo a tu dirección registrada una vez que la eliminación se haya procesado con éxito."
   }
 }

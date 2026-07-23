@@ -162,7 +162,14 @@
     "noSearchMatchesTitle": "No artworks match your search.",
     "noSearchMatchesBody": "Try a different title or gallery name.",
     "searchResultsTitle": "Search results",
-    "allArtworksTitle": "All artworks"
+    "allArtworksTitle": "All artworks",
+    "allGalleriesLink": "← All galleries",
+    "noArtworksInGalleryYet": "No artworks in this gallery yet.",
+    "galleryNotFound": "Gallery not found.",
+    "noGalleriesTitle": "No galleries available yet.",
+    "noGalleriesBody": "Check back soon — new galleries are being curated.",
+    "artworkSingular": "artwork",
+    "artworkPlural": "artworks"
   },
   "forum": {
     "searchPlaceholder": "Search forum posts...",
@@ -240,5 +247,42 @@
         "updatePhotoFailed": "Could not update photo."
       }
     }
+  },
+  "deleteAccountPage": {
+    "title": "Delete Account Permanently",
+    "description": "Information and requests regarding your My Pocket Gallery account deletion.",
+    "subtitle": "How to delete your account, what data is removed, and alternative request options.",
+    "inAppHeading": "In-App Account Deletion (Recommended)",
+    "inAppBody": "If you can sign in to your account, the fastest and most secure way to delete your account is directly within the app:",
+    "inAppStep1": "Open the My Pocket Gallery app.",
+    "inAppStep2": "Go to Settings.",
+    "inAppStep3": "Tap Delete Account Permanently.",
+    "inAppStep4": "Confirm your decision. Your account and data will be deleted instantly.",
+    "webRequestHeading": "Request Deletion via Web Form",
+    "webRequestBody": "If you have uninstalled the app or cannot sign in, please complete the form below. Once submitted, our support team will verify and process your request within 7 business days.",
+    "webRequestSubtitle": "Account Deletion Form",
+    "formFullName": "Full Name",
+    "formEmail": "Registered Email Address",
+    "formEmailPlaceholder": "The email associated with your account",
+    "formConfirmCheckbox1": "I confirm that I wish to permanently delete my My Pocket Gallery account and all associated data.",
+    "formConfirmCheckbox2": "I understand that this action is irreversible and any active wallet balances must be withdrawn first.",
+    "formAdditionalNotes": "Additional Notes (Optional)",
+    "formAdditionalNotesPlaceholder": "Any additional context to help us process your request",
+    "formSubmit": "Submit Deletion Request",
+    "formSubmitting": "Submitting Request...",
+    "formSuccess": "Your request has been submitted successfully. A confirmation email will be sent to {{email}} once the process is complete.",
+    "formErrorPrefix": "Error: ",
+    "formErrorCheckbox": "You must check both confirmation boxes to proceed.",
+    "emailSupportHeading": "Alternative Request Method",
+    "emailSupportBody": "If you prefer, you can email us directly at support@mypocketgallery.com with the subject line 'Account Deletion Request'. Please send the email from your registered email address and include your full name.",
+    "policyHeading": "Data Retention & Deletion Policy",
+    "whatDeletedTitle": "What account data will be deleted?",
+    "whatDeletedBody": "All personal profile details (including your name, email, biography, and profile photo), saved artwork lists, custom collection groupings, and chat histories will be permanently deleted from our primary servers.",
+    "whatRetainedTitle": "What data must be retained, why, and for how long?",
+    "whatRetainedBody": "To comply with legal, financial, and regulatory requirements (such as auditing and transaction history standards), we must retain historical transaction logs and invoice details related to any purchases. These records are kept securely for up to 7 years, in accordance with applicable laws, and cannot be deleted upon request.",
+    "prereqsTitle": "Steps you must complete first",
+    "prereqsBody": "Before submitting a deletion request, please ensure you have withdrawn or claimed any remaining wallet balances. Once your account is deleted, you will permanently lose access to any unclaimed digital assets.",
+    "confirmationTitle": "How you will receive confirmation",
+    "confirmationBody": "If deleted in-app, the deletion is immediate and you will be signed out. For web or email requests, our support team will email you at your registered address once the deletion has been successfully processed."
   }
 }
