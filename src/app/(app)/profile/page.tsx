@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
 import { ArtworkItem } from "@/lib/gallery-service";
 import { useUser } from "@/lib/UserContext";
 import { NeftwerkImage } from "@/components/NeftwerkImage";
@@ -17,6 +18,7 @@ export default function ProfilePage() {
 }
 
 function ProfileContent() {
+  const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   const { user, loading } = useUser();
 
@@ -54,7 +56,7 @@ function ProfileContent() {
 
   return (
     <>
-      <MobileTopBar title="Profile" onMenuOpen={() => setMenuOpen(true)} />
+      <MobileTopBar title={t("nav.profile")} onMenuOpen={() => setMenuOpen(true)} />
 
       <div className="px-5 pb-28 mt-20 lg:mt-0">
         {loading ? (
@@ -68,7 +70,7 @@ function ProfileContent() {
                 background: "linear-gradient(135deg, #D4CCC7, #E8E2DD)",
                 boxShadow: "0 4px 14px rgba(0,0,0,0.08)",
               }}
-              title="Edit profile"
+              title={t("profile.editProfileButton")}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -78,7 +80,7 @@ function ProfileContent() {
               />
               <div className="absolute inset-1 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                 <span className="text-[10px] uppercase tracking-widest font-bold text-white">
-                  Edit
+                  {t("common.edit")}
                 </span>
               </div>
             </Link>
@@ -97,12 +99,12 @@ function ProfileContent() {
               </p>
             ) : (
               <p className="max-w-[320px] text-center text-[13px] leading-relaxed text-slate-400 italic">
-                No bio yet — edit your profile to add one.
+                {t("profile.noBioYet")}
               </p>
             )}
 
             <Link href="/profile/edit" className="btn-neumorph mt-2 px-10">
-              Edit profile
+              {t("profile.editProfileButton")}
             </Link>
           </div>
         )}
@@ -110,7 +112,7 @@ function ProfileContent() {
         <div className="mt-10">
           <div className="flex items-center gap-3 mb-5">
             <span className="text-[16px] font-bold text-[#1A3F6C] whitespace-nowrap">
-              Saved
+              {t("profile.savedTitle")}
             </span>
             <div className="flex-1 border-t-[1.5px] border-dotted border-[#C4BCB6]" />
           </div>
@@ -141,8 +143,7 @@ function ProfileContent() {
             </div>
           ) : (
             <p className="text-xs text-slate-400 text-center leading-relaxed px-4">
-              Works you save while browsing or scanning stay here — even before you create an account.
-              Purchases live in My Gallery.
+              {t("profile.savedEmptyDesc")}
             </p>
           )}
         </div>

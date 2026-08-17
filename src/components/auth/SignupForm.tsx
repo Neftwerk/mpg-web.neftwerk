@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { initiateGoogleOAuth, register, requestLoginOtp, verifyLoginOtp, setTokens } from "@/lib/auth-service";
 import { useUser } from "@/lib/UserContext";
 
 export function SignupForm() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { refresh } = useUser();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -65,7 +67,7 @@ export function SignupForm() {
   async function handleCreateAccount(e: FormEvent) {
     e.preventDefault();
     if (!name.trim() || !email.trim()) {
-      setError("Please enter your full name and email.");
+      setError(t("auth.errors.enterDetails"));
       return;
     }
     setLoading(true);
@@ -74,7 +76,7 @@ export function SignupForm() {
     const result = await register({ fullName: name.trim(), email: email.trim() });
 
     if (!result.ok) {
-      setError(result.message || "Could not create your account. Please try again.");
+      setError(result.message || t("auth.errors.createAccountFailed"));
       setLoading(false);
       return;
     }
@@ -85,7 +87,7 @@ export function SignupForm() {
     if (otpResult.ok) {
       setStep("otp");
     } else {
-      setError(otpResult.message || "Account created, but we couldn't send your code. Try logging in.");
+      setError(otpResult.message || t("auth.errors.accountCreatedOtpFailed"));
     }
     setLoading(false);
   }
@@ -94,7 +96,7 @@ export function SignupForm() {
     e.preventDefault();
     const otp = code.join("");
     if (otp.length < 6) {
-      setError("Please enter the full 6-digit code.");
+      setError(t("auth.errors.otpFull"));
       return;
     }
     setLoading(true);
@@ -112,10 +114,10 @@ export function SignupForm() {
         await refresh();
         router.push("/home");
       } else {
-        setError("Verification succeeded but no token received.");
+        setError(t("auth.errors.noToken"));
       }
     } else {
-      setError(result.message || "Invalid OTP. Please try again.");
+      setError(result.message || t("auth.errors.otpInvalid"));
     }
     setLoading(false);
   }
@@ -123,9 +125,9 @@ export function SignupForm() {
   return (
     <form className="flex flex-col gap-0" onSubmit={step === "details" ? handleCreateAccount : handleVerifyOtp}>
       <p className="mb-2 text-xl font-semibold text-slate-900">
-      Everything here is open to view. Create a free account, just your name and email, to build your own gallery and join the community.
+        {t("auth.signupHeading")}
       </p>
-      <div className="mb-2 h-1.5 w-[9%] max-w-[72px]  bg-sky-900" />
+      <div className="mb-2 h-1.5 w-[9%] max-w-[72px] bg-sky-900" />
 
       {error && (
         <div className="mt-3 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
@@ -136,27 +138,27 @@ export function SignupForm() {
       {step === "details" && (
         <>
           <label className="mt-5 first:mt-4 mb-2 block text-sm font-medium text-slate-600" htmlFor="signup-name">
-            Full name
+            {t("auth.nameLabel")}
           </label>
           <input
             id="signup-name"
-            className="w-full  border border-slate-300 bg-white px-3 py-3 text-sm placeholder:text-slate-400 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+            className="w-full border border-slate-300 bg-white px-3 py-3 text-sm placeholder:text-slate-400 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
             type="text"
             autoComplete="name"
-            placeholder="As you would like it to appear"
+            placeholder={t("auth.namePlaceholder")}
             value={name}
             onChange={(ev) => setName(ev.target.value)}
           />
 
           <label className="mt-5 first:mt-4 mb-2 block text-sm font-medium text-slate-600" htmlFor="signup-email">
-            Email
+            {t("auth.emailLabel")}
           </label>
           <input
             id="signup-email"
-            className="w-full  border border-slate-300 bg-white px-3 py-3 text-sm placeholder:text-slate-400 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+            className="w-full border border-slate-300 bg-white px-3 py-3 text-sm placeholder:text-slate-400 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
             type="email"
             autoComplete="email"
-            placeholder="you@example.com"
+            placeholder={t("auth.emailPlaceholder")}
             value={email}
             onChange={(ev) => setEmail(ev.target.value)}
           />
@@ -166,7 +168,7 @@ export function SignupForm() {
       {step === "otp" && (
         <>
           <p className="mt-5 text-sm text-slate-600 leading-relaxed">
-            We sent a 6-digit code to{" "}
+            {t("auth.otpSentTo")}{" "}
             <strong className="text-slate-800">{email}</strong>
             <span className="mx-1.5 text-slate-300">·</span>
             <button
@@ -174,12 +176,12 @@ export function SignupForm() {
               onClick={handleEditDetails}
               className="text-[#1A3F6C] font-semibold hover:underline underline-offset-2"
             >
-              Edit
+              {t("common.edit")}
             </button>
           </p>
 
           <label className="mt-5 mb-3 block text-sm font-medium text-slate-600">
-            Enter OTP code
+            {t("auth.enterOtpCode")}
           </label>
           <div className="flex gap-2 sm:gap-3">
             {code.map((digit, index) => (
@@ -209,14 +211,14 @@ export function SignupForm() {
             disabled={loading}
             className="btn-neumorph w-[85%] max-w-[320px] disabled:opacity-50"
           >
-            {loading ? "Please wait..." : step === "details" ? "Create account" : "Verify & continue"}
+            {loading ? t("common.pleaseWait") : step === "details" ? t("auth.createAccount") : t("auth.verifyAndContinue")}
           </button>
 
           {step === "details" && (
             <p className="text-center text-sm text-slate-500">
-              Already have an account?{" "}
+              {t("auth.alreadyHaveAccount")}{" "}
               <Link href="/login" className="font-semibold text-sky-900 underline underline-offset-2 hover:text-sky-700">
-                Log in
+                {t("auth.loginTitle")}
               </Link>
             </p>
           )}
@@ -226,7 +228,7 @@ export function SignupForm() {
           <>
             <div className="flex w-[85%] max-w-[320px] items-center gap-4">
               <div className="h-px flex-1 bg-slate-300" />
-              <span className="text-sm font-medium text-slate-500">or</span>
+              <span className="text-sm font-medium text-slate-500">{t("common.or")}</span>
               <div className="h-px flex-1 bg-slate-300" />
             </div>
 
@@ -241,7 +243,7 @@ export function SignupForm() {
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
               </svg>
-              Continue with Google
+              {t("auth.continueWithGoogle")}
             </button>
           </>
         )}

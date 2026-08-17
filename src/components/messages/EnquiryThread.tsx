@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { useUser } from "@/lib/UserContext";
 import type { EnquiryDetail, EnquiryMessage } from "@/lib/enquiry-types";
 import {
@@ -20,8 +21,8 @@ import { useEnquirySocket } from "@/lib/use-enquiry-socket";
 import { EnquiryArtworkThumb } from "@/components/messages/EnquiryArtworkThumb";
 import { useEnquiryArtwork } from "@/lib/use-enquiry-artwork";
 
-function formatTime(dateStr: string): string {
-  return new Date(dateStr).toLocaleString("en-US", {
+function formatTime(dateStr: string, language: string): string {
+  return new Date(dateStr).toLocaleString(language || "en-US", {
     month: "short",
     day: "numeric",
     hour: "numeric",
@@ -29,10 +30,10 @@ function formatTime(dateStr: string): string {
   });
 }
 
-function statusLabel(status: EnquiryDetail["status"]): string {
-  if (status === "in_progress") return "In progress";
-  if (status === "closed") return "Closed";
-  return "Open";
+function statusLabel(status: EnquiryDetail["status"], t: any): string {
+  if (status === "in_progress") return t("messages.status.inProgress");
+  if (status === "closed") return t("messages.status.closed");
+  return t("messages.status.open");
 }
 
 function serializeMessage(message: EnquiryMessage): EnquiryMessage {
@@ -93,6 +94,7 @@ export function EnquiryThread({
   onEnquiryUpdated,
   canReply,
 }: EnquiryThreadProps) {
+  const { t, i18n } = useTranslation();
   const { user } = useUser();
   const [enquiry, setEnquiry] = useState<EnquiryDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -125,12 +127,12 @@ export function EnquiryThread({
         await markEnquiryRead(enquiryId);
       }
     } else {
-      setError(res.message || "Could not load this enquiry.");
+      setError(res.message || t("messages.enquiryNotFound"));
       setEnquiry(null);
     }
 
     setLoading(false);
-  }, [adminMode, applyEnquiry, enquiryId, user?.id]);
+  }, [adminMode, applyEnquiry, enquiryId, user?.id, t]);
 
   useEffect(() => {
     loadEnquiry();
@@ -217,7 +219,7 @@ export function EnquiryThread({
       });
       setDraft("");
     } else {
-      setSendError(res.message || "Could not send message.");
+      setSendError(res.message || t("messages.compose.errorSubmitFailed"));
     }
 
     setSending(false);
@@ -234,9 +236,9 @@ export function EnquiryThread({
   if (error || !enquiry) {
     return (
       <div className="card-neumorph text-center py-10 mt-4">
-        <p className="text-sm text-red-500 mb-3">{error || "Enquiry not found."}</p>
+        <p className="text-sm text-red-500 mb-3">{error || t("messages.enquiryNotFound")}</p>
         <Link href={backHref} className="btn-neumorph px-6 inline-block">
-          Open Messages
+          {t("messages.openMessagesButton")}
         </Link>
       </div>
     );
@@ -280,7 +282,7 @@ export function EnquiryThread({
               )}
             </div>
             <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full bg-[#38A8AB]/15 text-[#1A3F6C] shrink-0">
-              {statusLabel(enquiry.status)}
+              {statusLabel(enquiry.status, t)}
             </span>
           </div>
         </div>
@@ -292,6 +294,7 @@ export function EnquiryThread({
             key={message._id}
             message={message}
             isOwn={normalizeEnquiryId(message.senderId) === normalizeEnquiryId(user?.id)}
+            language={i18n.language}
           />
         ))}
         <div ref={bottomRef} />
@@ -299,11 +302,11 @@ export function EnquiryThread({
 
       {isClosed ? (
         <p className="text-center text-xs text-slate-400 pb-4">
-          This enquiry is closed. No further replies can be sent.
+          {t("messages.threadClosed")}
         </p>
       ) : !replyAllowed ? (
         <p className="text-center text-xs text-slate-500 pb-4 px-4">
-          Assign this enquiry to yourself before replying.
+          {t("messages.threadUnassigned")}
         </p>
       ) : (
         <form
@@ -316,7 +319,7 @@ export function EnquiryThread({
               onChange={(e) => setDraft(e.target.value)}
               rows={2}
               maxLength={5000}
-              placeholder="Write a message…"
+              placeholder={t("messages.writeMessagePlaceholder")}
               className="flex-1 bg-transparent text-sm text-[#11181c] placeholder:text-slate-400 focus:outline-none resize-none"
             />
             <button
@@ -324,7 +327,7 @@ export function EnquiryThread({
               disabled={sending || !draft.trim()}
               className="btn-neumorph !px-4 !py-2 text-sm shrink-0 disabled:opacity-50"
             >
-              {sending ? "…" : "Send"}
+              {sending ? "…" : t("common.send")}
             </button>
           </div>
           {sendError && (
@@ -339,9 +342,11 @@ export function EnquiryThread({
 function MessageBubble({
   message,
   isOwn,
+  language,
 }: {
   message: EnquiryMessage;
   isOwn: boolean;
+  language: string;
 }) {
   return (
     <div className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
@@ -363,7 +368,7 @@ function MessageBubble({
             isOwn ? "text-white/70" : "text-slate-400"
           }`}
         >
-          {formatTime(message.createdAt)}
+          {formatTime(message.createdAt, language)}
         </p>
       </div>
     </div>

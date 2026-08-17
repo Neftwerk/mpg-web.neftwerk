@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { initiateGoogleOAuth, requestLoginOtp, verifyLoginOtp, setTokens } from "@/lib/auth-service";
 import { useUser } from "@/lib/UserContext";
 
 export function LoginForm() {
   const router = useRouter();
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect");
   const { refresh } = useUser();
@@ -74,7 +76,7 @@ export function LoginForm() {
     if (result.ok) {
       setStep("otp");
     } else {
-      setError(result.message || "Failed to send OTP. Please try again.");
+      setError(result.message || t("auth.errors.otpSendFailed"));
     }
     setLoading(false);
   }
@@ -83,7 +85,7 @@ export function LoginForm() {
     e.preventDefault();
     const otp = code.join("");
     if (otp.length < 6) {
-      setError("Please enter the full 6-digit code.");
+      setError(t("auth.errors.otpFull"));
       return;
     }
     setLoading(true);
@@ -102,10 +104,10 @@ export function LoginForm() {
         await refresh();
         router.push(redirectTo?.startsWith("/") ? redirectTo : "/home");
       } else {
-        setError("Login succeeded but no token received.");
+        setError(t("auth.errors.noToken"));
       }
     } else {
-      setError(result.message || "Invalid OTP. Please try again.");
+      setError(result.message || t("auth.errors.otpInvalid"));
     }
     setLoading(false);
   }
@@ -113,7 +115,7 @@ export function LoginForm() {
   return (
     <form className="flex flex-col gap-0" onSubmit={step === "email" ? handleRequestOtp : handleVerifyOtp}>
       <p className="mb-2 text-xl font-semibold text-slate-900">
-        Log in to build your own gallery and join the community.
+        {t("auth.loginHeading")}
       </p>
       <div className="mb-2 h-1.5 w-[9%] max-w-[72px] bg-sky-900 log" />
 
@@ -126,14 +128,14 @@ export function LoginForm() {
       {step === "email" && (
         <>
           <label className="mt-5 first:mt-4 mb-2 block text-sm font-medium text-slate-600" htmlFor="login-email">
-            Email
+            {t("auth.emailLabel")}
           </label>
           <input
             id="login-email"
             className="w-full border border-slate-300 bg-white px-3 py-3 text-sm placeholder:text-slate-400 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
             type="email"
             autoComplete="email"
-            placeholder="you@example.com"
+            placeholder={t("auth.emailPlaceholder")}
             value={email}
             onChange={(ev) => setEmail(ev.target.value)}
           />
@@ -143,7 +145,7 @@ export function LoginForm() {
       {step === "otp" && (
         <>
           <p className="mt-5 text-sm text-slate-600 leading-relaxed">
-            We sent a 6-digit code to{" "}
+            {t("auth.otpSentTo")}{" "}
             <strong className="text-slate-800">{email}</strong>
             <span className="mx-1.5 text-slate-300">·</span>
             <button
@@ -151,12 +153,12 @@ export function LoginForm() {
               onClick={handleChangeEmail}
               className="text-[#1A3F6C] font-semibold hover:underline underline-offset-2"
             >
-              Not you?
+              {t("auth.notYou")}
             </button>
           </p>
 
           <label className="mt-5 mb-3 block text-sm font-medium text-slate-600">
-            Enter OTP code
+            {t("auth.enterOtpCode")}
           </label>
           <div className="flex gap-2 sm:gap-3">
             {code.map((digit, index) => (
@@ -186,14 +188,18 @@ export function LoginForm() {
             disabled={loading}
             className="btn-neumorph w-[85%] max-w-[320px] disabled:opacity-50"
           >
-            {loading ? "Please wait..." : step === "email" ? "Login" : "Verify & Log in"}
+            {loading
+              ? t("common.pleaseWait")
+              : step === "email"
+                ? t("auth.loginButton")
+                : t("auth.verifyAndLogin")}
           </button>
 
           {step === "email" && (
             <p className="text-center text-sm text-slate-500">
-              Don&apos;t have an account?{" "}
+              {t("auth.noAccount")}{" "}
               <Link href="/signup" className="font-semibold text-sky-900 underline underline-offset-2 hover:text-sky-700">
-                Sign up
+                {t("auth.signUp")}
               </Link>
             </p>
           )}
@@ -203,7 +209,7 @@ export function LoginForm() {
           <>
             <div className="flex w-[85%] max-w-[320px] items-center gap-4">
               <div className="h-px flex-1 bg-slate-300" />
-              <span className="text-sm font-medium text-slate-500">or</span>
+              <span className="text-sm font-medium text-slate-500">{t("common.or")}</span>
               <div className="h-px flex-1 bg-slate-300" />
             </div>
 
@@ -218,7 +224,7 @@ export function LoginForm() {
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
               </svg>
-              Continue with Google
+              {t("auth.continueWithGoogle")}
             </button>
           </>
         )}

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { getGalleryListImageUrl, type GalleryListItem } from "@/lib/gallery-service";
 import { NeftwerkImage } from "@/components/NeftwerkImage";
 
@@ -16,6 +17,8 @@ export function GalleriesList({
   galleryHref = (id) => `/discover/galleries/${id}`,
   prefetchCovers = false,
 }: GalleriesListProps) {
+  const { t } = useTranslation();
+
   useEffect(() => {
     if (!prefetchCovers) return;
 
@@ -34,10 +37,10 @@ export function GalleriesList({
     return (
       <div className="text-center py-10">
         <p className="font-bold text-sm uppercase tracking-wider text-[#334E57]/60">
-          No galleries available yet.
+          {t("discover.noGalleriesTitle")}
         </p>
         <p className="text-xs text-slate-400 mt-1">
-          Check back soon — new galleries are being curated.
+          {t("discover.noGalleriesBody")}
         </p>
       </div>
     );
@@ -72,7 +75,7 @@ export function GalleriesList({
               {gallery.name}
             </p>
             <p className="text-[12px] text-[#616161]">
-              {gallery.artworkCount} artwork{gallery.artworkCount === 1 ? "" : "s"}
+              {gallery.artworkCount} {gallery.artworkCount === 1 ? t("discover.artworkSingular") : t("discover.artworkPlural")}
               {gallery.country ? ` · ${gallery.country}` : ""}
             </p>
           </div>

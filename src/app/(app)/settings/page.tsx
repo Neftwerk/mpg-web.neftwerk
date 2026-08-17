@@ -3,9 +3,12 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Trans, useTranslation } from "react-i18next";
 import { useUser } from "@/lib/UserContext";
 import { logout, deactivateAccount, deleteAccount } from "@/lib/auth-service";
 import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
+import { LanguagePickerModal } from "@/components/settings/LanguagePickerModal";
+import { useLanguage } from "@/localization";
 import {
   getPushPreference,
   setPushPreference,
@@ -14,8 +17,11 @@ import {
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { t } = useTranslation();
+  const { current: currentLanguage } = useLanguage();
   const { user, loading } = useUser();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [languageOpen, setLanguageOpen] = useState(false);
   const [pushPref, setPushPref] = useState<PushPreference>("off");
 
   const [showDeactivate, setShowDeactivate] = useState(false);
@@ -42,7 +48,7 @@ export default function SettingsPage() {
 
   const handleDeactivate = async () => {
     if (deactivateConfirm !== "DEACTIVATE") {
-      setActionError('Please type "DEACTIVATE" to confirm.');
+      setActionError(t("settings.deactivate.mustType"));
       return;
     }
     setActionLoading(true);
@@ -51,14 +57,14 @@ export default function SettingsPage() {
     if (res.ok) {
       router.replace("/login");
     } else {
-      setActionError(res.message || "Failed to deactivate account.");
+      setActionError(res.message || t("settings.deactivate.failed"));
     }
     setActionLoading(false);
   };
 
   const handleDelete = async () => {
     if (deleteConfirm !== "DELETE") {
-      setActionError('Please type "DELETE" to confirm.');
+      setActionError(t("settings.delete.mustType"));
       return;
     }
     setActionLoading(true);
@@ -67,23 +73,23 @@ export default function SettingsPage() {
     if (res.ok) {
       router.replace("/login");
     } else {
-      setActionError(res.message || "Failed to delete account.");
+      setActionError(res.message || t("settings.delete.failed"));
     }
     setActionLoading(false);
   };
 
   return (
     <>
-      <MobileTopBar title="Settings" onMenuOpen={() => setMenuOpen(true)} />
+      <MobileTopBar title={t("settings.title")} onMenuOpen={() => setMenuOpen(true)} />
 
       <header className="hidden lg:flex items-center justify-between border-b border-slate-200 bg-slate-50/95 p-4 mt-20 lg:mt-0">
-        <h1 className="text-xl font-semibold text-slate-900">Settings</h1>
+        <h1 className="text-xl font-semibold text-slate-900">{t("settings.title")}</h1>
       </header>
 
       <div className="px-5 pb-28 mt-20 lg:mt-6 flex flex-col gap-6 max-w-lg mx-auto">
         <div className="card-neumorph p-5">
           <h2 className="text-[13px] font-bold text-[#1A3F6C] tracking-wide uppercase mb-4 pl-1">
-            Account
+            {t("settings.account")}
           </h2>
 
           <div className="flex items-center gap-4 mb-4 pl-1">
@@ -91,7 +97,7 @@ export default function SettingsPage() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={user?.avatarUrl || "/images/default-avatar.svg"}
-                alt={user?.fullName || "User Avatar"}
+                alt={user?.fullName || t("settings.userAvatarAlt")}
                 className="h-[50px] w-[50px] rounded-full object-cover bg-white"
               />
             </div>
@@ -100,7 +106,7 @@ export default function SettingsPage() {
                 <div className="h-5 w-24 bg-[#e0ddd8] animate-pulse" />
               ) : (
                 <p className="text-[17px] font-bold text-[#1A3F6C]">
-                  {user?.fullName || "No Name Set"}
+                  {user?.fullName || t("settings.noNameSet")}
                 </p>
               )}
               {user?.email && (
@@ -112,10 +118,10 @@ export default function SettingsPage() {
           <div className="h-px bg-slate-200/60 my-2" />
 
           <div className="flex flex-col">
-            <SettingsRow icon="profile" label="Edit profile" href="/profile/edit" />
+            <SettingsRow icon="profile" label={t("settings.editProfile")} href="/profile/edit" />
             <SettingsRow
               icon="privacy"
-              label="Privacy & Security"
+              label={t("settings.privacy")}
               className="bg-[#EAECEF] -mx-2 px-2"
             />
           </div>
@@ -123,7 +129,7 @@ export default function SettingsPage() {
 
         <div className="card-neumorph p-5">
           <h2 className="text-[13px] font-bold text-[#1A3F6C] tracking-wide uppercase mb-2 pl-1">
-            Preferences
+            {t("settings.preferences")}
           </h2>
 
           <div className="flex flex-col">
@@ -138,26 +144,31 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <span className="text-[15px] font-semibold text-[#11181C] block">
-                    Push alerts
+                    {t("settings.pushAlerts")}
                   </span>
                   <span className="text-[12px] text-slate-400">
-                    Off by default — check Messages when you choose
+                    {t("settings.pushAlertsDesc")}
                   </span>
                 </div>
               </div>
               <span className="text-[13px] text-slate-400 font-medium">
-                {pushPref === "off" ? "Off" : "Minimal"}
+                {pushPref === "off" ? t("settings.pushOff") : t("settings.pushMinimal")}
               </span>
             </button>
-            <SettingsRow icon="language" label="Language" value="English" />
-            <SettingsRow icon="help" label="Support" href="/support" />
+            <SettingsRow
+              icon="language"
+              label={t("settings.language")}
+              value={currentLanguage?.nativeLabel}
+              onClick={() => setLanguageOpen(true)}
+            />
+            <SettingsRow icon="help" label={t("settings.support")} href="/support" />
             {/* About Neftwerk — hidden until copy is ready */}
           </div>
         </div>
 
         <div className="card-neumorph p-5 border border-red-100">
           <h2 className="text-[13px] font-bold text-red-500 tracking-wide uppercase mb-2 pl-1">
-            Danger Zone
+            {t("settings.dangerZone")}
           </h2>
 
           <div className="flex flex-col gap-3">
@@ -183,7 +194,7 @@ export default function SettingsPage() {
                   <circle cx="12" cy="12" r="10" />
                   <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
                 </svg>
-                Deactivate Account
+                {t("settings.deactivateAccount")}
               </span>
               <svg
                 className="w-4 h-4 text-slate-300"
@@ -222,7 +233,7 @@ export default function SettingsPage() {
                   <polyline points="3 6 5 6 21 6" />
                   <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                 </svg>
-                Delete Account Permanently
+                {t("settings.deleteAccountPermanently")}
               </span>
               <svg
                 className="w-4 h-4 text-slate-300"
@@ -245,19 +256,22 @@ export default function SettingsPage() {
           onClick={handleLogout}
           className="btn-neumorph mt-4 w-full py-4 text-rose-600 font-extrabold uppercase tracking-widest active:scale-[0.98]"
         >
-          Logout
+          {t("settings.logout")}
         </button>
       </div>
 
       {showDeactivate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-[400px] bg-[#F2F3F7] p-6 shadow-xl">
-            <h3 className="text-lg font-bold text-amber-700 mb-2">Deactivate Account</h3>
+            <h3 className="text-lg font-bold text-amber-700 mb-2">{t("settings.deactivate.title")}</h3>
             <p className="text-sm text-slate-600 mb-4">
-              Your account will be deactivated. You can contact support to restore it later.
+              {t("settings.deactivate.body")}
             </p>
             <p className="text-xs text-slate-500 mb-3">
-              Type <span className="font-bold text-amber-700">DEACTIVATE</span> to confirm:
+              <Trans
+                i18nKey="settings.deactivate.typeToConfirm"
+                components={[<span key="0" className="font-bold text-amber-700" />]}
+              />
             </p>
             {actionError && (
               <div className="rounded-none border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600 mb-3">
@@ -276,7 +290,7 @@ export default function SettingsPage() {
                 onClick={() => setShowDeactivate(false)}
                 className="flex-1 py-3 text-sm font-medium text-slate-600 border border-slate-300 bg-white hover:bg-slate-50"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 type="button"
@@ -284,7 +298,7 @@ export default function SettingsPage() {
                 disabled={actionLoading || deactivateConfirm !== "DEACTIVATE"}
                 className="flex-1 py-3 text-sm font-bold text-white bg-amber-600 hover:bg-amber-700 disabled:opacity-50"
               >
-                {actionLoading ? "Processing..." : "Deactivate"}
+                {actionLoading ? t("common.processing") : t("settings.deactivate.confirm")}
               </button>
             </div>
           </div>
@@ -294,13 +308,18 @@ export default function SettingsPage() {
       {showDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-[400px] bg-[#F2F3F7] p-6 shadow-xl">
-            <h3 className="text-lg font-bold text-red-600 mb-2">Delete Account</h3>
+            <h3 className="text-lg font-bold text-red-600 mb-2">{t("settings.delete.title")}</h3>
             <p className="text-sm text-slate-600 mb-4">
-              This action is <span className="font-bold text-red-600">irreversible</span>.
-              Your account and all data will be permanently deleted.
+              <Trans
+                i18nKey="settings.delete.body"
+                components={[<span key="0" className="font-bold text-red-600" />]}
+              />
             </p>
             <p className="text-xs text-slate-500 mb-3">
-              Type <span className="font-bold text-red-600">DELETE</span> to confirm:
+              <Trans
+                i18nKey="settings.delete.typeToConfirm"
+                components={[<span key="0" className="font-bold text-red-600" />]}
+              />
             </p>
             {actionError && (
               <div className="rounded-none border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600 mb-3">
@@ -319,7 +338,7 @@ export default function SettingsPage() {
                 onClick={() => setShowDelete(false)}
                 className="flex-1 py-3 text-sm font-medium text-slate-600 border border-slate-300 bg-white hover:bg-slate-50"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 type="button"
@@ -327,12 +346,17 @@ export default function SettingsPage() {
                 disabled={actionLoading || deleteConfirm !== "DELETE"}
                 className="flex-1 py-3 text-sm font-bold text-white bg-red-600 hover:bg-red-700 disabled:opacity-50"
               >
-                {actionLoading ? "Processing..." : "Delete Forever"}
+                {actionLoading ? t("common.processing") : t("settings.delete.confirm")}
               </button>
             </div>
           </div>
         </div>
       )}
+
+      <LanguagePickerModal
+        open={languageOpen}
+        onClose={() => setLanguageOpen(false)}
+      />
 
       <MobileMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
     </>
@@ -344,12 +368,14 @@ function SettingsRow({
   label,
   value,
   href,
+  onClick,
   className = "",
 }: {
   icon: string;
   label: string;
   value?: string;
   href?: string;
+  onClick?: () => void;
   className?: string;
 }) {
   const content = (
@@ -388,6 +414,13 @@ function SettingsRow({
       <Link href={href} className="block">
         {content}
       </Link>
+    );
+  }
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} className="block w-full text-left">
+        {content}
+      </button>
     );
   }
   return <div className="cursor-pointer">{content}</div>;

@@ -1,9 +1,9 @@
 export const navItems = [
-  { href: "/forum", label: "Forum", icon: "forum" as const },
-  { href: "/discover", label: "Discover", icon: "discover" as const },
-  { href: "/gallery", label: "My Gallery", icon: "gallery" as const },
-  { href: "/wallet", label: "Wallet", icon: "wallet" as const },
-  { href: "/profile", label: "Profile", icon: "profile" as const },
+  { href: "/forum", labelKey: "nav.forum", icon: "forum" as const },
+  { href: "/discover", labelKey: "nav.discover", icon: "discover" as const },
+  { href: "/gallery", labelKey: "nav.gallery", icon: "gallery" as const },
+  { href: "/wallet", labelKey: "nav.wallet", icon: "wallet" as const },
+  { href: "/profile", labelKey: "nav.profile", icon: "profile" as const },
 ];
 
 export const galleryItems = [

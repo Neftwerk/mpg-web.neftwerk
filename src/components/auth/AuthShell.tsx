@@ -1,15 +1,21 @@
+"use client";
+
+import { useTranslation } from "react-i18next";
 import { AppTopBar } from "@/components/AppTopBar";
 
 export function AuthShell({
-  title,
+  titleKey,
   children,
   /** Mid-flow auth steps (OTP, reset) use history; landing pages go Home. */
   historyBack = false,
 }: {
-  title: string;
+  /** Translation key for the top-bar title (e.g. "auth.shellWelcome"). */
+  titleKey: string;
   children: React.ReactNode;
   historyBack?: boolean;
 }) {
+  const { t } = useTranslation();
+  const title = t(titleKey);
   return (
     <div className="min-h-[100dvh] bg-[url('/images/deco-pattern-background.svg')] bg-cover bg-center bg-no-repeat">
       <div className="mx-auto flex min-h-[100dvh] max-w-[520px] flex-col">

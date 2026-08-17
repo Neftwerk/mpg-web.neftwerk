@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function ForgotPasswordPage() {
   return (
-    <AuthShell title="Forgot password" historyBack>
+    <AuthShell titleKey="auth.forgotPasswordTitle" historyBack>
       <div className="auth-card">
         <ForgotPasswordForm />
       </div>

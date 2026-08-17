@@ -2,6 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { UnifiedInbox } from "@/components/messages/UnifiedInbox";
@@ -31,6 +32,7 @@ export default function MessagesPage() {
 }
 
 function MessagesContent() {
+  const { t } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useUser();
@@ -67,7 +69,7 @@ function MessagesContent() {
       setHasMore(enquiryRes.data.pagination.hasNextPage);
       setError("");
     } else if (!append) {
-      setError(enquiryRes.message || "Could not load your inbox.");
+      setError(enquiryRes.message || t("messages.enquiryNotFound"));
     }
 
     if (noticeRes?.ok) {
@@ -76,7 +78,7 @@ function MessagesContent() {
 
     setLoading(false);
     setLoadingMore(false);
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (!artworkId) {
@@ -145,13 +147,13 @@ function MessagesContent() {
   return (
     <>
       <MobileTopBar
-        title="Messages"
+        title={t("nav.messages")}
         onMenuOpen={() => setMenuOpen(true)}
         historyBack={Boolean(artworkId)}
       />
 
       <header className="hidden lg:flex items-center justify-between border-b border-slate-200 bg-slate-50/95 p-4">
-        <h1 className="text-xl font-semibold text-slate-900">Messages</h1>
+        <h1 className="text-xl font-semibold text-slate-900">{t("nav.messages")}</h1>
       </header>
 
       <div className="px-4 pb-28 mt-20 lg:mt-0 max-w-lg mx-auto">
@@ -168,15 +170,14 @@ function MessagesContent() {
         {!loading && showRoleWarning && (
           <div className="card-neumorph text-center py-10 mt-4 space-y-3">
             <p className="text-sm text-[#616161]">
-              Only collectors can message galleries about artworks. You can still
-              view conversations in your inbox.
+              {t("messages.collectorOnlyMessage")}
             </p>
             <button
               type="button"
               onClick={() => router.replace("/messages")}
               className="btn-neumorph px-6"
             >
-              View inbox
+              {t("messages.viewInboxButton")}
             </button>
           </div>
         )}
@@ -189,7 +190,7 @@ function MessagesContent() {
               onClick={() => fetchInbox(1)}
               className="btn-neumorph px-6"
             >
-              Try again
+              {t("forum.tryAgain")}
             </button>
           </div>
         )}
@@ -212,7 +213,7 @@ function MessagesContent() {
               disabled={loadingMore}
               className="btn-neumorph px-10 disabled:opacity-50"
             >
-              {loadingMore ? "Loading…" : "Show earlier"}
+              {loadingMore ? t("common.loading") : t("messages.showEarlierButton")}
             </button>
           </div>
         )}
@@ -224,11 +225,12 @@ function MessagesContent() {
 }
 
 function MessagesFallback() {
+  const { t } = useTranslation();
   return (
     <>
-      <MobileTopBar title="Messages" onMenuOpen={() => {}} />
+      <MobileTopBar title={t("nav.messages")} onMenuOpen={() => {}} />
       <header className="hidden lg:flex items-center justify-between border-b border-slate-200 bg-slate-50/95 p-4">
-        <h1 className="text-xl font-semibold text-slate-900">Messages</h1>
+        <h1 className="text-xl font-semibold text-slate-900">{t("nav.messages")}</h1>
       </header>
       <div className="flex justify-center py-16 mt-20 lg:mt-0">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#1A3F6C] border-t-transparent" />

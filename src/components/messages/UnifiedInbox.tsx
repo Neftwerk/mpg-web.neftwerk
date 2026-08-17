@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import type { EnquiryListItem } from "@/lib/enquiry-types";
 import {
   getArtworkTitle,
@@ -15,17 +16,17 @@ import {
   isConversationNotification,
 } from "@/lib/notification-routing";
 
-function timeAgo(dateStr: string): string {
+function timeAgo(dateStr: string, t: any, language: string): string {
   const d = new Date(dateStr);
   const now = new Date();
   const diffMin = Math.floor((now.getTime() - d.getTime()) / 60000);
-  if (diffMin < 1) return "Just now";
-  if (diffMin < 60) return `${diffMin}m ago`;
+  if (diffMin < 1) return t("messages.time.justNow");
+  if (diffMin < 60) return t("messages.time.minutesAgo", { count: diffMin });
   const diffHr = Math.floor(diffMin / 60);
-  if (diffHr < 24) return `${diffHr}h ago`;
+  if (diffHr < 24) return t("messages.time.hoursAgo", { count: diffHr });
   const diffDay = Math.floor(diffHr / 24);
-  if (diffDay < 7) return `${diffDay}d ago`;
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  if (diffDay < 7) return t("messages.time.daysAgo", { count: diffDay });
+  return d.toLocaleDateString(language || "en-US", { month: "short", day: "numeric" });
 }
 
 type InboxRow =
@@ -57,6 +58,7 @@ export function UnifiedInbox({
   onOpenNotice,
   onDismissNotice,
 }: UnifiedInboxProps) {
+  const { t, i18n } = useTranslation();
   const isGalleryOwner = viewerRole === "gallery_owner";
 
   // Conversation threads already cover enquiry alerts — keep one calm list
@@ -95,13 +97,13 @@ export function UnifiedInbox({
         </svg>
         <p className="text-[15px] font-medium text-[#1A3F6C] mb-1 px-4">
           {isGalleryOwner
-            ? "Your inbox is quiet"
-            : "Your inbox is quiet — save a message for when you're ready."}
+            ? t("messages.inboxQuietTitle")
+            : t("messages.inboxQuietCollectorTitle")}
         </p>
         <p className="text-xs text-slate-400 px-6 leading-relaxed">
           {isGalleryOwner
-            ? "Conversations with collectors and notes from Neftwerk will appear here."
-            : "Gallery conversations and notes from Neftwerk live here together. Check whenever you like."}
+            ? t("messages.inboxQuietGalleryDesc")
+            : t("messages.inboxQuietCollectorDesc")}
         </p>
       </div>
     );
@@ -115,6 +117,8 @@ export function UnifiedInbox({
             key={row.id}
             enquiry={row.enquiry}
             isGalleryOwner={isGalleryOwner}
+            t={t}
+            language={i18n.language}
           />
         ) : (
           <NoticeRow
@@ -123,6 +127,8 @@ export function UnifiedInbox({
             viewerRole={viewerRole}
             onOpen={onOpenNotice}
             onDismiss={onDismissNotice}
+            t={t}
+            language={i18n.language}
           />
         ),
       )}
@@ -133,9 +139,13 @@ export function UnifiedInbox({
 function ConversationRow({
   enquiry,
   isGalleryOwner,
+  t,
+  language,
 }: {
   enquiry: EnquiryListItem;
   isGalleryOwner: boolean;
+  t: any;
+  language: string;
 }) {
   const hasUpdate = isGalleryOwner
     ? enquiry.unreadForGallery
@@ -145,7 +155,7 @@ function ConversationRow({
   const title = resolvedTitle !== "Artwork" ? resolvedTitle : fallbackTitle;
   const subtitle = isGalleryOwner
     ? getCustomerName(enquiry.customerId)
-    : "Gallery conversation";
+    : t("messages.galleryConversation");
 
   return (
     <Link
@@ -166,7 +176,7 @@ function ConversationRow({
         </p>
         <p className="text-xs text-slate-500 mt-0.5 truncate">{subtitle}</p>
         <p className="text-[10px] text-slate-400 mt-1">
-          {timeAgo(enquiry.updatedAt)}
+          {timeAgo(enquiry.updatedAt, t, language)}
         </p>
       </div>
     </Link>
@@ -178,11 +188,15 @@ function NoticeRow({
   viewerRole,
   onOpen,
   onDismiss,
+  t,
+  language,
 }: {
   notification: Notification;
   viewerRole?: string;
   onOpen: (notification: Notification) => void;
   onDismiss: (id: string) => void;
+  t: any;
+  language: string;
 }) {
   const router = useRouter();
   const href = getNotificationHref(notification, viewerRole);
@@ -229,7 +243,7 @@ function NoticeRow({
           <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{body}</p>
         )}
         <p className="text-[10px] text-slate-400 mt-1">
-          Neftwerk · {timeAgo(notification.createdAt)}
+          Neftwerk · {timeAgo(notification.createdAt, t, language)}
         </p>
       </div>
 

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect, use } from "react";
+import { useTranslation } from "react-i18next";
 import {
   fetchPublicGallery,
   fetchPublicGalleryArtworks,
@@ -20,6 +21,7 @@ export default function DiscoverGalleryDetailPage({
   params: Promise<Params>;
 }) {
   const { id } = use(params);
+  const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [galleryName, setGalleryName] = useState<string>("Gallery");
   const [artworks, setArtworks] = useState<ArtworkItem[]>([]);
@@ -35,11 +37,11 @@ export default function DiscoverGalleryDetailPage({
         ]);
 
         if (!gallery && items.length === 0) {
-          setError("Gallery not found.");
+          setError(t("discover.galleryNotFound"));
           return;
         }
 
-        setGalleryName(gallery?.name ?? items[0]?.galleryName ?? "Gallery");
+        setGalleryName(gallery?.name ?? items[0]?.galleryName ?? t("discover.galleriesTitle"));
         setArtworks(items);
       } catch (e) {
         setError((e as Error).message);
@@ -48,7 +50,7 @@ export default function DiscoverGalleryDetailPage({
       }
     };
     load();
-  }, [id]);
+  }, [id, t]);
 
   return (
     <>
@@ -60,7 +62,7 @@ export default function DiscoverGalleryDetailPage({
             href="/discover#galleries"
             className="text-sm font-medium text-[#4D91A7] hover:underline"
           >
-            Galleries
+            {t("discover.galleriesTitle")}
           </Link>
           <span className="text-slate-300">/</span>
           <h1 className="text-xl font-semibold text-slate-900">{galleryName}</h1>
@@ -72,7 +74,7 @@ export default function DiscoverGalleryDetailPage({
           href="/discover#galleries"
           className="lg:hidden inline-flex items-center text-sm font-medium text-[#4D91A7] mb-4"
         >
-          ← All galleries
+          {t("discover.allGalleriesLink")}
         </Link>
 
         {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
@@ -82,7 +84,7 @@ export default function DiscoverGalleryDetailPage({
         {!loading && !error && artworks.length === 0 && (
           <div className="text-center py-16">
             <p className="font-bold text-sm uppercase tracking-wider text-[#334E57]/60">
-              No artworks in this gallery yet.
+              {t("discover.noArtworksInGalleryYet")}
             </p>
           </div>
         )}

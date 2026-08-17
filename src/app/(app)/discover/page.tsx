@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import {
   fetchAllPublicArtworks,
   fetchPublicGalleries,
@@ -61,13 +62,14 @@ function DiscoveryModuleSection({
   module: PublicDiscoveryModule;
   priority?: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <section className="mb-8">
       <h3 className="text-[16px] font-bold text-[#1A3F6C] mb-2">{module.title}</h3>
       <p className="text-[14px] text-[#616161] leading-relaxed mb-2">{module.text}</p>
       {module.curatorName ? (
         <p className="text-[12px] text-[#334E57] mb-3">
-          Curated by {module.curatorName}
+          {t("discover.curatedBy", { curatorName: module.curatorName })}
         </p>
       ) : null}
       {module.artworks.length > 0 ? (
@@ -94,13 +96,14 @@ function DiscoveryModuleSection({
           ))}
         </div>
       ) : (
-        <p className="text-xs text-slate-400">Works for this spotlight coming soon.</p>
+        <p className="text-xs text-slate-400">{t("discover.spotlightComingSoon")}</p>
       )}
     </section>
   );
 }
 
 export default function DiscoverPage() {
+  const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [artworks, setArtworks] = useState<ArtworkItem[]>([]);
   const [galleries, setGalleries] = useState<GalleryListItem[]>([]);
@@ -152,17 +155,17 @@ export default function DiscoverPage() {
 
   return (
     <>
-      <MobileTopBar title="Discover" onMenuOpen={() => setMenuOpen(true)} />
+      <MobileTopBar title={t("nav.discover")} onMenuOpen={() => setMenuOpen(true)} />
 
       <header className="hidden lg:flex items-center justify-between border-b border-slate-200 bg-slate-50/95 p-4 mt-20 lg:mt-0">
-        <h1 className="text-xl font-semibold text-slate-900">Discover</h1>
+        <h1 className="text-xl font-semibold text-slate-900">{t("nav.discover")}</h1>
       </header>
 
       <div className="p-4 pb-28 lg:pb-4 mt-20 lg:mt-0">
         <div className="relative mb-8">
           <input
             className="w-full border border-slate-200 bg-white/60 pl-4 pr-10 py-3 text-[15px] placeholder:text-[#888] outline-none transition focus:border-[#4D91A7] focus:ring-1 focus:ring-[#4D91A7]/20 shadow-sm"
-            placeholder="Search artworks"
+            placeholder={t("discover.searchPlaceholder")}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
@@ -188,7 +191,7 @@ export default function DiscoverPage() {
 
         {!loading && !isSearching && (
           <section id="galleries" className="mb-8 scroll-mt-24">
-            <h3 className="text-[16px] font-bold text-[#1A3F6C] mb-3">Galleries</h3>
+            <h3 className="text-[16px] font-bold text-[#1A3F6C] mb-3">{t("discover.galleriesTitle")}</h3>
             <GalleriesList galleries={galleries} prefetchCovers />
           </section>
         )}
@@ -208,10 +211,10 @@ export default function DiscoverPage() {
         {!loading && !isSearching && modules.length === 0 && (
           <div className="mb-8 text-center py-8">
             <p className="font-bold text-sm uppercase tracking-wider text-[#334E57]/60">
-              Spotlights coming soon
+              {t("discover.spotlightsComingSoonTitle")}
             </p>
             <p className="text-xs text-slate-400 mt-1">
-              Check back soon — curated selections are on the way.
+              {t("discover.spotlightsComingSoonBody")}
             </p>
           </div>
         )}
@@ -219,10 +222,10 @@ export default function DiscoverPage() {
         {!loading && !isSearching && artworks.length === 0 && galleries.length === 0 && (
           <div className="text-center py-16">
             <p className="font-bold text-sm uppercase tracking-wider text-[#334E57]/60">
-              No artworks available yet.
+              {t("discover.noArtworksTitle")}
             </p>
             <p className="text-xs text-slate-400 mt-1">
-              Check back soon — new pieces are being curated.
+              {t("discover.noArtworksBody")}
             </p>
           </div>
         )}
@@ -230,10 +233,10 @@ export default function DiscoverPage() {
         {!loading && isSearching && filteredArtworks.length === 0 && (
           <div className="text-center py-16">
             <p className="font-bold text-sm uppercase tracking-wider text-[#334E57]/60">
-              No artworks match your search.
+              {t("discover.noSearchMatchesTitle")}
             </p>
             <p className="text-xs text-slate-400 mt-1">
-              Try a different title or gallery name.
+              {t("discover.noSearchMatchesBody")}
             </p>
           </div>
         )}
@@ -241,7 +244,7 @@ export default function DiscoverPage() {
         {!loading && filteredArtworks.length > 0 && (
           <>
             <h3 className="text-[16px] font-bold text-[#1A3F6C] mb-3">
-              {isSearching ? "Search results" : "All artworks"}
+              {isSearching ? t("discover.searchResultsTitle") : t("discover.allArtworksTitle")}
             </h3>
             <ArtworkMasonry>
               {filteredArtworks.map((item, index) => (
