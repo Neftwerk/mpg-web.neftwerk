@@ -72,7 +72,7 @@ export default function WalletPage() {
                 Wallet
               </p>
               <h2 className="text-xl font-semibold text-[#11181c]">
-                Connect your wallet
+                Connect your account
               </h2>
               <p className="text-sm text-[#616161] leading-relaxed">
                 Link a wallet to your account to manage your purchased artworks.
@@ -84,7 +84,7 @@ export default function WalletPage() {
                 disabled={connecting}
                 className="w-full rounded-full bg-[#11181c] text-white text-sm font-semibold py-3 disabled:opacity-50"
               >
-                {connecting ? "Connecting…" : "Connect Wallet"}
+                {connecting ? "Connecting…" : "Login"}
               </button>
             </>
           )}
