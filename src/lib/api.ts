@@ -17,6 +17,8 @@ export const API_ENDPOINTS = {
     CHANGE_PASSWORD: `${API_BASE_URL}/api/auth/change-password`,
     FORGOT_PASSWORD: `${API_BASE_URL}/api/auth/forgot-password`,
     RESET_PASSWORD: `${API_BASE_URL}/api/auth/reset-password`,
+    PRIVY_LINK: `${API_BASE_URL}/api/auth/privy-link`,
+    PRIVY_AUTH: `${API_BASE_URL}/api/auth/privy-auth`,
     LOGOUT: `${API_BASE_URL}/api/auth/logout`,
     LOGOUT_ALL: `${API_BASE_URL}/api/auth/logout-all`,
     DEACTIVATE: `${API_BASE_URL}/api/auth/deactivate-self`,
