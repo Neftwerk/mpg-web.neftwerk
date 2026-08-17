@@ -185,6 +185,28 @@ export async function verifyLoginOtp(payload: { email: string; otp: string }) {
   return apiFetch(API_ENDPOINTS.AUTH.LOGIN_OTP_VERIFY, { method: "POST", body: JSON.stringify(payload) });
 }
 
+/** Log in or sign up via Privy — verifies the identity token server-side and establishes our own session. */
+export async function privyLogin(identityToken: string) {
+  const result = await apiFetch<Record<string, unknown>>(API_ENDPOINTS.AUTH.PRIVY_AUTH, {
+    method: "POST",
+    body: JSON.stringify({ identityToken }),
+  });
+
+  if (result.ok) {
+    const nested = (result.data?.data || result.data) as {
+      accessToken?: string;
+      refreshToken?: string;
+    };
+    if (nested?.accessToken) {
+      setTokens(nested.accessToken, nested.refreshToken);
+    } else {
+      return { ok: false, status: result.status, data: result.data, message: "Missing access token" };
+    }
+  }
+
+  return result;
+}
+
 export async function refreshAccessToken(opts?: { notify?: boolean }) {
   const refreshToken = getRefreshToken();
 
@@ -243,6 +265,16 @@ export async function getMe() {
   return authedFetch(API_ENDPOINTS.AUTH.ME, {
     method: "GET",
   });
+}
+
+export async function linkPrivyAccount(identityToken: string) {
+  return authedFetch<{ user: UserProfile; privyEmail?: string }>(
+    API_ENDPOINTS.AUTH.PRIVY_LINK,
+    {
+      method: "POST",
+      body: JSON.stringify({ identityToken }),
+    },
+  );
 }
 
 export async function updateProfile(

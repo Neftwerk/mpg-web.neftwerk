@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Trans, useTranslation } from "react-i18next";
+import { usePrivy } from "@privy-io/react-auth";
 import { useUser } from "@/lib/UserContext";
 import { logout, deactivateAccount, deleteAccount } from "@/lib/auth-service";
 import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
@@ -20,6 +21,7 @@ export default function SettingsPage() {
   const { t } = useTranslation();
   const { current: currentLanguage } = useLanguage();
   const { user, loading } = useUser();
+  const { logout: privyLogout } = usePrivy();
   const [menuOpen, setMenuOpen] = useState(false);
   const [languageOpen, setLanguageOpen] = useState(false);
   const [pushPref, setPushPref] = useState<PushPreference>("off");
@@ -43,6 +45,7 @@ export default function SettingsPage() {
 
   const handleLogout = async () => {
     await logout();
+    await privyLogout();
     router.replace("/login");
   };
 
