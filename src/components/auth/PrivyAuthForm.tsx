@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePrivy, useIdentityToken } from "@privy-io/react-auth";
 import { privyLogin } from "@/lib/auth-service";
 import { useUser } from "@/lib/UserContext";
@@ -11,14 +11,20 @@ export function PrivyAuthForm() {
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect");
   const { refresh } = useUser();
-  const { ready, authenticated, login } = usePrivy();
+  const { ready, authenticated, login, logout } = usePrivy();
   const { identityToken } = useIdentityToken();
   const [signingIn, setSigningIn] = useState(false);
   const [error, setError] = useState("");
+  // One exchange per identity token. `signingIn` cannot guard this: clearing it on
+  // failure re-runs the effect, and since `authenticated` and `identityToken` are
+  // still set it retries immediately — forever, which reads as a flood of 429s.
+  const attemptedToken = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!authenticated || !identityToken || signingIn) return;
+    if (!authenticated || !identityToken) return;
+    if (attemptedToken.current === identityToken) return;
 
+    attemptedToken.current = identityToken;
     setSigningIn(true);
     setError("");
 
@@ -36,7 +42,7 @@ export function PrivyAuthForm() {
         setError("Something went wrong. Please try again.");
         setSigningIn(false);
       });
-  }, [authenticated, identityToken, signingIn, refresh, router, redirectTo]);
+  }, [authenticated, identityToken, refresh, router, redirectTo]);
 
   return (
     <div className="flex flex-col gap-0">
@@ -47,7 +53,19 @@ export function PrivyAuthForm() {
 
       {error && (
         <div className="mt-3 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
-          {error}
+          <p>{error}</p>
+          {/* Privy still holds a session for the rejected address, so retrying the
+              same token can only fail again. Clearing it is the only way back. */}
+          <button
+            type="button"
+            onClick={() => {
+              setError("");
+              void logout();
+            }}
+            className="mt-1 underline"
+          >
+            Use a different email
+          </button>
         </div>
       )}
 
