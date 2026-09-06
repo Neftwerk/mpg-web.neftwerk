@@ -1,7 +1,7 @@
 "use client";
 
 import { ExternalLink } from "lucide-react";
-import { getStellarExplorerTxUrl } from "@/lib/socketfi-config";
+import { getStellarExplorerTxUrl } from "@/lib/stellar-explorer";
 
 type Props = {
   mintTxHash: string;

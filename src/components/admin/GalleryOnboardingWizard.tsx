@@ -50,7 +50,7 @@ export function GalleryOnboardingWizard({ galleryId, initialData }: GalleryWizar
     profilePicture: (initialData?.profilePicture as GalleryProfilePicture | null) ?? null,
     address: initialData?.address || "",
     taxId: initialData?.taxId || "",
-    walletAddress: initialData?.walletAddress || "",
+    stellarAddress: initialData?.stellarAddress || "",
     docType: "Entity Proof",
     docExpiry: "",
     docVersion: "v1.0",
@@ -459,8 +459,8 @@ export function GalleryOnboardingWizard({ galleryId, initialData }: GalleryWizar
                   <label className="field-label">Payout Stellar Wallet Address</label>
                   <input
                     type="text"
-                    name="walletAddress"
-                    value={formData.walletAddress}
+                    name="stellarAddress"
+                    value={formData.stellarAddress}
                     onChange={handleInputChange}
                     placeholder="e.g. GCKFBEIYTKP3BPNM5Y72..."
                     className="input-neumorph w-full text-xs font-mono font-bold"

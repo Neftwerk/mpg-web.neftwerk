@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { NeftwerkImage } from "@/components/NeftwerkImage";
-import { RegisterOwnershipButton } from "@/components/wallet/RegisterOwnershipButton";
 import { OwnedArtworkDates } from "@/components/wallet/OwnedArtworkDates";
 import { StellarExplorerLink } from "@/components/wallet/StellarExplorerLink";
 import type { OwnedAsset, OwnedAssetMintStatus } from "@/lib/wallet-service";
@@ -24,15 +23,9 @@ function mintStatusLabel(status: OwnedAssetMintStatus): string {
 
 interface OwnedAssetCardProps {
   asset: OwnedAsset;
-  onMintSuccess?: () => void;
-  showMintActions?: boolean;
 }
 
-export function OwnedAssetCard({
-  asset,
-  onMintSuccess,
-  showMintActions = true,
-}: OwnedAssetCardProps) {
+export function OwnedAssetCard({ asset }: OwnedAssetCardProps) {
   const purchasedAt = asset.purchasedAt ?? asset.acquiredAt;
   const showExplorer =
     asset.mintStatus === "minted" && Boolean(asset.mintTxHash);
@@ -79,15 +72,6 @@ export function OwnedAssetCard({
           claimedAt={asset.claimedAt}
           variant="compact"
         />
-
-        {showMintActions && (
-          <RegisterOwnershipButton
-            saleId={asset.saleId}
-            title={asset.title}
-            mintStatus={asset.mintStatus}
-            onSuccess={onMintSuccess}
-          />
-        )}
       </div>
     </article>
   );

@@ -28,5 +28,3 @@ export const discoverPopular = [
   { id: "p2", title: "Totem #13", imageUrl: "https://picsum.photos/seed/discover-pop2/400/400" },
   { id: "p3", title: "FUtility III", imageUrl: "https://picsum.photos/seed/discover-pop3/400/400" },
 ];
-
-export const walletAddress = "0x71C7656EC7ab88b098defB751B7401B5f60d9116";
