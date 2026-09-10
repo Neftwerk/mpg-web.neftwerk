@@ -1,5 +1,4 @@
 import { API_ENDPOINTS } from "./api";
-import { clearStoredSocketFiSession } from "./socketfi-session";
 
 // ─── Token storage helpers ───
 const ACCESS_TOKEN_KEY = "neft_access_token";
@@ -33,7 +32,6 @@ export function setTokens(
 export function clearTokens() {
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
-  clearStoredSocketFiSession();
   // Notify UserProvider that auth state changed (same-tab)
   window.dispatchEvent(new Event("neft-auth-change"));
 }
@@ -252,6 +250,9 @@ export interface UserProfile {
   bio?: string;
   profilePicture?: string;
   avatarUrl?: string;
+  /** The collector's Stellar account, provisioned on first sign-in. */
+  stellarAddress?: string;
+  role?: string;
   [key: string]: unknown;
 }
 

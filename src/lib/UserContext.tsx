@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect, useCallback, ReactNode 
 import { getProfile, getAccessToken, UserProfile, clearTokens, setTokens } from "@/lib/auth-service";
 import { resolveProfilePictureUrl } from "@/lib/storage-service";
 import { mergeSavedOnLogin, resetSavedMergeState } from "@/lib/saved-service";
+import { createCollectorWallet } from "@/lib/collector-service";
 
 interface UserContextValue {
   user: UserProfile | null;
@@ -67,6 +68,15 @@ function extractTokensFromUrl(): boolean {
   return false;
 }
 
+/**
+ * One provisioning attempt per user per page load.
+ *
+ * `refresh()` runs on mount and on every auth-change event, and React invokes
+ * effects twice in development — without this a single sign-in fires several
+ * creates. They are idempotent server-side, but they are still wasted calls.
+ */
+const provisioning = new Set<string>();
+
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -74,6 +84,36 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const patchUser = useCallback((updates: Partial<UserProfile>) => {
     setUser((current) => (current ? { ...current, ...updates } : current));
   }, []);
+
+  /**
+   * Gives the collector a Stellar wallet if they have none.
+   *
+   * Done at sign-in rather than behind a button on the wallet page: by the time a
+   * collector opens their wallet the address should already be there, and the only
+   * thing left is funding it.
+   *
+   * `POST /collector/wallet` is get-or-create on the server — it returns the
+   * existing wallet rather than a second one — so this cannot leave a collector
+   * with two addresses their funds are split across.
+   */
+  const provisionWallet = useCallback(
+    async (userId: string) => {
+      if (!userId || provisioning.has(userId)) return;
+      provisioning.add(userId);
+
+      const result = await createCollectorWallet();
+      if (result.ok) {
+        patchUser({ stellarAddress: result.data.address });
+        return;
+      }
+
+      // Never allowed to block sign-in. A collector without a wallet can still
+      // browse, and the wallet page reads the real state when they arrive.
+      console.error("Could not provision the collector wallet:", result.message);
+      provisioning.delete(userId);
+    },
+    [patchUser],
+  );
 
   const refresh = useCallback(async () => {
     const token = getAccessToken();
@@ -133,6 +173,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
       setUser(profile);
 
+      // The profile fetch is the "get": it already carries stellarAddress, so the
+      // create call only happens when there is genuinely no wallet. Gated on the
+      // customer role — galleries and admins have no collector wallet.
+      if (profile?.role === "customer" && !profile.stellarAddress) {
+        void provisionWallet(profile.id ? String(profile.id) : "");
+      }
+
       const userKey = profile?.id ? String(profile.id) : profile?.email ? String(profile.email) : null;
       if (userKey) {
         void mergeSavedOnLogin(userKey);
@@ -141,7 +188,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setUser(null);
     }
     setLoading(false);
-  }, []);
+  }, [provisionWallet]);
 
   // Initial mount: check URL for OAuth tokens, then fetch profile
   useEffect(() => {

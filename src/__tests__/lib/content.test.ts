@@ -4,7 +4,6 @@ import {
   galleryItems,
   collections,
   discoverPopular,
-  walletAddress,
 } from "@/lib/content";
 
 describe("content constants", () => {
@@ -70,9 +69,4 @@ describe("content constants", () => {
     });
   });
 
-  describe("walletAddress", () => {
-    it("is a valid Ethereum-style address", () => {
-      expect(walletAddress).toMatch(/^0x[0-9a-fA-F]{40}$/);
-    });
-  });
 });

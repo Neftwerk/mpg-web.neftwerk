@@ -161,14 +161,37 @@ export const API_ENDPOINTS = {
     MINT_SUBMIT: (saleId: string) => `${API_BASE_URL}/api/sales/${saleId}/mint-submit`,
   },
 
+  COLLECTOR: {
+    /** POST /api/collector/wallet — create the Stellar wallet (idempotent) */
+    CREATE_WALLET: `${API_BASE_URL}/api/collector/wallet`,
+    /** GET  /api/collector/wallet — address, existence, trustline, USDC balance */
+    WALLET: `${API_BASE_URL}/api/collector/wallet`,
+    /** POST /api/collector/kyc/start — returns the hosted verification link */
+    KYC_START: `${API_BASE_URL}/api/collector/kyc/start`,
+    /** GET  /api/collector/kyc/status */
+    KYC_STATUS: `${API_BASE_URL}/api/collector/kyc/status`,
+    /** POST /api/collector/kyc/simulate-approval — sandbox only, absent on mainnet */
+    SIMULATE_KYC: `${API_BASE_URL}/api/collector/kyc/simulate-approval`,
+    /** POST /api/collector/deposits/announce — the collector says they have sent it */
+    ANNOUNCE_TRANSFER: `${API_BASE_URL}/api/collector/deposits/announce`,
+    /** POST /api/collector/wallet/activation — { xdr, hash, address } to sign */
+    ACTIVATION: `${API_BASE_URL}/api/collector/wallet/activation`,
+    /** POST /api/collector/wallet/activation/submit — { xdr, signature } */
+    ACTIVATION_SUBMIT: `${API_BASE_URL}/api/collector/wallet/activation/submit`,
+    /** POST /api/collector/deposit-account — create bank funding details */
+    CREATE_DEPOSIT_ACCOUNT: `${API_BASE_URL}/api/collector/deposit-account`,
+    /** GET  /api/collector/deposit-account */
+    DEPOSIT_ACCOUNT: `${API_BASE_URL}/api/collector/deposit-account`,
+    /** GET  /api/collector/deposits */
+    DEPOSITS: `${API_BASE_URL}/api/collector/deposits`,
+    /** GET  /api/collector/deposit-quote?priceUsd= */
+    DEPOSIT_QUOTE: (priceUsd: number) =>
+      `${API_BASE_URL}/api/collector/deposit-quote?priceUsd=${encodeURIComponent(priceUsd)}`,
+  },
+
   CHAIN: {
     /** GET /api/chain/config */
     CONFIG: `${API_BASE_URL}/api/chain/config`,
-  },
-
-  WALLET: {
-    /** POST /api/wallet/socketfi/verify */
-    SOCKETFI_VERIFY: `${API_BASE_URL}/api/wallet/socketfi/verify`,
   },
 
   SAVED: {

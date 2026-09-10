@@ -16,18 +16,6 @@ export default function GalleryPage() {
   const [error, setError] = useState<string | null>(null);
   const { user, loading: userLoading } = useUser();
 
-  const reloadAssets = () => {
-    if (!user) return;
-    setLoading(true);
-    setError(null);
-    fetchOwnedAssets()
-      .then(setAssets)
-      .catch((err) => {
-        setError(err instanceof Error ? err.message : "Could not load your gallery.");
-      })
-      .finally(() => setLoading(false));
-  };
-
   useEffect(() => {
     if (userLoading) return;
 
@@ -105,11 +93,7 @@ export default function GalleryPage() {
         {user && !loading && assets.length > 0 && (
           <ArtworkMasonry>
             {assets.map((asset) => (
-              <OwnedAssetCard
-                key={asset.saleId}
-                asset={asset}
-                onMintSuccess={reloadAssets}
-              />
+              <OwnedAssetCard key={asset.saleId} asset={asset} />
             ))}
           </ArtworkMasonry>
         )}
