@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "staging"]
+  pull_request:
+    branches: ["main", "staging"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [22.x]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+
+      - run: npm ci
+
+      # Ahead of the build, and separately from it: `next build` does not fail on
+      # every type error, so a build alone would let real ones through.
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      # Reported, not enforced. There are 42 pre-existing errors — mostly unused
+      # variables, `any`, and setState-in-effect — none of them introduced here.
+      # Blocking on them would make CI red from its first run, and a CI that is
+      # always red is one everybody learns to ignore.
+      #
+      # Remove `continue-on-error` once the count reaches zero. Until then this
+      # still surfaces new problems in the log without gating merges.
+      - name: Lint
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Build
+        run: npm run build
+        env:
+          # Needed because `PrivyAppProvider` wraps the (app) and (auth) route
+          # groups: every prerendered page in them initialises Privy, and Privy
+          # rejects a malformed id, which fails the build.
+          #
+          # A repository *variable*, not a secret. The id ships in the client bundle
+          # of every deployment, so masking it in logs would be theatre — and a
+          # variable makes it visible where it is set, which is the honest place for
+          # configuration that is not confidential.
+          NEXT_PUBLIC_PRIVY_APP_ID: ${{ vars.NEXT_PUBLIC_PRIVY_APP_ID }}
+
+      - name: Test
+        run: npm test
