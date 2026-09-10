@@ -67,16 +67,24 @@ export interface DepositQuote {
   minimum: string;
 }
 
-export interface FiatDepositAccount {
+export interface DepositAccount {
   id: string;
-  wallet_id: string;
-  provider: string;
-  environment: string;
   status: string;
-  source: { currency: string; payment_rails?: string[] };
-  destination: { asset: string; chain: string };
-  /** Bridge's own field names, passed through verbatim — render generically. */
+  /**
+   * Bridge's own field names, passed through verbatim — render generically rather
+   * than picking fields out, since they vary by payment rail.
+   */
   deposit_instructions?: Record<string, unknown>;
+  /**
+   * `blockchain_memo` is Bridge's requirement, not ours, and nothing here reads it:
+   * our wallets are one per collector, not pooled, so there is nothing to route.
+   */
+  destination: {
+    currency: string;
+    payment_rail: string;
+    address: string;
+    blockchain_memo?: string;
+  };
   created_at: string;
 }
 
@@ -164,6 +172,20 @@ export const getKycStatus = () => request<KycState>(API_ENDPOINTS.COLLECTOR.KYC_
 /**
  * Sandbox only — the route does not exist on mainnet.
  *
+ * Bridge sandbox simulates the bank transfer and never sends the USDC, so this
+ * stands in for settlement. It proves our half works: the payment lands, the
+ * observer records it, the balance and deposit list update. It proves nothing
+ * about whether a real Bridge settlement arrives where we told it to.
+ */
+export const simulateDeposit = (amount: string) =>
+  request<{ hash: string; deposits: Deposit[] }>(
+    API_ENDPOINTS.COLLECTOR.SIMULATE_DEPOSIT,
+    { method: "POST", body: { amount } },
+  );
+
+/**
+ * Sandbox only — the route does not exist on mainnet.
+ *
  * Bridge never approves sandbox customers on its own, so this is the only way to
  * reach activation and funding in a test environment.
  */
@@ -185,13 +207,13 @@ export const submitActivation = (input: { xdr: string; signature: string }) =>
 // ─── Funding ───
 
 export const createDepositAccount = () =>
-  request<FiatDepositAccount>(API_ENDPOINTS.COLLECTOR.CREATE_DEPOSIT_ACCOUNT, {
+  request<DepositAccount>(API_ENDPOINTS.COLLECTOR.CREATE_DEPOSIT_ACCOUNT, {
     method: "POST",
   });
 
 /** Resolves with `null` when the collector has no deposit account yet. */
 export const getDepositAccount = () =>
-  request<FiatDepositAccount | null>(API_ENDPOINTS.COLLECTOR.DEPOSIT_ACCOUNT);
+  request<DepositAccount | null>(API_ENDPOINTS.COLLECTOR.DEPOSIT_ACCOUNT);
 
 export const listDeposits = () => request<Deposit[]>(API_ENDPOINTS.COLLECTOR.DEPOSITS);
 

@@ -17,10 +17,11 @@ import {
   getDepositQuote,
   getKycStatus,
   listDeposits,
+  simulateDeposit,
   simulateKycApproval,
   type Deposit,
   type DepositQuote,
-  type FiatDepositAccount,
+  type DepositAccount,
   type KycState,
   type WalletAccountState,
 } from "@/lib/collector-service";
@@ -135,7 +136,7 @@ export default function WalletPage() {
 
   const [wallet, setWallet] = useState<WalletAccountState | null>(null);
   const [kyc, setKyc] = useState<KycState | null>(null);
-  const [depositAccount, setDepositAccount] = useState<FiatDepositAccount | null>(null);
+  const [depositAccount, setDepositAccount] = useState<DepositAccount | null>(null);
   const [deposits, setDeposits] = useState<Deposit[]>([]);
   /** Drives the sandbox-only approval shortcut. From the backend, not an env var. */
   const [network, setNetwork] = useState<"testnet" | "mainnet" | null>(null);
@@ -324,6 +325,29 @@ export default function WalletPage() {
    * otherwise sit in `under_review` and nothing past verification could be reached.
    * The route does not exist on mainnet.
    */
+  /**
+   * Sandbox shortcut past Bridge's settlement, which sandbox never performs.
+   *
+   * Bridge simulates the bank transfer and sends no USDC, so without this the
+   * on-chain half never happens and the deposits list stays empty however many
+   * transfers are simulated. Sends the net figure, which is what would actually
+   * arrive after the conversion fee. Absent on mainnet, where the route does not
+   * exist either.
+   */
+  const onSimulateDeposit = () =>
+    run("simulate-deposit", async () => {
+      const amount = quote?.net ?? fundAmount;
+      if (!amount || Number(amount) <= 0) {
+        throw new Error("Get a quote first, so the amount matches what would arrive.");
+      }
+
+      const res = await simulateDeposit(amount);
+      if (!res.ok) throw new Error(res.message);
+
+      setDeposits(res.data.deposits);
+      await load();
+    });
+
   const onSimulateApproval = () =>
     run("simulate", async () => {
       const res = await simulateKycApproval();
@@ -560,6 +584,22 @@ export default function WalletPage() {
                       </p>
                     )}
                   </div>
+                )}
+
+                {/* Bridge sandbox takes the transfer and never sends the USDC, so
+                    the deposit would never appear without this. It exercises our
+                    half only — the payment, the observer, the balance, the list. */}
+                {network === "testnet" && (
+                  <button
+                    type="button"
+                    onClick={onSimulateDeposit}
+                    disabled={busy === "simulate-deposit"}
+                    className="w-full text-xs text-[#4D91A7] underline disabled:opacity-50"
+                  >
+                    {busy === "simulate-deposit"
+                      ? "Sending…"
+                      : `Simulate the transfer arriving${quote ? ` ($${quote.net})` : ""} (sandbox)`}
+                  </button>
                 )}
               </section>
             )}

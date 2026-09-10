@@ -172,6 +172,8 @@ export const API_ENDPOINTS = {
     KYC_STATUS: `${API_BASE_URL}/api/collector/kyc/status`,
     /** POST /api/collector/kyc/simulate-approval — sandbox only, absent on mainnet */
     SIMULATE_KYC: `${API_BASE_URL}/api/collector/kyc/simulate-approval`,
+    /** POST /api/collector/deposits/simulate — sandbox only, absent on mainnet */
+    SIMULATE_DEPOSIT: `${API_BASE_URL}/api/collector/deposits/simulate`,
     /** POST /api/collector/wallet/activation — { xdr, hash, address } to sign */
     ACTIVATION: `${API_BASE_URL}/api/collector/wallet/activation`,
     /** POST /api/collector/wallet/activation/submit — { xdr, signature } */
