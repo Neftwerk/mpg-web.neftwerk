@@ -8,7 +8,6 @@ import { NeftwerkImage } from "@/components/NeftwerkImage";
 import { ArtworkDetailSkeleton } from "@/components/Skeletons";
 import { ArtworkPriceBuy } from "@/components/artwork/ArtworkPriceBuy";
 import { SaveArtworkButton } from "@/components/artwork/SaveArtworkButton";
-import { RegisterOwnershipButton } from "@/components/wallet/RegisterOwnershipButton";
 import { OwnedArtworkDates } from "@/components/wallet/OwnedArtworkDates";
 import { StellarExplorerLink } from "@/components/wallet/StellarExplorerLink";
 import { useUser } from "@/lib/UserContext";
@@ -227,14 +226,6 @@ export default function ArtworkPage({ params }: { params: Promise<Params> }) {
                     mintStatus={ownedAsset.mintStatus}
                     claimedAt={ownedAsset.claimedAt}
                     className="rounded-lg border border-[#BAC4C8]/40 bg-[#F8FAFB] px-3 py-2.5"
-                  />
-                  <RegisterOwnershipButton
-                    saleId={ownedAsset.saleId}
-                    title={ownedAsset.title}
-                    mintStatus={ownedAsset.mintStatus}
-                    onSuccess={() => {
-                      fetchOwnedAssetForArtwork(id).then(setOwnedAsset).catch(() => {});
-                    }}
                   />
                   <Link
                     href="/gallery"
