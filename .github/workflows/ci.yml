@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "staging"]
+  pull_request:
+    branches: ["main", "staging"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [22.x]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+
+      - run: npm ci
+
+      # Ahead of the build, and separately from it: `next build` does not fail on
+      # every type error, so a build alone would let real ones through.
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+        env:
+          # Read at build time with a non-null assertion in PrivyAppProvider, so an
+          # absent value fails the build rather than degrading. Public by design —
+          # it identifies the app to Privy and grants nothing — but it lives in
+          # repository secrets so the value is set in one place.
+          NEXT_PUBLIC_PRIVY_APP_ID: ${{ secrets.NEXT_PUBLIC_PRIVY_APP_ID }}
+
+      - name: Test
+        run: npm test
