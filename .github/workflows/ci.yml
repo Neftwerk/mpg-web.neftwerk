@@ -44,11 +44,15 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          # Read at build time with a non-null assertion in PrivyAppProvider, so an
-          # absent value fails the build rather than degrading. Public by design —
-          # it identifies the app to Privy and grants nothing — but it lives in
-          # repository secrets so the value is set in one place.
-          NEXT_PUBLIC_PRIVY_APP_ID: ${{ secrets.NEXT_PUBLIC_PRIVY_APP_ID }}
+          # Needed because `PrivyAppProvider` wraps the (app) and (auth) route
+          # groups: every prerendered page in them initialises Privy, and Privy
+          # rejects a malformed id, which fails the build.
+          #
+          # A repository *variable*, not a secret. The id ships in the client bundle
+          # of every deployment, so masking it in logs would be theatre — and a
+          # variable makes it visible where it is set, which is the honest place for
+          # configuration that is not confidential.
+          NEXT_PUBLIC_PRIVY_APP_ID: ${{ vars.NEXT_PUBLIC_PRIVY_APP_ID }}
 
       - name: Test
         run: npm test
