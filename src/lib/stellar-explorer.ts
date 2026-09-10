@@ -1,6 +1,5 @@
 /**
- * StellarExpert links. Salvaged from the removed SocketFi config, which is the only
- * reason this ever lived alongside wallet code — it is just a URL builder.
+ * StellarExpert links.
  *
  * Reads NEXT_PUBLIC_STELLAR_NETWORK. Defaults to testnet rather than throwing: a
  * missing env var should not break rendering a link.
