@@ -88,6 +88,20 @@ export interface DepositAccount {
   created_at: string;
 }
 
+/**
+ * The deposit ledger, plus whatever transfer is outstanding.
+ *
+ * The announcement rides along with the deposits so a collector who reloads during
+ * the day or two a bank transfer takes still sees that we are expecting it.
+ */
+export interface DepositLedger {
+  deposits: Deposit[];
+  /** ISO timestamp of when they said they had sent it, or null. */
+  awaitingSince: string | null;
+  /** What they were told to wire, so the waiting message can name it. */
+  expectedGross: string | null;
+}
+
 export interface Deposit {
   _id: string;
   amount: string;
@@ -170,18 +184,17 @@ export const startKyc = (clientAgreementId?: string) =>
 export const getKycStatus = () => request<KycState>(API_ENDPOINTS.COLLECTOR.KYC_STATUS);
 
 /**
- * Sandbox only — the route does not exist on mainnet.
+ * Tells the backend the collector says they have made the bank transfer.
  *
- * Bridge sandbox simulates the bank transfer and never sends the USDC, so this
- * stands in for settlement. It proves our half works: the payment lands, the
- * observer records it, the balance and deposit list update. It proves nothing
- * about whether a real Bridge settlement arrives where we told it to.
+ * Takes no amount — the quote already recorded what they were told to send, and
+ * passing one here would let the claim disagree with the instruction on screen.
+ *
+ * Nothing verifies the claim, so it only drives the waiting message. On testnet the
+ * backend also settles from the vault, standing in for the bank, because Bridge
+ * sandbox accepts the transfer and never delivers the USDC.
  */
-export const simulateDeposit = (amount: string) =>
-  request<{ hash: string; deposits: Deposit[] }>(
-    API_ENDPOINTS.COLLECTOR.SIMULATE_DEPOSIT,
-    { method: "POST", body: { amount } },
-  );
+export const announceTransfer = () =>
+  request<DepositLedger>(API_ENDPOINTS.COLLECTOR.ANNOUNCE_TRANSFER, { method: "POST" });
 
 /**
  * Sandbox only — the route does not exist on mainnet.
@@ -215,7 +228,8 @@ export const createDepositAccount = () =>
 export const getDepositAccount = () =>
   request<DepositAccount | null>(API_ENDPOINTS.COLLECTOR.DEPOSIT_ACCOUNT);
 
-export const listDeposits = () => request<Deposit[]>(API_ENDPOINTS.COLLECTOR.DEPOSITS);
+export const listDeposits = () =>
+  request<DepositLedger>(API_ENDPOINTS.COLLECTOR.DEPOSITS);
 
 export const getDepositQuote = (priceUsd: number) =>
   request<DepositQuote>(API_ENDPOINTS.COLLECTOR.DEPOSIT_QUOTE(priceUsd));

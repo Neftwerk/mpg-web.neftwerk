@@ -17,7 +17,7 @@ import {
   getDepositQuote,
   getKycStatus,
   listDeposits,
-  simulateDeposit,
+  announceTransfer,
   simulateKycApproval,
   type Deposit,
   type DepositQuote,
@@ -167,6 +167,13 @@ export default function WalletPage() {
 
   const [fundAmount, setFundAmount] = useState("");
   const [quote, setQuote] = useState<DepositQuote | null>(null);
+  /**
+   * When the collector said they had made the transfer, if they have.
+   *
+   * Read from the server rather than held only here, so it survives the reload that
+   * is likely during the day or two a bank transfer takes.
+   */
+  const [awaitingSince, setAwaitingSince] = useState<string | null>(null);
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -182,7 +189,10 @@ export default function WalletPage() {
 
     if (kycRes.ok) setKyc(kycRes.data);
     if (accountRes.ok) setDepositAccount(accountRes.data);
-    if (depositsRes.ok) setDeposits(depositsRes.data);
+    if (depositsRes.ok) {
+      setDeposits(depositsRes.data.deposits);
+      setAwaitingSince(depositsRes.data.awaitingSince);
+    }
 
     if (walletRes.ok) {
       setWallet(walletRes.data);
@@ -311,11 +321,32 @@ export default function WalletPage() {
       if (!quoted.ok) throw new Error(quoted.message);
       setQuote(quoted.data);
 
-      if (depositAccount) return;
+      if (!depositAccount) {
+        const created = await createDepositAccount();
+        if (!created.ok) throw new Error(created.message);
+        setDepositAccount(created.data);
+      }
+    });
 
-      const created = await createDepositAccount();
-      if (!created.ok) throw new Error(created.message);
-      setDepositAccount(created.data);
+  /**
+   * The collector says they have gone to their bank and sent it.
+   *
+   * Sends no amount: the quote already recorded what they were told to wire, and
+   * passing one from here would let the claim disagree with the figure on screen.
+   *
+   * Nothing verifies it, so all it earns is the waiting message. On testnet the
+   * backend also settles from the vault, standing in for the bank — Bridge sandbox
+   * accepts the transfer and never delivers the USDC, so otherwise there would be
+   * nothing to wait for.
+   */
+  const onAnnounceTransfer = () =>
+    run("announce", async () => {
+      const res = await announceTransfer();
+      if (!res.ok) throw new Error(res.message);
+
+      setDeposits(res.data.deposits);
+      setAwaitingSince(res.data.awaitingSince);
+      await load();
     });
 
   /**
@@ -325,29 +356,6 @@ export default function WalletPage() {
    * otherwise sit in `under_review` and nothing past verification could be reached.
    * The route does not exist on mainnet.
    */
-  /**
-   * Sandbox shortcut past Bridge's settlement, which sandbox never performs.
-   *
-   * Bridge simulates the bank transfer and sends no USDC, so without this the
-   * on-chain half never happens and the deposits list stays empty however many
-   * transfers are simulated. Sends the net figure, which is what would actually
-   * arrive after the conversion fee. Absent on mainnet, where the route does not
-   * exist either.
-   */
-  const onSimulateDeposit = () =>
-    run("simulate-deposit", async () => {
-      const amount = quote?.net ?? fundAmount;
-      if (!amount || Number(amount) <= 0) {
-        throw new Error("Get a quote first, so the amount matches what would arrive.");
-      }
-
-      const res = await simulateDeposit(amount);
-      if (!res.ok) throw new Error(res.message);
-
-      setDeposits(res.data.deposits);
-      await load();
-    });
-
   const onSimulateApproval = () =>
     run("simulate", async () => {
       const res = await simulateKycApproval();
@@ -586,21 +594,6 @@ export default function WalletPage() {
                   </div>
                 )}
 
-                {/* Bridge sandbox takes the transfer and never sends the USDC, so
-                    the deposit would never appear without this. It exercises our
-                    half only — the payment, the observer, the balance, the list. */}
-                {network === "testnet" && (
-                  <button
-                    type="button"
-                    onClick={onSimulateDeposit}
-                    disabled={busy === "simulate-deposit"}
-                    className="w-full text-xs text-[#4D91A7] underline disabled:opacity-50"
-                  >
-                    {busy === "simulate-deposit"
-                      ? "Sending…"
-                      : `Simulate the transfer arriving${quote ? ` ($${quote.net})` : ""} (sandbox)`}
-                  </button>
-                )}
               </section>
             )}
 
@@ -614,6 +607,40 @@ export default function WalletPage() {
                   These details are permanent — the same ones work for every future
                   transfer, and no reference code is needed.
                 </p>
+
+                {awaitingSince ? (
+                  /* Nothing verifies this — it is only what the collector told us —
+                     so it says we are expecting the money, never that it is on its
+                     way. The deposits list below is the one that speaks for the
+                     ledger. */
+                  <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                    <p className="font-medium">Waiting for your transfer</p>
+                    <p className="mt-1 text-xs">
+                      Bank transfers usually take a while. It will appear
+                      below once it arrives — you can close this page.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={onAnnounceTransfer}
+                      disabled={busy === "announce"}
+                      className="btn-neumorph w-full disabled:opacity-50"
+                    >
+                      {busy === "announce" ? "Just a moment…" : "I've made the transfer"}
+                    </button>
+                    {/* Said plainly: on testnet this button moves USDC. Someone
+                        testing should know the money they see arrive came from the
+                        vault standing in for a bank, not from one. */}
+                    {network === "testnet" && (
+                      <p className="text-xs text-[#616161]">
+                        Sandbox: this also pays the net amount from the test vault, in
+                        place of the transfer Bridge never settles here.
+                      </p>
+                    )}
+                  </>
+                )}
               </section>
             )}
 
