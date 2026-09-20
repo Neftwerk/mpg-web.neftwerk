@@ -154,8 +154,40 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
   const payments =
     envelope && passphrase ? decodePayments(envelope.xdr, passphrase) : [];
 
-  const roleFor = (destination: string) =>
-    envelope?.splits.find((s) => s.toAddress === destination)?.role;
+  /**
+   * Who a payment is going to, matched on the address in the transaction.
+   *
+   * The backend's roles are `gallery` and `artist`; anything else is shown as-is
+   * rather than hidden, because an unrecognised payee on a payment is exactly the
+   * thing someone should see before signing.
+   */
+  const splitFor = (destination: string) =>
+    envelope?.splits.find((s) => s.address === destination);
+
+  const labelFor = (role?: string) => {
+    if (role === "gallery") return "The gallery";
+    if (role === "artist") return "The artist";
+    return role ? role[0]!.toUpperCase() + role.slice(1) : "Unrecognised payee";
+  };
+
+  /**
+   * Whether the transaction pays what the backend says it pays.
+   *
+   * The amounts shown come from the XDR, because that is what gets signed. The
+   * backend's `splits` are the same figures recorded separately — so if the two
+   * disagree, one of them is wrong and nobody should be signing either.
+   */
+  const splitsMatchTransaction =
+    envelope !== null &&
+    payments.length === envelope.splits.length &&
+    payments.every((payment) => {
+      const split = splitFor(payment.destination);
+      if (!split) return false;
+
+      const [whole, fraction = ""] = payment.amount.split(".");
+      const cents = Number(`${whole}${fraction.padEnd(2, "0").slice(0, 2)}`);
+      return cents === split.amountCents;
+    });
 
   return (
     <>
@@ -237,31 +269,59 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
                     it. Asking someone to approve a payment on our description of
                     it would make the description the thing they trust. */}
                 <ul className="divide-y divide-slate-200">
-                  {payments.map((payment, index) => (
-                    <li
-                      key={`${payment.destination}-${index}`}
-                      className="flex items-start justify-between gap-3 py-2"
-                    >
-                      <div>
-                        <p className="text-sm font-medium text-[#11181c]">
-                          {roleFor(payment.destination) ?? "Payee"}
+                  {payments.map((payment, index) => {
+                    const split = splitFor(payment.destination);
+
+                    return (
+                      <li
+                        key={`${payment.destination}-${index}`}
+                        className="flex items-start justify-between gap-3 py-3"
+                      >
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-[#11181c]">
+                            {labelFor(split?.role)} receives
+                          </p>
+                          {split?.toVault ? (
+                            // Said plainly. The money leaves the buyer's wallet
+                            // either way, but it does not reach this payee yet —
+                            // and that is not something to discover afterwards.
+                            <p className="text-xs text-amber-700">
+                              Held by Neftwerk until they set up a wallet
+                            </p>
+                          ) : (
+                            <p
+                              className="truncate font-mono text-xs text-[#616161]"
+                              title={payment.destination}
+                            >
+                              {truncate(payment.destination)}
+                            </p>
+                          )}
+                        </div>
+                        <p className="shrink-0 text-sm font-semibold text-[#11181c]">
+                          ${payment.amount}
+                          <span className="ml-1 text-xs font-normal text-[#616161]">
+                            {payment.assetCode}
+                          </span>
                         </p>
-                        <p
-                          className="font-mono text-xs text-[#616161]"
-                          title={payment.destination}
-                        >
-                          {truncate(payment.destination)}
-                        </p>
-                      </div>
-                      <p className="shrink-0 text-sm font-medium text-[#11181c]">
-                        {payment.amount} {payment.assetCode}
-                      </p>
-                    </li>
-                  ))}
+                      </li>
+                    );
+                  })}
                 </ul>
                 <p className="text-xs text-[#616161]">
                   Everyone is paid in the same transaction, or nobody is.
                 </p>
+
+                {/* The amounts above are decoded from the transaction; the backend
+                    recorded the same figures separately when it composed it. If
+                    they disagree, one of them is wrong and neither is safe to
+                    sign — so this refuses rather than letting the collector
+                    choose which to believe. */}
+                {!splitsMatchTransaction && (
+                  <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                    This transaction does not match the breakdown we recorded for
+                    it. Do not approve it — please contact support.
+                  </p>
+                )}
               </section>
             )}
 
@@ -282,7 +342,11 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
                 <button
                   type="button"
                   onClick={onPay}
-                  disabled={stage === "signing" || stage === "submitting"}
+                  disabled={
+                    stage === "signing" ||
+                    stage === "submitting" ||
+                    !splitsMatchTransaction
+                  }
                   className="btn-neumorph w-full disabled:opacity-50"
                 >
                   {stage === "signing"

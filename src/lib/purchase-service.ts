@@ -9,12 +9,18 @@ import { authedFetch } from "./auth-service";
  * against the address it holds on record before it will send anything.
  */
 
-/** A payee's share, as the backend recorded it. */
+/** A payee's share, as the backend recorded it when composing the transaction. */
 export interface PaymentSplit {
-  /** Null when the payee has no Stellar address and their share goes to the vault. */
-  toAddress: string | null;
-  amountCents: number;
+  /** `gallery` or `artist`. */
   role: string;
+  /** Always set — the vault's address when the payee has none of their own. */
+  address: string;
+  amountCents: number;
+  /**
+   * The payee had no address on record, so their share went to the Neftwerk vault.
+   * An obligation rather than a payment, and worth saying out loud: the buyer's
+   * money still leaves their wallet, it just does not reach that payee yet.
+   */
   toVault: boolean;
 }
 
