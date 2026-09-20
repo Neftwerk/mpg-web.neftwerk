@@ -153,6 +153,11 @@ export const API_ENDPOINTS = {
     CHECKOUT: `${API_BASE_URL}/api/sales/checkout`,
     /** GET /api/sales/mine */
     MINE: `${API_BASE_URL}/api/sales/mine`,
+    /** POST /api/sales/:saleId/payment — compose the collector's payment */
+    PAYMENT: (saleId: string) => `${API_BASE_URL}/api/sales/${saleId}/payment`,
+    /** POST /api/sales/:saleId/payment/submit — submit it signed */
+    PAYMENT_SUBMIT: (saleId: string) =>
+      `${API_BASE_URL}/api/sales/${saleId}/payment/submit`,
     /** POST /api/sales/:saleId/mint-prep */
     MINT_PREP: (saleId: string) => `${API_BASE_URL}/api/sales/${saleId}/mint-prep`,
     /** POST /api/sales/:saleId/mint-relay */
