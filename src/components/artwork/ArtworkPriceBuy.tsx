@@ -4,9 +4,21 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatListPrice } from "@/lib/format";
 import { getAccessToken } from "@/lib/auth-service";
-import { startArtworkCheckout } from "@/lib/payment-service";
-import { CoinflowCheckoutModal } from "@/components/payments/CoinflowCheckoutModal";
-import { LinkSuccessModal } from "@/components/LinkSuccessModal";
+import { getCollectorWallet } from "@/lib/collector-service";
+import { startCheckout } from "@/lib/purchase-service";
+
+/**
+ * A USDC balance to whole cents, flooring sub-cent dust.
+ *
+ * String arithmetic rather than `Number(balance) * 100`: Horizon reports seven
+ * decimal places, and float multiplication would put a check on someone's own money
+ * on the wrong side of a rounding error. Mirrors the backend's own conversion, so
+ * the two cannot disagree about whether a balance covers a price.
+ */
+const usdcToCents = (amount: string): number => {
+  const [whole, fraction = ""] = amount.split(".");
+  return Number(`${whole}${fraction.padEnd(2, "0").slice(0, 2)}`);
+};
 
 interface ArtworkPriceBuyProps {
   artworkId: string;
@@ -31,8 +43,6 @@ export function ArtworkPriceBuy({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
-  const [checkoutLink, setCheckoutLink] = useState<string | null>(null);
-  const [purchaseComplete, setPurchaseComplete] = useState(false);
   const priceLabel = formatListPrice(listPriceCents);
   const canBuy = !sold && (listPriceCents ?? 0) > 0;
   const enquireHref = (() => {
@@ -52,25 +62,49 @@ export function ArtworkPriceBuy({
     const priceCents = listPriceCents;
     if (priceCents == null || priceCents <= 0) return;
 
+    if (!getAccessToken()) {
+      router.push(`/login?redirect=${encodeURIComponent(`/artwork/${artworkId}`)}`);
+      return;
+    }
+
     setError(null);
     setLoading(true);
 
     try {
-      const result = await startArtworkCheckout({
-        artworkId,
-        listPriceCents: priceCents,
-        returnPath: `/artwork/${artworkId}`,
-        onStatus: setStatus,
-      });
+      // Checked before the sale is created, not after. Composing the payment would
+      // fail anyway, but only once a pending sale existed — leaving the collector
+      // with a checkout they cannot finish and us with a row that means nothing.
+      setStatus("Checking your balance…");
+      const wallet = await getCollectorWallet();
 
-      if (!result.ok && !result.cancelled && result.message) {
-        setError(result.message);
+      if (!wallet.ok) {
+        setError("We couldn't read your wallet. Please try again.");
         return;
       }
 
-      if (result.checkoutLink) {
-        setCheckoutLink(result.checkoutLink);
+      if (!wallet.data.address || !wallet.data.hasUsdcTrustline) {
+        setError("Set up your wallet before buying — it takes a minute.");
+        return;
       }
+
+      if (usdcToCents(wallet.data.usdcBalance) < priceCents) {
+        setError(
+          `You need ${formatListPrice(priceCents)} in your wallet to buy this. Add funds and come back.`,
+        );
+        return;
+      }
+
+      setStatus("Starting checkout…");
+      const sale = await startCheckout(artworkId);
+      if (!sale.ok) {
+        setError(sale.message);
+        return;
+      }
+
+      // The payment itself is composed and signed on the checkout page. A page
+      // rather than a modal because the server persists the envelope it builds, so
+      // a reload part-way through has to resume that one rather than start another.
+      router.push(`/checkout/${sale.data.saleId}`);
     } catch (err) {
       console.error("[Buy] checkout failed:", err);
       setError(
@@ -142,21 +176,6 @@ export function ArtworkPriceBuy({
         </p>
       )}
 
-      <CoinflowCheckoutModal
-        isOpen={Boolean(checkoutLink)}
-        checkoutUrl={checkoutLink}
-        onClose={() => setCheckoutLink(null)}
-        onSuccess={() => {
-          setCheckoutLink(null);
-          setPurchaseComplete(true);
-        }}
-      />
-
-      <LinkSuccessModal
-        isOpen={purchaseComplete}
-        onClose={() => setPurchaseComplete(false)}
-        kind="artwork"
-      />
     </div>
   );
 }
