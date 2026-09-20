@@ -655,7 +655,6 @@ export default function WalletPage() {
                     // deposits — nothing else was ever stored — so an absent value
                     // reads as a credit rather than as unknown.
                     const isCredit = deposit.direction !== "out";
-                    const other = deposit.counterparty || deposit.from;
 
                     return (
                       <li
@@ -676,13 +675,8 @@ export default function WalletPage() {
                               {deposit.assetCode}
                             </span>
                           </p>
-                          <p className="truncate text-xs text-[#616161]">
-                            {isCredit ? "Received from" : "Sent to"}{" "}
-                            <span className="font-mono" title={other}>
-                              {truncateAddress(other)}
-                            </span>
-                          </p>
                           <p className="text-xs text-[#616161]">
+                            {isCredit ? "Received" : "Sent"} ·{" "}
                             {new Date(deposit.ledgerCloseAt).toLocaleString()}
                           </p>
                         </div>
