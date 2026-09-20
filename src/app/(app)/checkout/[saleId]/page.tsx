@@ -281,21 +281,12 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
                           <p className="text-sm font-medium text-[#11181c]">
                             {labelFor(split?.role)} receives
                           </p>
-                          {split?.toVault ? (
-                            // Said plainly. The money leaves the buyer's wallet
-                            // either way, but it does not reach this payee yet —
-                            // and that is not something to discover afterwards.
-                            <p className="text-xs text-amber-700">
-                              Held by Neftwerk until they set up a wallet
-                            </p>
-                          ) : (
-                            <p
-                              className="truncate font-mono text-xs text-[#616161]"
-                              title={payment.destination}
-                            >
-                              {truncate(payment.destination)}
-                            </p>
-                          )}
+                          <p
+                            className="truncate font-mono text-xs text-[#616161]"
+                            title={payment.destination}
+                          >
+                            {truncate(payment.destination)}
+                          </p>
                         </div>
                         <p className="shrink-0 text-sm font-semibold text-[#11181c]">
                           ${payment.amount}
