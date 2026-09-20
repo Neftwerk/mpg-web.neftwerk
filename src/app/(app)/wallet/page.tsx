@@ -647,32 +647,56 @@ export default function WalletPage() {
             {deposits.length > 0 && (
               <section className="card-neumorph space-y-3 p-6">
                 <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#4D91A7]">
-                  Deposits
+                  Transactions
                 </p>
                 <ul className="divide-y divide-slate-200">
-                  {deposits.map((deposit) => (
-                    <li
-                      key={deposit._id}
-                      className="flex items-center justify-between gap-3 py-2"
-                    >
-                      <div>
-                        <p className="text-sm font-medium text-[#11181c]">
-                          ${formatUsdc(deposit.amount)} {deposit.assetCode}
-                        </p>
-                        <p className="text-xs text-[#616161]">
-                          {new Date(deposit.ledgerCloseAt).toLocaleString()}
-                        </p>
-                      </div>
-                      <a
-                        href={getStellarExplorerTxUrl(deposit.transactionHash)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="shrink-0 text-[11px] text-[#4D91A7] underline"
+                  {deposits.map((deposit) => {
+                    // Rows written before the direction was recorded are all
+                    // deposits — nothing else was ever stored — so an absent value
+                    // reads as a credit rather than as unknown.
+                    const isCredit = deposit.direction !== "out";
+                    const other = deposit.counterparty || deposit.from;
+
+                    return (
+                      <li
+                        key={deposit._id}
+                        className="flex items-center justify-between gap-3 py-3"
                       >
-                        View
-                      </a>
-                    </li>
-                  ))}
+                        <div className="min-w-0">
+                          <p
+                            className={`text-sm font-semibold ${
+                              isCredit ? "text-emerald-600" : "text-[#11181c]"
+                            }`}
+                          >
+                            {/* A minus sign, not a colour alone: the direction of a
+                                payment has to survive being read in greyscale or by
+                                someone who cannot distinguish the two. */}
+                            {isCredit ? "+" : "−"}${formatUsdc(deposit.amount)}{" "}
+                            <span className="text-xs font-normal text-[#616161]">
+                              {deposit.assetCode}
+                            </span>
+                          </p>
+                          <p className="truncate text-xs text-[#616161]">
+                            {isCredit ? "Received from" : "Sent to"}{" "}
+                            <span className="font-mono" title={other}>
+                              {truncateAddress(other)}
+                            </span>
+                          </p>
+                          <p className="text-xs text-[#616161]">
+                            {new Date(deposit.ledgerCloseAt).toLocaleString()}
+                          </p>
+                        </div>
+                        <a
+                          href={getStellarExplorerTxUrl(deposit.transactionHash)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="shrink-0 text-[11px] text-[#4D91A7] underline"
+                        >
+                          View
+                        </a>
+                      </li>
+                    );
+                  })}
                 </ul>
               </section>
             )}

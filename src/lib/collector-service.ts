@@ -102,11 +102,22 @@ export interface DepositLedger {
   expectedGross: string | null;
 }
 
+/**
+ * A USDC payment on the collector's account, in either direction.
+ *
+ * Named `Deposit` after the backend model, which predates it holding purchases.
+ * Both are recorded now, so this is a statement line rather than a funding record.
+ */
 export interface Deposit {
   _id: string;
+  /** `in` credits the wallet, `out` debits it. */
+  direction: "in" | "out";
+  /** The other side: the payer for `in`, the payee for `out`. */
+  counterparty: string;
   amount: string;
   assetCode: string;
   transactionHash: string;
+  /** Present on rows written before `counterparty` existed. */
   from: string;
   ledgerCloseAt: string;
   expectedAmount?: string;
