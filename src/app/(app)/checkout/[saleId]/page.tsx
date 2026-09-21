@@ -238,8 +238,8 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
                 View the transaction
               </a>
             )}
-            <Link href="/collections" className="btn-neumorph block w-full text-center">
-              Go to my collection
+            <Link href="/gallery" className="btn-neumorph block w-full text-center">
+              Go to my gallery
             </Link>
           </section>
         ) : (
