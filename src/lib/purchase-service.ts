@@ -117,9 +117,16 @@ export const buildPayment = (saleId: string) =>
  * checks the envelope is byte-identical to the one it composed, and answers a
  * double submit with the recorded hash rather than paying twice.
  */
+/**
+ * Submits the signed payment.
+ *
+ * The PIN travels with it because the backend checks it here, not only in the
+ * pre-flight check — that check is a courtesy to the collector, this one is the
+ * guard on the money.
+ */
 export const submitPayment = (
   saleId: string,
-  input: { xdr: string; signature: string },
+  input: { xdr: string; signature: string; pin: string },
 ) =>
   request<PaymentResult>(API_ENDPOINTS.SALES.PAYMENT_SUBMIT(saleId), {
     method: "POST",

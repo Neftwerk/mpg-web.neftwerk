@@ -244,3 +244,72 @@ export const listDeposits = () =>
 
 export const getDepositQuote = (priceUsd: number) =>
   request<DepositQuote>(API_ENDPOINTS.COLLECTOR.DEPOSIT_QUOTE(priceUsd));
+
+// ─── Payment PIN ───
+
+/**
+ * The PIN endpoints answer 204 with an empty body, deliberately: nothing about a
+ * PIN's state needs writing into a response. `request` reads a missing `data` as a
+ * failure, which is right for every other endpoint here and wrong for these.
+ */
+const requestEmpty = async (url: string, body?: unknown): Promise<Result<void>> => {
+  const res = await authedFetch<{ code?: string }>(url, {
+    method: "POST",
+    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+  });
+
+  if (!res.ok) {
+    return {
+      ok: false,
+      message: res.message ?? "Request failed",
+      code: (res.data as { code?: string } | undefined)?.code,
+      status: res.status,
+    };
+  }
+
+  return { ok: true, data: undefined };
+};
+
+/**
+ * What the PIN endpoints put in `code`. The UI branches on these rather than on the
+ * message, which is written for the collector and will be reworded.
+ */
+export type PinErrorCode =
+  /** No PIN yet — offer to set one instead of asking for something never chosen. */
+  | "PIN_NOT_SET"
+  | "PIN_REQUIRED"
+  | "PIN_INCORRECT"
+  /** 429. The wait is already in the message; the UI does not compute it. */
+  | "PIN_LOCKED"
+  | "CURRENT_PIN_REQUIRED"
+  | "PIN_INVALID"
+  | "PIN_TOO_COMMON"
+  | "PIN_UNCHANGED"
+  | "NO_RESET_CODE"
+  | "RESET_CODE_INCORRECT"
+  | "RESET_CODE_EXPIRED"
+  | "RESET_CODE_SPENT";
+
+/** Whether one is set, so the UI knows to prompt or to offer setup. */
+export const getPaymentPinStatus = () =>
+  request<{ isSet: boolean }>(API_ENDPOINTS.COLLECTOR.PIN_STATUS);
+
+/** Sets the PIN. `currentPin` is required only when one already exists. */
+export const setPaymentPin = (input: { pin: string; currentPin?: string }) =>
+  requestEmpty(API_ENDPOINTS.COLLECTOR.PIN, input);
+
+/**
+ * Checks the PIN before the wallet is asked to sign.
+ *
+ * Shares the lockout counter with the submit check, so it buys no extra guesses. It
+ * exists so a wrong PIN costs a typo rather than a signing prompt the collector
+ * approved for nothing.
+ */
+export const verifyPaymentPin = (pin: string) =>
+  requestEmpty(API_ENDPOINTS.COLLECTOR.PIN_VERIFY, { pin });
+
+/** Emails a code for setting a new PIN. Reachable while locked out — that is the point. */
+export const requestPinReset = () => requestEmpty(API_ENDPOINTS.COLLECTOR.PIN_RESET);
+
+export const resetPaymentPin = (input: { otp: string; pin: string }) =>
+  requestEmpty(API_ENDPOINTS.COLLECTOR.PIN_RESET_CONFIRM, input);

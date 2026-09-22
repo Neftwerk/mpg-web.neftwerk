@@ -9,6 +9,7 @@ import { useUser } from "@/lib/UserContext";
 import { logout, deactivateAccount, deleteAccount } from "@/lib/auth-service";
 import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
 import { LanguagePickerModal } from "@/components/settings/LanguagePickerModal";
+import { PinDialog } from "@/components/wallet/PinDialog";
 import { useLanguage } from "@/localization";
 import {
   getPushPreference,
@@ -24,6 +25,8 @@ export default function SettingsPage() {
   const { logout: privyLogout } = usePrivy();
   const [menuOpen, setMenuOpen] = useState(false);
   const [languageOpen, setLanguageOpen] = useState(false);
+  const [pinOpen, setPinOpen] = useState(false);
+  const [pinSaved, setPinSaved] = useState(false);
   const [pushPref, setPushPref] = useState<PushPreference>("off");
 
   const [showDeactivate, setShowDeactivate] = useState(false);
@@ -127,6 +130,22 @@ export default function SettingsPage() {
               label={t("settings.privacy")}
               className="bg-[#EAECEF] -mx-2 px-2"
             />
+            <SettingsRow
+              icon="lock"
+              label={t("settings.paymentPin")}
+              // No status read here. The dialog already reads it to choose between
+              // changing and setting one, and a second read would only give the row
+              // and the dialog a way to disagree.
+              onClick={() => {
+                setPinSaved(false);
+                setPinOpen(true);
+              }}
+            />
+            {pinSaved && (
+              <p className="pb-2 pl-8 text-[12px] text-emerald-700">
+                {t("settings.paymentPinSaved")}
+              </p>
+            )}
           </div>
         </div>
 
@@ -361,6 +380,18 @@ export default function SettingsPage() {
         onClose={() => setLanguageOpen(false)}
       />
 
+      {pinOpen && (
+        <PinDialog
+          intent="change"
+          onResolved={() => {
+            // The PIN itself is of no use here — nothing on this page spends money.
+            setPinOpen(false);
+            setPinSaved(true);
+          }}
+          onCancel={() => setPinOpen(false)}
+        />
+      )}
+
       <MobileMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
     </>
   );
@@ -431,6 +462,20 @@ function SettingsRow({
 
 function getIcon(name: string) {
   switch (name) {
+    case "lock":
+      return (
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <rect x="3" y="11" width="18" height="11" rx="2" />
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </svg>
+      );
     case "profile":
       return (
         <svg

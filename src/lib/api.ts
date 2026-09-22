@@ -189,6 +189,16 @@ export const API_ENDPOINTS = {
     DEPOSIT_ACCOUNT: `${API_BASE_URL}/api/collector/deposit-account`,
     /** GET  /api/collector/deposits */
     DEPOSITS: `${API_BASE_URL}/api/collector/deposits`,
+    /** GET  /api/collector/pin — whether a payment PIN has been set */
+    PIN_STATUS: `${API_BASE_URL}/api/collector/pin`,
+    /** POST /api/collector/pin — set it, or change it by supplying the current one */
+    PIN: `${API_BASE_URL}/api/collector/pin`,
+    /** POST /api/collector/pin/verify — checked before the wallet is asked to sign */
+    PIN_VERIFY: `${API_BASE_URL}/api/collector/pin/verify`,
+    /** POST /api/collector/pin/reset — emails a code for setting a new one */
+    PIN_RESET: `${API_BASE_URL}/api/collector/pin/reset`,
+    /** POST /api/collector/pin/reset/confirm — { otp, pin } */
+    PIN_RESET_CONFIRM: `${API_BASE_URL}/api/collector/pin/reset/confirm`,
     /** GET  /api/collector/deposit-quote?priceUsd= */
     DEPOSIT_QUOTE: (priceUsd: number) =>
       `${API_BASE_URL}/api/collector/deposit-quote?priceUsd=${encodeURIComponent(priceUsd)}`,

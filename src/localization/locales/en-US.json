@@ -99,6 +99,8 @@
     "userAvatarAlt": "User Avatar",
     "editProfile": "Edit profile",
     "privacy": "Privacy & Security",
+    "paymentPin": "Payment PIN",
+    "paymentPinSaved": "Your PIN was saved.",
     "preferences": "Preferences",
     "pushAlerts": "Push alerts",
     "pushAlertsDesc": "Off by default — check Messages when you choose",
