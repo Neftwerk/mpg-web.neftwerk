@@ -6,6 +6,7 @@ import { usePrivy } from "@privy-io/react-auth";
 import { CircleCheck, ShieldCheck } from "lucide-react";
 import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
 import { Spinner } from "@/components/Spinner";
+import { PinDialog } from "@/components/wallet/PinDialog";
 import { useUser } from "@/lib/UserContext";
 import { fetchChainConfig } from "@/lib/chain-service";
 import { getStellarExplorerTxUrl } from "@/lib/stellar-explorer";
@@ -35,11 +36,37 @@ const truncate = (address: string) =>
 /**
  * Where the payment has got to.
  *
- * A failure returns to `review` rather than to `loading`, because once an envelope
- * exists it must be reused: the retry resends it, and nothing on this page composes
- * a second one.
+ * A failure returns to `review` rather than to `loading`, because a submitted
+ * envelope with an unknown outcome must be reused: the retry resends it. Composing
+ * again is confined to the two moments it cannot double-pay — before the first
+ * submit, and after an expiry, which is proof the transaction never executed.
  */
 type Stage = "loading" | "review" | "signing" | "submitting" | "done";
+
+/**
+ * Whether a transaction pays what the backend says it pays.
+ *
+ * The amounts come from the XDR, because that is what gets signed. The backend's
+ * `splits` are the same figures recorded separately — so if the two disagree, one of
+ * them is wrong and nobody should be signing either.
+ *
+ * A function rather than a value derived during render, because it has to run twice:
+ * once on what is displayed, and again on the envelope composed moments before
+ * signing, which no render pass ever saw.
+ */
+const splitsMatch = (candidate: PurchaseEnvelope, networkPassphrase: string): boolean => {
+  const decoded = decodePayments(candidate.xdr, networkPassphrase);
+  if (decoded.length !== candidate.splits.length) return false;
+
+  return decoded.every((payment) => {
+    const split = candidate.splits.find((s) => s.address === payment.destination);
+    if (!split) return false;
+
+    const [whole, fraction = ""] = payment.amount.split(".");
+    const cents = Number(`${whole}${fraction.padEnd(2, "0").slice(0, 2)}`);
+    return cents === split.amountCents;
+  });
+};
 
 export default function CheckoutPage({ params }: { params: Promise<Params> }) {
   const { saleId } = use(params);
@@ -59,14 +86,29 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
    * The signature, kept so a failed submit can be retried with it.
    *
    * Retrying must resend the envelope and signature already in hand. Rebuilding
-   * takes a fresh sequence number, and a fresh sequence number is a second
-   * payment — so this is what makes retry safe rather than expensive.
+   * takes a fresh sequence number, and against a submission whose outcome is
+   * unknown a fresh sequence number is a second payment — so this is what makes
+   * retry safe rather than expensive. It is cleared only when the server proves the
+   * transaction is dead, which is what `PAYMENT_ENVELOPE_EXPIRED` says.
    *
    * State rather than a ref, because the button label and the retry note are both
    * derived from it: a ref would leave them showing the wrong thing until some
    * other change happened to re-render.
    */
   const [signature, setSignature] = useState<string | null>(null);
+
+  /**
+   * The PIN, verified and held for the life of this checkout.
+   *
+   * A retry has to resend the same envelope, the same signature and the same PIN.
+   * Re-prompting would let a typo spend an attempt on a payment that is already
+   * signed, and three typos would lock the collector out holding a signature they
+   * cannot use — the very failure that checking the PIN before signing avoids.
+   *
+   * Memory only, never storage, and dropped the moment the payment lands.
+   */
+  const [pin, setPin] = useState<string | null>(null);
+  const [askingPin, setAskingPin] = useState(false);
 
   /** One compose per mount. React runs effects twice in development. */
   const composed = useRef(false);
@@ -101,13 +143,117 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
     void compose();
   }, [compose, user, userLoading]);
 
-  /** Submits what is already signed. Never composes. */
+  /**
+   * Compose, sign and submit, with one silent retry if the envelope ages out.
+   *
+   * An expired transaction provably never executed, so composing a fresh one and
+   * signing it again is the same payment rather than a second one. That makes it the
+   * only failure worth recovering from without asking — the collector already
+   * approved this payment with their PIN and their signature, and an envelope that
+   * lost a race against its own clock is not a decision for them to make again.
+   *
+   * Two attempts at most. A loop that never gave up would keep signing against a
+   * clock it keeps losing to.
+   */
+  const payWith = useCallback(
+    async (verifiedPin: string) => {
+      if (!passphrase) return;
+
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        setStage("signing");
+
+        // Composed here rather than signed as loaded. The thirty-minute timebound
+        // starts when the envelope is built, and the gap between opening checkout
+        // and deciding to pay is unbounded.
+        const built = await buildPayment(saleId);
+        if (!built.ok) {
+          setError(built.message);
+          setStage("review");
+          return;
+        }
+
+        // The render-time check never saw this one, and it is the one being signed.
+        if (!splitsMatch(built.data, passphrase)) {
+          setError(
+            "This payment does not match what we recorded for it. Nothing has been sent.",
+          );
+          setStage("review");
+          return;
+        }
+
+        // Shown as well as signed, so the amounts on screen are the amounts approved.
+        setEnvelope(built.data);
+
+        let signed: string;
+        try {
+          signed = await signEnvelope({
+            xdr: built.data.xdr,
+            address: user!.stellarAddress!,
+            networkPassphrase: passphrase,
+            // Checked against the hash computed from the XDR itself, so a tampered
+            // response cannot obtain a signature over something else.
+            expectedHash: built.data.hash,
+          });
+        } catch (err) {
+          setError(err instanceof Error ? err.message : "Could not sign the payment.");
+          setStage("review");
+          return;
+        }
+        setSignature(signed);
+
+        setStage("submitting");
+        const result = await submitPayment(saleId, {
+          xdr: built.data.xdr,
+          signature: signed,
+          pin: verifiedPin,
+        });
+
+        if (result.ok) {
+          setPin(null);
+          setTxHash(result.data.txHash);
+          setStage("done");
+          return;
+        }
+
+        // The only code safe to retry on its own. Every other failure may have
+        // reached the network, and composing again against one of those could pay
+        // twice — so they stop here and the collector decides.
+        if (result.code === "PAYMENT_ENVELOPE_EXPIRED") {
+          if (attempt === 0) continue;
+          // Out of automatic attempts. Drop the signature: it is over bytes the
+          // network has refused, so the "already signed, resending is safe" note
+          // would be promising a retry that cannot work.
+          setSignature(null);
+        }
+
+        if (result.code?.startsWith("PIN_")) setPin(null);
+        setError(result.message);
+        setStage("review");
+        return;
+      }
+    },
+    [passphrase, saleId, signEnvelope, user],
+  );
+
+  /** Resubmits what is already signed. Composes nothing unless the server proves it must. */
   const send = useCallback(
-    async (xdr: string, signature: string) => {
+    async (xdr: string, signature: string, pin: string) => {
       setStage("submitting");
-      const result = await submitPayment(saleId, { xdr, signature });
+      const result = await submitPayment(saleId, { xdr, signature, pin });
 
       if (!result.ok) {
+        // Expired between the first submit and this one. Nothing executed, so start
+        // over rather than resending bytes that are guaranteed to fail.
+        if (result.code === "PAYMENT_ENVELOPE_EXPIRED") {
+          setSignature(null);
+          await payWith(pin);
+          return;
+        }
+
+        // A PIN failure here means the one in hand is no longer good — changed in
+        // another tab, or the lockout caught up. Drop it, so Try again asks for it
+        // instead of resending what the server just refused.
+        if (result.code?.startsWith("PIN_")) setPin(null);
         // The envelope and signature stay in hand, so Try again resends rather
         // than rebuilding.
         setError(result.message);
@@ -115,38 +261,41 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
         return;
       }
 
+      setPin(null);
       setTxHash(result.data.txHash);
       setStage("done");
     },
-    [saleId],
+    [payWith, saleId],
   );
 
   const onPay = async () => {
     if (!envelope || !passphrase) return;
     setError(null);
 
-    // Already signed, and the submit failed. Resend the same bytes.
-    if (signature) {
-      await send(envelope.xdr, signature);
+    // Already signed, and the submit failed. Resend the same bytes and the same PIN.
+    if (signature && pin) {
+      await send(envelope.xdr, signature, pin);
       return;
     }
 
-    setStage("signing");
-    try {
-      const signed = await signEnvelope({
-        xdr: envelope.xdr,
-        address: user!.stellarAddress!,
-        networkPassphrase: passphrase,
-        // Checked against the hash computed from the XDR itself, so a tampered
-        // response cannot obtain a signature over something else.
-        expectedHash: envelope.hash,
-      });
-      setSignature(signed);
-      await send(envelope.xdr, signed);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not sign the payment.");
-      setStage("review");
+    // The PIN comes first. Signing is the consequential step, and someone who is
+    // locked out should learn that before their wallet asks them to approve a spend.
+    setAskingPin(true);
+  };
+
+  /** PIN → compose → sign → submit. The dialog only resolves with one the backend took. */
+  const onPinVerified = async (verified: string) => {
+    setAskingPin(false);
+    setPin(verified);
+    setError(null);
+
+    // Already signed — this was a retry that needed a fresh PIN.
+    if (signature && envelope) {
+      await send(envelope.xdr, signature, verified);
+      return;
     }
+
+    await payWith(verified);
   };
 
   // What the transaction actually says, read from the envelope rather than from
@@ -178,16 +327,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
    * disagree, one of them is wrong and nobody should be signing either.
    */
   const splitsMatchTransaction =
-    envelope !== null &&
-    payments.length === envelope.splits.length &&
-    payments.every((payment) => {
-      const split = splitFor(payment.destination);
-      if (!split) return false;
-
-      const [whole, fraction = ""] = payment.amount.split(".");
-      const cents = Number(`${whole}${fraction.padEnd(2, "0").slice(0, 2)}`);
-      return cents === split.amountCents;
-    });
+    envelope !== null && passphrase !== null && splitsMatch(envelope, passphrase);
 
   return (
     <>
@@ -334,6 +474,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
                   type="button"
                   onClick={onPay}
                   disabled={
+                    askingPin ||
                     stage === "signing" ||
                     stage === "submitting" ||
                     !splitsMatchTransaction
@@ -341,7 +482,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
                   className="btn-neumorph w-full disabled:opacity-50"
                 >
                   {stage === "signing"
-                    ? "Waiting for your signature…"
+                    ? "Purchasing…"
                     : stage === "submitting"
                       ? "Submitting…"
                       : signature
@@ -369,6 +510,13 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
           </>
         )}
       </div>
+
+      {askingPin && (
+        <PinDialog
+          onResolved={(verified) => void onPinVerified(verified)}
+          onCancel={() => setAskingPin(false)}
+        />
+      )}
 
       <MobileMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
     </>
