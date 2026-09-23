@@ -13,7 +13,8 @@ import {
   fetchPublicDiscoveryModules,
   type PublicDiscoveryModule,
 } from "@/lib/discovery-service";
-import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
+import { MobileMenu } from "@/components/sidebar/Sidebar";
+import { PageHeader } from "@/components/PageHeader";
 import { GalleryGridSkeleton, SkeletonBar } from "@/components/Skeletons";
 import { GalleryArtworkCard } from "@/components/artwork/GalleryArtworkCard";
 import { ArtworkMasonry } from "@/components/artwork/ArtworkMasonry";
@@ -155,11 +156,9 @@ export default function DiscoverPage() {
 
   return (
     <>
-      <MobileTopBar title={t("nav.discover")} onMenuOpen={() => setMenuOpen(true)} />
+      <PageHeader title={t("nav.discover")} onMenuOpen={() => setMenuOpen(true)} />
 
-      <header className="hidden lg:flex items-center justify-between border-b border-slate-200 bg-slate-50/95 p-4 mt-20 lg:mt-0">
-        <h1 className="text-xl font-semibold text-slate-900">{t("nav.discover")}</h1>
-      </header>
+
 
       <div className="p-4 pb-28 lg:pb-4 mt-20 lg:mt-0">
         <div className="relative mb-8">

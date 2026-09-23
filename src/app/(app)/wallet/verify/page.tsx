@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
 import { CircleCheck, FileText, ShieldCheck, Wallet } from "lucide-react";
-import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
+import { MobileMenu } from "@/components/sidebar/Sidebar";
+import { PageHeader } from "@/components/PageHeader";
 import { Spinner } from "@/components/Spinner";
 import { useUser } from "@/lib/UserContext";
 import { fetchChainConfig } from "@/lib/chain-service";
@@ -297,11 +298,14 @@ export default function VerifyPage() {
 
   return (
     <>
-      <MobileTopBar title="Verification" onMenuOpen={() => setMenuOpen(true)} />
+      <PageHeader
+        title="Verification"
+        backHref="/wallet"
+        backLabel="Back to Wallet"
+        onMenuOpen={() => setMenuOpen(true)}
+      />
 
-      <header className="hidden lg:flex items-center justify-between border-b border-slate-200 bg-slate-50/95 p-4">
-        <h1 className="text-xl font-semibold text-slate-900">Verification</h1>
-      </header>
+
 
       <div className="mx-auto mt-20 max-w-2xl space-y-4 p-5 pb-28 lg:mt-0 lg:pb-4">
         {userLoading || loading ? (
@@ -326,7 +330,7 @@ export default function VerifyPage() {
             <Progress step={step} />
 
             {error && (
-              <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+              <div className="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
                 {error}
               </div>
             )}
@@ -347,7 +351,7 @@ export default function VerifyPage() {
                       <iframe
                         src={termsLink}
                         title="Bridge terms of service"
-                        className="h-[55dvh] w-full rounded-2xl border border-slate-200"
+                        className="h-[55dvh] w-full border border-slate-200"
                       />
                       {/* Acceptance normally advances on its own. This stays as the
                           fallback for a browser that blocks the message, and is
@@ -383,7 +387,7 @@ export default function VerifyPage() {
                     // The SDK sets only maxHeight/maxWidth on its iframe, never
                     // height or width, so the frame collapses to the HTML default
                     // of 300x150 without dimensions supplied here.
-                    <div className="h-[70vh] min-h-[480px] w-full overflow-hidden rounded-2xl border border-slate-200 [&_iframe]:h-full [&_iframe]:w-full [&_iframe]:border-0">
+                    <div className="h-[70vh] min-h-[480px] w-full overflow-hidden border border-slate-200 [&_iframe]:h-full [&_iframe]:w-full [&_iframe]:border-0">
                       <Inquiry
                         inquiryId={inquiry.inquiryId}
                         templateId={inquiry.templateId}
@@ -453,7 +457,7 @@ export default function VerifyPage() {
                       {busy ? "Waiting for your signature…" : "Activate wallet"}
                     </button>
                   ) : (
-                    <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                    <div className="border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                       <p>Sign in to your wallet to approve this.</p>
                       <button
                         type="button"

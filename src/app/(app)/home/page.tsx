@@ -20,7 +20,7 @@ export default function HomeScreen() {
       <HomeHeader />
 
       {/* Main content perfectly centered vertically and horizontally */}
-      <div className="flex-1 flex items-center justify-center pt-[60px] pb-4 px-4">
+      <div className="flex-1 flex items-center justify-center pt-[60px] lg:pt-0 pb-4 px-4">
         <div className="relative w-[334px] h-[388px] sm:scale-110 md:scale-125 transition-transform duration-300">
 
           {/* Forum */}

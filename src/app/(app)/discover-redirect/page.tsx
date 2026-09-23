@@ -2,15 +2,17 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
+import { MobileMenu } from "@/components/sidebar/Sidebar";
+import { PageHeader } from "@/components/PageHeader";
 
 export default function DiscoverRedirectPage() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <>
-      <MobileTopBar
+      <PageHeader
         title="Discover Artwork"
+        historyBack
         onMenuOpen={() => setMenuOpen(true)}
       />
 

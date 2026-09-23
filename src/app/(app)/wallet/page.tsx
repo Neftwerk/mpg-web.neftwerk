@@ -3,9 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, Landmark, ShieldCheck } from "lucide-react";
-import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
+import { ArrowRight, Copy, Landmark, ShieldCheck } from "lucide-react";
+import { MobileMenu } from "@/components/sidebar/Sidebar";
+import { PageHeader } from "@/components/PageHeader";
 import { Spinner } from "@/components/Spinner";
+import { useToast } from "@/components/Toast";
 import { useUser } from "@/lib/UserContext";
 import { fetchChainConfig } from "@/lib/chain-service";
 import { getStellarExplorerTxUrl } from "@/lib/stellar-explorer";
@@ -87,12 +89,32 @@ const STELLAR_ACCOUNT = /^G[A-Z2-7]{55}$/;
  * base32 in full is unreadable at any size. Copy always yields the whole thing, and
  * the full value stays in `title`.
  */
+/**
+ * Copy, then say so. `navigator.clipboard` is absent on an insecure origin and
+ * can reject, so the confirmation is only shown once the write resolves.
+ */
+function useCopyWithToast() {
+  const { showToast } = useToast();
+  return useCallback(
+    async (value: string, label: string) => {
+      try {
+        await navigator.clipboard.writeText(value);
+        showToast(`${label} copied`);
+      } catch {
+        showToast("Could not copy \u2014 copy it manually");
+      }
+    },
+    [showToast],
+  );
+}
+
 const truncateAddress = (address: string) =>
   STELLAR_ACCOUNT.test(address)
     ? `${address.slice(0, 7)}…${address.slice(-7)}`
     : address;
 
 function InstructionRows({ instructions }: { instructions: Record<string, unknown> }) {
+  const copyWithToast = useCopyWithToast();
   const rows = Object.entries(instructions).flatMap(([key, value]) => {
     if (value === null || value === undefined || value === "") return [];
     if (Array.isArray(value)) return [[key, value.join(", ")] as const];
@@ -117,9 +139,11 @@ function InstructionRows({ instructions }: { instructions: Record<string, unknow
             <span className="break-all">{value}</span>
             <button
               type="button"
-              onClick={() => void navigator.clipboard?.writeText(value)}
-              className="shrink-0 text-[11px] text-[#4D91A7] underline"
+              onClick={() => void copyWithToast(value, humanize(key))}
+              aria-label={`Copy ${humanize(key)}`}
+              className="inline-flex shrink-0 items-center gap-1 text-[11px] text-[#4D91A7] underline"
             >
+              <Copy className="h-3.5 w-3.5" aria-hidden />
               Copy
             </button>
           </dd>
@@ -131,6 +155,7 @@ function InstructionRows({ instructions }: { instructions: Record<string, unknow
 
 export default function WalletPage() {
   const { t } = useTranslation();
+  const copyWithToast = useCopyWithToast();
   const [menuOpen, setMenuOpen] = useState(false);
   const { user, loading: userLoading, patchUser } = useUser();
 
@@ -366,11 +391,9 @@ export default function WalletPage() {
 
   return (
     <>
-      <MobileTopBar title={t("nav.wallet")} onMenuOpen={() => setMenuOpen(true)} />
+      <PageHeader title={t("nav.wallet")} onMenuOpen={() => setMenuOpen(true)} />
 
-      <header className="hidden lg:flex items-center justify-between border-b border-slate-200 bg-slate-50/95 p-4">
-        <h1 className="text-xl font-semibold text-slate-900">{t("nav.wallet")}</h1>
-      </header>
+
 
       <div className="mx-auto mt-20 max-w-2xl space-y-4 p-5 pb-28 lg:mt-0 lg:pb-4">
         {userLoading ? (
@@ -427,10 +450,12 @@ export default function WalletPage() {
                   <button
                     type="button"
                     onClick={() =>
-                      void navigator.clipboard?.writeText(wallet.address ?? "")
+                      void copyWithToast(wallet.address ?? "", "Wallet address")
                     }
-                    className="shrink-0 text-[11px] text-[#4D91A7] underline"
+                    aria-label="Copy wallet address"
+                    className="inline-flex shrink-0 items-center gap-1 text-[11px] font-medium text-[#4D91A7] underline"
                   >
+                    <Copy className="h-3.5 w-3.5" aria-hidden />
                     Copy
                   </button>
                 </div>
@@ -441,7 +466,7 @@ export default function WalletPage() {
 
             {kyc?.kycStatus && KYC_LABELS[kyc.kycStatus] && (
               <div
-                className={`rounded-2xl border px-4 py-3 text-sm ${
+                className={`border px-4 py-3 text-sm ${
                   TONES[KYC_LABELS[kyc.kycStatus]!.tone]
                 }`}
               >
@@ -466,13 +491,13 @@ export default function WalletPage() {
             )}
 
             {error && (
-              <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+              <div className="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
                 {error}
               </div>
             )}
 
             {walletKnown && !hasWallet && (
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              <div className="border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                 <p>
                   We create your wallet when you sign in, and it did not complete.
                 </p>
@@ -493,7 +518,7 @@ export default function WalletPage() {
             {walletKnown && hasWallet && !readyToFund && (
               <section className="card-neumorph space-y-4 p-6">
                 <div className="flex items-start gap-3">
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#4D91A7]/10 text-[#4D91A7]">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center bg-[#4D91A7]/10 text-[#4D91A7]">
                     <Landmark className="h-5 w-5" aria-hidden />
                   </span>
                   <div className="space-y-1">
@@ -509,7 +534,7 @@ export default function WalletPage() {
 
                 {/* The step itself, set apart from the card that introduces it —
                     what is being asked for is a different thing from why. */}
-                <div className="rounded-2xl border border-[#4D91A7]/30 bg-[#4D91A7]/[0.07] p-4">
+                <div className="border border-[#4D91A7]/30 bg-[#4D91A7]/[0.07] p-4">
                   <div className="flex items-start gap-3">
                     <ShieldCheck
                       className="mt-0.5 h-5 w-5 shrink-0 text-[#4D91A7]"
@@ -565,7 +590,7 @@ export default function WalletPage() {
                     value={fundAmount}
                     onChange={(e) => setFundAmount(e.target.value)}
                     placeholder="Amount in USD"
-                    className="w-full rounded-full border border-slate-200 px-4 py-2 text-sm"
+                    className="w-full border border-slate-200 px-4 py-2 text-sm"
                   />
                   <button
                     type="button"
@@ -613,7 +638,7 @@ export default function WalletPage() {
                      so it says we are expecting the money, never that it is on its
                      way. The deposits list below is the one that speaks for the
                      ledger. */
-                  <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                  <div className="border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                     <p className="font-medium">Waiting for your transfer</p>
                     <p className="mt-1 text-xs">
                       Bank transfers usually take a while. It will appear

@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
+import { MobileMenu } from "@/components/sidebar/Sidebar";
+import { PageHeader } from "@/components/PageHeader";
 import { ArtworkItem } from "@/lib/gallery-service";
 import { useUser } from "@/lib/UserContext";
 import { NeftwerkImage } from "@/components/NeftwerkImage";
@@ -56,7 +57,7 @@ function ProfileContent() {
 
   return (
     <>
-      <MobileTopBar title={t("nav.profile")} onMenuOpen={() => setMenuOpen(true)} />
+      <PageHeader title={t("nav.profile")} onMenuOpen={() => setMenuOpen(true)} />
 
       <div className="px-5 pb-28 mt-20 lg:mt-0">
         {loading ? (

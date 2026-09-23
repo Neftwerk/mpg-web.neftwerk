@@ -4,7 +4,8 @@ import { use, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePrivy } from "@privy-io/react-auth";
 import { CircleCheck, ShieldCheck } from "lucide-react";
-import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
+import { MobileMenu } from "@/components/sidebar/Sidebar";
+import { PageHeader } from "@/components/PageHeader";
 import { Spinner } from "@/components/Spinner";
 import { PinDialog } from "@/components/wallet/PinDialog";
 import { useUser } from "@/lib/UserContext";
@@ -331,11 +332,13 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
 
   return (
     <>
-      <MobileTopBar title="Checkout" onMenuOpen={() => setMenuOpen(true)} />
+      <PageHeader
+        title="Checkout"
+        historyBack
+        onMenuOpen={() => setMenuOpen(true)}
+      />
 
-      <header className="hidden lg:flex items-center justify-between border-b border-slate-200 bg-slate-50/95 p-4">
-        <h1 className="text-xl font-semibold text-slate-900">Checkout</h1>
-      </header>
+
 
       <div className="mx-auto mt-20 max-w-2xl space-y-4 p-5 pb-28 lg:mt-0 lg:pb-4">
         {userLoading || (stage === "loading" && !error) ? (

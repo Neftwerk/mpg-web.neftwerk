@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
+import { MobileMenu } from "@/components/sidebar/Sidebar";
+import { PageHeader } from "@/components/PageHeader";
 import { NeftwerkImage } from "@/components/NeftwerkImage";
 
 type Params = { id: string };
@@ -22,13 +23,12 @@ export default function DiscoverArtworkPage({
 
   return (
     <>
-      {/* Sticky top bar */}
-      <MobileTopBar title="Artwork Details" onMenuOpen={() => setMenuOpen(true)} />
-
-      {/* Desktop header */}
-      <header className="hidden lg:flex items-center justify-between border-b border-slate-200 bg-slate-50/95 p-4 mt-20 lg:mt-0">
-        <h1 className="text-xl font-semibold text-slate-900">Artwork Details</h1>
-      </header>
+      <PageHeader
+        title="Artwork Details"
+        backHref="/discover"
+        backLabel="Back to Discover"
+        onMenuOpen={() => setMenuOpen(true)}
+      />
 
       <div className="p-5 pb-36 mt-20 lg:mt-0">
         {/* Artwork Image Container */}

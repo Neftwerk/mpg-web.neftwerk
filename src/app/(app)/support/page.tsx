@@ -2,7 +2,8 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
+import { MobileMenu } from "@/components/sidebar/Sidebar";
+import { PageHeader } from "@/components/PageHeader";
 import { useUser } from "@/lib/UserContext";
 import { APP_VERSION, submitSupportContact } from "@/lib/support";
 
@@ -70,11 +71,9 @@ export default function SupportPage() {
 
   return (
     <>
-      <MobileTopBar title={t("support.title")} onMenuOpen={() => setMenuOpen(true)} />
+      <PageHeader title={t("support.title")} onMenuOpen={() => setMenuOpen(true)} />
 
-      <header className="hidden lg:flex items-center justify-between border-b border-slate-200 bg-slate-50/95 p-4">
-        <h1 className="text-xl font-semibold text-slate-900">{t("support.title")}</h1>
-      </header>
+
 
       <div className="px-5 pb-28 mt-20 lg:mt-6 max-w-lg mx-auto space-y-6">
         {success ? (

@@ -2,7 +2,8 @@
 
 import { Suspense, useState } from "react";
 import { useParams } from "next/navigation";
-import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
+import { MobileMenu } from "@/components/sidebar/Sidebar";
+import { PageHeader } from "@/components/PageHeader";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { EnquiryThread } from "@/components/messages/EnquiryThread";
 
@@ -23,15 +24,12 @@ function ThreadContent() {
 
   return (
     <>
-      <MobileTopBar
+      <PageHeader
         title="Messages"
         backHref="/messages"
+        backLabel="Back to Messages"
         onMenuOpen={() => setMenuOpen(true)}
       />
-
-      <header className="hidden lg:flex items-center justify-between border-b border-slate-200 bg-slate-50/95 p-4">
-        <h1 className="text-xl font-semibold text-slate-900">Messages</h1>
-      </header>
 
       <div className="px-4 pb-28 mt-20 lg:mt-0 max-w-lg mx-auto">
         {enquiryId ? (
@@ -49,7 +47,7 @@ function ThreadContent() {
 function ThreadFallback() {
   return (
     <>
-      <MobileTopBar title="Messages" backHref="/messages" onMenuOpen={() => {}} />
+      <PageHeader title="Messages" backHref="/messages" onMenuOpen={() => {}} />
       <div className="flex justify-center py-16 mt-20">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#1A3F6C] border-t-transparent" />
       </div>

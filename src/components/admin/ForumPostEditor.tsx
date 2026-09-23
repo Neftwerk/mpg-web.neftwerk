@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation";
 import { Pin, Eye, Calendar, Upload, FileText } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { uploadImage, resolveStorageUrl } from "@/lib/storage-service";
+import { ForumPublisherAvatar } from "@/components/forum/ForumPublisherAvatar";
 import {
   archiveForumPost,
   createForumPost,
   updateForumPost,
+  FORUM_PUBLISHER_NAME,
   type CreateForumPostInput,
   type ForumPost,
 } from "@/lib/forum-service";
@@ -492,12 +494,8 @@ export function ForumPostEditor({ postId, initialData }: EditorProps) {
           <article className="card-neumorph p-5 text-left bg-white border border-black/5">
             {/* Author row */}
             <div className="mb-3 flex items-center gap-3">
-              {/* Neftwerk Avatar Badge */}
-              <div className="grid h-11 w-11 place-items-center rounded-full bg-[#1A3F6C] flex-shrink-0 border-2 border-[#38A8AB]">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <path d="M4 20V4h4l8 12V4h4v16h-4L8 8v12H4z" fill="white" />
-                </svg>
-              </div>
+              {/* Same avatar the live post will use, so the preview matches. */}
+              <ForumPublisherAvatar fullName={FORUM_PUBLISHER_NAME} />
               <div className="min-w-0 flex-1">
                 <h3 className="text-[15px] font-bold text-[#1A3F6C]">Neftwerk News</h3>
                 <p className="mt-0.5 text-xs text-slate-400">Just now</p>

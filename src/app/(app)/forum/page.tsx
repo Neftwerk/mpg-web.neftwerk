@@ -1,7 +1,8 @@
 "use client";
 
 import { ForumPostCard } from "@/components/forum/ForumPostCard";
-import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
+import { MobileMenu } from "@/components/sidebar/Sidebar";
+import { PageHeader } from "@/components/PageHeader";
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { getForumPosts, type ForumPost } from "@/lib/forum-service";
@@ -98,7 +99,7 @@ export default function ForumPage() {
 
   return (
     <>
-      <MobileTopBar title={t("nav.forum")} onMenuOpen={() => setMenuOpen(true)} />
+      <PageHeader title={t("nav.forum")} onMenuOpen={() => setMenuOpen(true)} />
 
       <div className="px-4 pb-28 mt-20 lg:mt-0">
         {/* Search bar */}

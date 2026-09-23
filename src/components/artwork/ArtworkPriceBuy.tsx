@@ -6,6 +6,7 @@ import { formatListPrice } from "@/lib/format";
 import { getAccessToken } from "@/lib/auth-service";
 import { getCollectorWallet } from "@/lib/collector-service";
 import { startCheckout } from "@/lib/purchase-service";
+import { InsufficientFundsModal } from "@/components/artwork/InsufficientFundsModal";
 
 /**
  * A USDC balance to whole cents, flooring sub-cent dust.
@@ -43,6 +44,11 @@ export function ArtworkPriceBuy({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
+  /** Set only when the wallet cannot cover the price; drives the modal. */
+  const [shortfall, setShortfall] = useState<{
+    priceCents: number;
+    balanceCents: number;
+  } | null>(null);
   const priceLabel = formatListPrice(listPriceCents);
   const canBuy = !sold && (listPriceCents ?? 0) > 0;
   const enquireHref = (() => {
@@ -68,6 +74,7 @@ export function ArtworkPriceBuy({
     }
 
     setError(null);
+    setShortfall(null);
     setLoading(true);
 
     try {
@@ -87,10 +94,11 @@ export function ArtworkPriceBuy({
         return;
       }
 
-      if (usdcToCents(wallet.data.usdcBalance) < priceCents) {
-        setError(
-          `You need ${formatListPrice(priceCents)} in your wallet to buy this. Add funds and come back.`,
-        );
+      const balanceCents = usdcToCents(wallet.data.usdcBalance);
+      if (balanceCents < priceCents) {
+        // Being stopped here is the one failure worth interrupting for: it has a
+        // clear way out. The rest stay as inline text next to the button.
+        setShortfall({ priceCents, balanceCents });
         return;
       }
 
@@ -176,6 +184,12 @@ export function ArtworkPriceBuy({
         </p>
       )}
 
+      <InsufficientFundsModal
+        open={shortfall !== null}
+        onClose={() => setShortfall(null)}
+        priceCents={shortfall?.priceCents ?? 0}
+        balanceCents={shortfall?.balanceCents}
+      />
     </div>
   );
 }

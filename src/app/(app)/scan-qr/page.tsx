@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
+import { MobileMenu } from "@/components/sidebar/Sidebar";
+import { PageHeader } from "@/components/PageHeader";
 
 export default function ScanQRPage() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -35,12 +36,14 @@ export default function ScanQRPage() {
 
   return (
     <>
-      <MobileTopBar title="Scan QR" onMenuOpen={() => setMenuOpen(true)} />
+      <PageHeader
+        title="Scan QR"
+        historyBack
+        onMenuOpen={() => setMenuOpen(true)}
+      />
 
       {/* Desktop header */}
-      <header className="hidden lg:flex items-center justify-between border-b border-slate-200 bg-slate-50/95 p-4 mt-20 lg:mt-0">
-        <h1 className="text-xl font-semibold text-slate-900">Scan QR</h1>
-      </header>
+
 
       <div className="flex flex-col items-center justify-center p-6 mt-20 lg:mt-10 min-h-[calc(100vh-100px)]">
         

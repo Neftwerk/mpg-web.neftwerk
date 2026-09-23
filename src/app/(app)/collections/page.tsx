@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
+import { MobileMenu } from "@/components/sidebar/Sidebar";
+import { PageHeader } from "@/components/PageHeader";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 
 export default function CollectionsPage() {
@@ -18,13 +19,12 @@ function CollectionsContent() {
 
   return (
     <>
-      {/* Sticky top bar */}
-      <MobileTopBar title="Collections" onMenuOpen={() => setMenuOpen(true)} />
-
-      {/* Desktop header */}
-      <header className="hidden lg:flex mt-20 lg:mt-0 items-center justify-between border-b border-slate-200 bg-slate-50/95 p-4">
-        <h1 className="text-xl font-semibold text-slate-900">Collections</h1>
-      </header>
+      <PageHeader
+        title="Collections"
+        backHref="/gallery"
+        backLabel="Back to My Gallery"
+        onMenuOpen={() => setMenuOpen(true)}
+      />
 
       <div className="p-4 pb-28 mt-20 lg:mt-0 lg:pb-4">
         <div className="grid grid-cols-2 gap-4">
