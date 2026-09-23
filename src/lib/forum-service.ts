@@ -113,13 +113,19 @@ function normalizeAuthor(raw: unknown): ForumAuthor | undefined {
 }
 
 export function normalizeForumPost(post: ForumPost & { authorId?: unknown }): ForumPost {
-  const { authorId: _authorId, ...rest } = post;
+  const { authorId, ...rest } = post;
+  // Every post is attributed to the publisher regardless of which account wrote
+  // it, which is why the name is overridden. The avatar is not ours to invent
+  // though: the publisher account carries its own picture, and replacing the
+  // whole author object threw it away, leaving the UI to draw a stand-in letter.
+  const source = post.author ?? normalizeAuthor(authorId);
   return {
     ...rest,
     author: {
-      _id: "neftwerk",
+      _id: source?._id || "neftwerk",
       fullName: FORUM_PUBLISHER_NAME,
       email: "",
+      ...(source?.profilePicture ? { profilePicture: source.profilePicture } : {}),
     },
   };
 }

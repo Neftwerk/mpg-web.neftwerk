@@ -6,6 +6,7 @@ import Link from "next/link";
 import { MobileMenu } from "@/components/sidebar/Sidebar";
 import { PageHeader } from "@/components/PageHeader";
 import { NeftwerkImage } from "@/components/NeftwerkImage";
+import { ForumPublisherAvatar } from "@/components/forum/ForumPublisherAvatar";
 import { useUser } from "@/lib/UserContext";
 import {
   getForumPostBySlug,
@@ -45,16 +46,6 @@ function formatTimeAgo(dateStr: string): string {
   const diffDay = Math.floor(diffHr / 24);
   if (diffDay < 7) return `${diffDay}d ago`;
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
-
-function NeftwerkPostAvatar() {
-  return (
-    <div className="grid h-11 w-11 place-items-center rounded-full bg-[#1A3F6C] border-2 border-[#38A8AB]">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-        <path d="M4 20V4h4l8 12V4h4v16h-4L8 8v12H4z" fill="white" />
-      </svg>
-    </div>
-  );
 }
 
 function CommentAvatar({
@@ -524,7 +515,10 @@ export default function ForumPostDetailPage() {
         <article className="card-neumorph mb-6 mt-4">
           {/* Author & Date */}
           <div className="flex items-center gap-3 mb-4">
-            <NeftwerkPostAvatar />
+            <ForumPublisherAvatar
+              profilePicture={post.author?.profilePicture}
+              fullName={FORUM_PUBLISHER_NAME}
+            />
             <div>
               <p className="text-[15px] font-bold text-[#1A3F6C]">{FORUM_PUBLISHER_NAME}</p>
               <p className="text-xs text-slate-400">
