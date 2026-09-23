@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
 import { CircleCheck, FileText, ShieldCheck, Wallet } from "lucide-react";
-import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
+import { MobileMenu } from "@/components/sidebar/Sidebar";
+import { PageHeader } from "@/components/PageHeader";
 import { Spinner } from "@/components/Spinner";
 import { useUser } from "@/lib/UserContext";
 import { fetchChainConfig } from "@/lib/chain-service";
@@ -297,11 +298,14 @@ export default function VerifyPage() {
 
   return (
     <>
-      <MobileTopBar title="Verification" onMenuOpen={() => setMenuOpen(true)} />
+      <PageHeader
+        title="Verification"
+        backHref="/wallet"
+        backLabel="Back to Wallet"
+        onMenuOpen={() => setMenuOpen(true)}
+      />
 
-      <header className="hidden lg:flex items-center justify-between border-b border-slate-200 bg-slate-50/95 p-4">
-        <h1 className="text-xl font-semibold text-slate-900">Verification</h1>
-      </header>
+
 
       <div className="mx-auto mt-20 max-w-2xl space-y-4 p-5 pb-28 lg:mt-0 lg:pb-4">
         {userLoading || loading ? (

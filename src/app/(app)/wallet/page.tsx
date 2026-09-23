@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { ArrowRight, Landmark, ShieldCheck } from "lucide-react";
-import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
+import { MobileMenu } from "@/components/sidebar/Sidebar";
+import { PageHeader } from "@/components/PageHeader";
 import { Spinner } from "@/components/Spinner";
 import { useUser } from "@/lib/UserContext";
 import { fetchChainConfig } from "@/lib/chain-service";
@@ -366,11 +367,9 @@ export default function WalletPage() {
 
   return (
     <>
-      <MobileTopBar title={t("nav.wallet")} onMenuOpen={() => setMenuOpen(true)} />
+      <PageHeader title={t("nav.wallet")} onMenuOpen={() => setMenuOpen(true)} />
 
-      <header className="hidden lg:flex items-center justify-between border-b border-slate-200 bg-slate-50/95 p-4">
-        <h1 className="text-xl font-semibold text-slate-900">{t("nav.wallet")}</h1>
-      </header>
+
 
       <div className="mx-auto mt-20 max-w-2xl space-y-4 p-5 pb-28 lg:mt-0 lg:pb-4">
         {userLoading ? (

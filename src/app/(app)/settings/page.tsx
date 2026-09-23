@@ -7,7 +7,8 @@ import { Trans, useTranslation } from "react-i18next";
 import { usePrivy } from "@privy-io/react-auth";
 import { useUser } from "@/lib/UserContext";
 import { logout, deactivateAccount, deleteAccount } from "@/lib/auth-service";
-import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
+import { MobileMenu } from "@/components/sidebar/Sidebar";
+import { PageHeader } from "@/components/PageHeader";
 import { LanguagePickerModal } from "@/components/settings/LanguagePickerModal";
 import { PinDialog } from "@/components/wallet/PinDialog";
 import { useLanguage } from "@/localization";
@@ -86,11 +87,9 @@ export default function SettingsPage() {
 
   return (
     <>
-      <MobileTopBar title={t("settings.title")} onMenuOpen={() => setMenuOpen(true)} />
+      <PageHeader title={t("settings.title")} onMenuOpen={() => setMenuOpen(true)} />
 
-      <header className="hidden lg:flex items-center justify-between border-b border-slate-200 bg-slate-50/95 p-4 mt-20 lg:mt-0">
-        <h1 className="text-xl font-semibold text-slate-900">{t("settings.title")}</h1>
-      </header>
+
 
       <div className="px-5 pb-28 mt-20 lg:mt-6 flex flex-col gap-6 max-w-lg mx-auto">
         <div className="card-neumorph p-5">

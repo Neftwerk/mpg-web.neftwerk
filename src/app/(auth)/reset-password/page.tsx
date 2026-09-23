@@ -4,7 +4,7 @@ import { AuthShell } from "@/components/auth/AuthShell";
 import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
 
 export const metadata: Metadata = {
-  title: "New password | Neft Mobile Web",
+  title: "New password | My Pocket Gallery",
 };
 
 function ResetPasswordFallback() {

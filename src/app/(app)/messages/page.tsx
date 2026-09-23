@@ -3,7 +3,8 @@
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
+import { MobileMenu } from "@/components/sidebar/Sidebar";
+import { PageHeader } from "@/components/PageHeader";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { UnifiedInbox } from "@/components/messages/UnifiedInbox";
 import { EnquiryCompose } from "@/components/messages/EnquiryCompose";
@@ -146,15 +147,13 @@ function MessagesContent() {
 
   return (
     <>
-      <MobileTopBar
+      {/* Arrived from an artwork's "enquire" action, so the way back is the
+          artwork, not the Messages list the sidebar already links to. */}
+      <PageHeader
         title={t("nav.messages")}
         onMenuOpen={() => setMenuOpen(true)}
         historyBack={Boolean(artworkId)}
       />
-
-      <header className="hidden lg:flex items-center justify-between border-b border-slate-200 bg-slate-50/95 p-4">
-        <h1 className="text-xl font-semibold text-slate-900">{t("nav.messages")}</h1>
-      </header>
 
       <div className="px-4 pb-28 mt-20 lg:mt-0 max-w-lg mx-auto">
         {loading && (
@@ -228,10 +227,8 @@ function MessagesFallback() {
   const { t } = useTranslation();
   return (
     <>
-      <MobileTopBar title={t("nav.messages")} onMenuOpen={() => {}} />
-      <header className="hidden lg:flex items-center justify-between border-b border-slate-200 bg-slate-50/95 p-4">
-        <h1 className="text-xl font-semibold text-slate-900">{t("nav.messages")}</h1>
-      </header>
+      <PageHeader title={t("nav.messages")} onMenuOpen={() => {}} />
+
       <div className="flex justify-center py-16 mt-20 lg:mt-0">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#1A3F6C] border-t-transparent" />
       </div>

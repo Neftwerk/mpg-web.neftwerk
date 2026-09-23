@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
+import { MobileMenu } from "@/components/sidebar/Sidebar";
+import { PageHeader } from "@/components/PageHeader";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 
 export default function NewCollectionPage() {
@@ -18,12 +19,14 @@ function NewCollectionContent() {
 
   return (
     <>
-      <MobileTopBar
-        title="Discover Artwork"
+      <PageHeader
+        title="New collection"
+        backHref="/collections"
+        backLabel="Back to Collections"
         onMenuOpen={() => setMenuOpen(true)}
       />
 
-      <div className="grid gap-4 mt-20 lg:mt-0max-w-[620px]">
+      <div className="grid gap-4 p-4 mt-20 lg:mt-0 max-w-[620px]">
         <label className="text-sm font-medium text-slate-700">
           Collection name
         </label>

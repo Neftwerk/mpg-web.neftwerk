@@ -3,7 +3,7 @@ import { AuthShell } from "@/components/auth/AuthShell";
 import { OtpForm } from "@/components/auth/OtpForm";
 
 export const metadata: Metadata = {
-  title: "Verify OTP | Neft Mobile Web",
+  title: "Verify OTP | My Pocket Gallery",
 };
 
 export default function OtpPage() {

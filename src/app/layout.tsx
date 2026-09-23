@@ -1,13 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
+import { DecoBackground } from "@/components/DecoBackground";
 
 export const metadata: Metadata = {
-  title: "Neft Mobile Web",
-  description: "Web version of the Neft mobile app",
-  icons: {
-    icon: "/images/neftwerkfavicon.svg",
-  },
+  title: "My Pocket Gallery",
+  description: "Browse, collect and build your own gallery.",
 };
 
 export default function RootLayout({
@@ -34,8 +32,9 @@ export default function RootLayout({
       </head>
       <body
         suppressHydrationWarning
-        className="lg:min-h-screen bg-[url('/images/deco.jpg')] bg-cover bg-center bg-no-repeat lg:pt-4 pb-14 text-[#11181c]"
+        className="lg:min-h-screen lg:pt-4 pb-14 text-[#11181c]"
       >
+        <DecoBackground />
         <Providers>{children}</Providers>
       </body>
     </html>

@@ -3,7 +3,7 @@ import { AuthShell } from "@/components/auth/AuthShell";
 import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm";
 
 export const metadata: Metadata = {
-  title: "Forgot password | Neft Mobile Web",
+  title: "Forgot password | My Pocket Gallery",
 };
 
 export default function ForgotPasswordPage() {

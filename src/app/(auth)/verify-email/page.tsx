@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { verifyEmail } from "@/lib/auth-service";
+import { BrandLockup } from "@/components/BrandLockup";
 
 function VerifyEmailContent() {
   const { t } = useTranslation();
@@ -40,15 +41,7 @@ function VerifyEmailContent() {
     <div className="min-h-[100dvh] flex items-center justify-center px-5">
       <div className="w-full max-w-[400px] text-center">
 
-        {/* Logo */}
-        <div className="flex justify-center mb-8">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/images/neftwerklogo.webp"
-            alt="Neftwerk"
-            className="h-[60px] object-contain"
-          />
-        </div>
+        <BrandLockup className="mb-8" />
 
         {/* Loading state */}
         {status === "loading" && (

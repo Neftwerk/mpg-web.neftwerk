@@ -2,6 +2,7 @@
 
 import { useTranslation } from "react-i18next";
 import { AppTopBar } from "@/components/AppTopBar";
+import { BrandLockup } from "@/components/BrandLockup";
 
 export function AuthShell({
   titleKey,
@@ -9,30 +10,33 @@ export function AuthShell({
   /** Mid-flow auth steps (OTP, reset) use history; landing pages go Home. */
   historyBack = false,
 }: {
-  /** Translation key for the top-bar title (e.g. "auth.shellWelcome"). */
-  titleKey: string;
+  /**
+   * Translation key for the top-bar title (e.g. "auth.verifyOtpTitle"). Omit it
+   * on a screen that already says what it is: login names itself in its own
+   * heading, so a bar repeating the title above it is a second answer to a
+   * question nobody asked twice.
+   */
+  titleKey?: string;
   children: React.ReactNode;
   historyBack?: boolean;
 }) {
   const { t } = useTranslation();
-  const title = t(titleKey);
+  const showTopBar = titleKey !== undefined;
+  // The deco pattern comes from the fixed layer in the root layout.
   return (
-    <div className="min-h-[100dvh] bg-[url('/images/deco-pattern-background.svg')] bg-cover bg-center bg-no-repeat">
+    <div className="min-h-[100dvh]">
       <div className="mx-auto flex min-h-[100dvh] max-w-[520px] flex-col">
-        <AppTopBar
-          title={title}
-          historyBack={historyBack}
-          forwardHome={!historyBack}
-        />
-        <div className="flex-1 px-4 py-6 pb-10">
-          <div className="flex justify-center mb-6">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/images/neftwerklogo.webp"
-              alt="Neftwerk"
-              className="h-[60px] object-contain"
-            />
-          </div>
+        {showTopBar && (
+          <AppTopBar
+            title={t(titleKey)}
+            historyBack={historyBack}
+            forwardHome={!historyBack}
+          />
+        )}
+        {/* Without the bar the logo would otherwise start hard against the
+            top edge of the viewport. */}
+        <div className={`flex-1 px-4 pb-10 ${showTopBar ? "py-5" : "pt-9"}`}>
+          <BrandLockup className="mb-6" />
           {children}
         </div>
       </div>

@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
+import { MobileMenu } from "@/components/sidebar/Sidebar";
+import { PageHeader } from "@/components/PageHeader";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { useUser } from "@/lib/UserContext";
 import { updateProfile } from "@/lib/auth-service";
@@ -129,14 +130,12 @@ function EditProfileContent() {
 
   return (
     <>
-      <MobileTopBar
+      <PageHeader
         title={t("profile.editProfileButton")}
+        backHref="/profile"
+        backLabel="Back to Profile"
         onMenuOpen={() => setMenuOpen(true)}
       />
-
-      <header className="hidden lg:flex items-center justify-between border-b border-slate-200 bg-slate-50/95 p-4 mt-20 lg:mt-0">
-        <h1 className="text-xl font-semibold text-slate-900">{t("profile.editProfileButton")}</h1>
-      </header>
 
       <div className="px-5 pb-28 mt-20 lg:mt-6 max-w-lg mx-auto space-y-6">
         {loading ? (

@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
+import { MobileMenu } from "@/components/sidebar/Sidebar";
+import { PageHeader } from "@/components/PageHeader";
 import { NeftwerkImage } from "@/components/NeftwerkImage";
 import { useUser } from "@/lib/UserContext";
 import {
@@ -464,7 +465,12 @@ export default function ForumPostDetailPage() {
   if (loading) {
     return (
       <>
-        <MobileTopBar title="Forum" onMenuOpen={() => setMenuOpen(true)} />
+        <PageHeader
+          title="Forum"
+          backHref="/forum"
+          backLabel="Back to Forum"
+          onMenuOpen={() => setMenuOpen(true)}
+        />
         <div className="px-4 pb-28 mt-20 lg:mt-0">
           <div className="card-neumorph animate-pulse mt-4">
             <div className="h-6 w-3/4 bg-[#e0ddd8] rounded mb-3" />
@@ -485,7 +491,12 @@ export default function ForumPostDetailPage() {
   if (error || !post) {
     return (
       <>
-        <MobileTopBar title="Forum" onMenuOpen={() => setMenuOpen(true)} />
+        <PageHeader
+          title="Forum"
+          backHref="/forum"
+          backLabel="Back to Forum"
+          onMenuOpen={() => setMenuOpen(true)}
+        />
         <div className="px-4 pb-28 mt-20 lg:mt-0">
           <div className="card-neumorph text-center py-12 mt-4">
             <p className="text-sm text-red-500 mb-3">{error || "Post not found"}</p>
@@ -501,7 +512,12 @@ export default function ForumPostDetailPage() {
 
   return (
     <>
-      <MobileTopBar title="Forum" onMenuOpen={() => setMenuOpen(true)} />
+      <PageHeader
+          title="Forum"
+          backHref="/forum"
+          backLabel="Back to Forum"
+          onMenuOpen={() => setMenuOpen(true)}
+        />
 
       <div className="px-4 pb-28 mt-20 lg:mt-0 max-w-2xl mx-auto">
         {/* Post */}

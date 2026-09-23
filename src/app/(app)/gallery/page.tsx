@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
+import { MobileMenu } from "@/components/sidebar/Sidebar";
+import { PageHeader } from "@/components/PageHeader";
 import { GalleryGridSkeleton } from "@/components/Skeletons";
 import { useUser } from "@/lib/UserContext";
 import { fetchOwnedAssets, type OwnedAsset } from "@/lib/wallet-service";
@@ -47,14 +48,13 @@ export default function GalleryPage() {
 
   return (
     <>
-      <MobileTopBar title="My Gallery" onMenuOpen={() => setMenuOpen(true)} />
+      <PageHeader
+        title="My Gallery"
+        subtitle="Artworks you have purchased"
+        onMenuOpen={() => setMenuOpen(true)}
+      />
 
-      <header className="hidden lg:flex items-center justify-between border-b border-slate-200 bg-slate-50/95 p-4">
-        <div>
-          <h1 className="text-xl font-semibold text-slate-900">My Gallery</h1>
-          <p className="text-sm text-slate-500 mt-1">Artworks you have purchased</p>
-        </div>
-      </header>
+
 
       <div className="p-4 pb-36 mt-20 lg:mt-0 lg:pb-4">
         <p className="lg:hidden text-sm text-[#616161] mb-4">

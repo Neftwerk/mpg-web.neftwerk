@@ -3,7 +3,8 @@
 import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { fetchPublicArtwork, ArtworkDetail } from "@/lib/gallery-service";
-import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
+import { MobileMenu } from "@/components/sidebar/Sidebar";
+import { PageHeader } from "@/components/PageHeader";
 import { NeftwerkImage } from "@/components/NeftwerkImage";
 import { ArtworkDetailSkeleton } from "@/components/Skeletons";
 import { ArtworkPriceBuy } from "@/components/artwork/ArtworkPriceBuy";
@@ -103,16 +104,12 @@ export default function ArtworkPage({ params }: { params: Promise<Params> }) {
 
   return (
     <>
-      <MobileTopBar
+      <PageHeader
         title="Artwork Details"
+        backHref="/gallery"
+        backLabel="Back to My Gallery"
         onMenuOpen={() => setMenuOpen(true)}
       />
-
-      <header className="hidden lg:flex items-center justify-between border-b border-slate-200 bg-slate-50/95 p-4 mt-20 lg:mt-0">
-        <h1 className="text-xl font-semibold text-slate-900">
-          Artwork Details
-        </h1>
-      </header>
 
       <div className="p-5 pb-10 mt-20 lg:mt-0">
         {loading && <ArtworkDetailSkeleton />}

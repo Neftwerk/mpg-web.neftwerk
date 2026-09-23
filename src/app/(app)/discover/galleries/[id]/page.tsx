@@ -8,7 +8,8 @@ import {
   fetchPublicGalleryArtworks,
   ArtworkItem,
 } from "@/lib/gallery-service";
-import { MobileTopBar, MobileMenu } from "@/components/sidebar/Sidebar";
+import { MobileMenu } from "@/components/sidebar/Sidebar";
+import { PageHeader } from "@/components/PageHeader";
 import { GalleryGridSkeleton } from "@/components/Skeletons";
 import { GalleryArtworkCard } from "@/components/artwork/GalleryArtworkCard";
 import { ArtworkMasonry } from "@/components/artwork/ArtworkMasonry";
@@ -54,20 +55,14 @@ export default function DiscoverGalleryDetailPage({
 
   return (
     <>
-      <MobileTopBar title={galleryName} onMenuOpen={() => setMenuOpen(true)} />
+      <PageHeader
+        title={galleryName}
+        backHref="/discover#galleries"
+        backLabel={t("discover.galleriesTitle")}
+        onMenuOpen={() => setMenuOpen(true)}
+      />
 
-      <header className="hidden lg:flex items-center justify-between border-b border-slate-200 bg-slate-50/95 p-4">
-        <div className="flex items-center gap-3">
-          <Link
-            href="/discover#galleries"
-            className="text-sm font-medium text-[#4D91A7] hover:underline"
-          >
-            {t("discover.galleriesTitle")}
-          </Link>
-          <span className="text-slate-300">/</span>
-          <h1 className="text-xl font-semibold text-slate-900">{galleryName}</h1>
-        </div>
-      </header>
+
 
       <div className="p-4 pb-36 mt-20 lg:mt-0 lg:pb-4">
         <Link
