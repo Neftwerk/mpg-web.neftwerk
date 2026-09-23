@@ -11,6 +11,8 @@ out/
 
 # env
 .env**
+# ...but the template of required names is not a secret and has to be committed.
+!.env.example
 .env.local
 .env.*.local
 
