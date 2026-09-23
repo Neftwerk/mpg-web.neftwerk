@@ -106,8 +106,9 @@ export default function ArtworkPage({ params }: { params: Promise<Params> }) {
     <>
       <PageHeader
         title="Artwork Details"
-        backHref="/gallery"
-        backLabel="Back to My Gallery"
+        historyBack
+        backHref="/discover"
+        backLabel="Back"
         onMenuOpen={() => setMenuOpen(true)}
       />
 

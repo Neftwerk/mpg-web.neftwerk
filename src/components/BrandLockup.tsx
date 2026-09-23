@@ -18,7 +18,7 @@
 export function BrandLockup({ className = "" }: { className?: string }) {
   return (
     <div className={`flex justify-center ${className}`}>
-      <span className="inline-flex items-center justify-center bg-[#334E57] px-3.5 py-2.5 sm:px-4 sm:py-3 shadow-[8px_8px_14px_rgba(229,222,217,0.9)]">
+      <span className="inline-flex items-center justify-center rounded-xl bg-[#334E57] px-3.5 py-2.5 sm:px-4 sm:py-3 shadow-[8px_8px_14px_rgba(229,222,217,0.9)]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/images/mpg-logo.png"

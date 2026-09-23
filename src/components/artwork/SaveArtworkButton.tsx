@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Bookmark } from "lucide-react";
+import { useToast } from "@/components/Toast";
 import {
   isArtworkSaved,
   subscribeToSaved,
@@ -22,6 +23,7 @@ export function SaveArtworkButton({
 }: SaveArtworkButtonProps) {
   const [saved, setSaved] = useState(false);
   const [busy, setBusy] = useState(false);
+  const { showToast } = useToast();
 
   useEffect(() => {
     const sync = () => setSaved(isArtworkSaved(artworkId));
@@ -33,10 +35,22 @@ export function SaveArtworkButton({
 
   const handleClick = async () => {
     if (busy) return;
+    // What the tap meant, read from the service rather than local state, so the
+    // confirmation describes the intent even when the result differs from it.
+    const meantToSave = !isArtworkSaved(artworkId);
     setBusy(true);
     try {
       const next = await toggleSaveArtwork(artworkId);
       setSaved(next);
+      if (next) {
+        showToast("Saved to your collection");
+      } else if (meantToSave) {
+        // The server rejects a save for a work already owned and clears it
+        // locally. Saying "removed" there would describe the opposite of the tap.
+        showToast("This is already in your gallery");
+      } else {
+        showToast("Removed from saved");
+      }
     } finally {
       setBusy(false);
     }

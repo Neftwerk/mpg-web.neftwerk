@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState, useEffect, use } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -65,13 +64,6 @@ export default function DiscoverGalleryDetailPage({
 
 
       <div className="p-4 pb-36 mt-20 lg:mt-0 lg:pb-4">
-        <Link
-          href="/discover#galleries"
-          className="lg:hidden inline-flex items-center text-sm font-medium text-[#4D91A7] mb-4"
-        >
-          {t("discover.allGalleriesLink")}
-        </Link>
-
         {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
 
         {loading && <GalleryGridSkeleton count={6} />}

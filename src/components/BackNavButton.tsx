@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { hasInAppHistory } from "@/lib/navigation-history";
 
 const BACK_ICON = "/images/backarrow.svg";
 
@@ -40,10 +41,17 @@ export function BackNavButton({
   );
 
   if (historyBack) {
+    // `href` doubles as the fallback: on a cold entry there is no previous page
+    // in this tab, and stepping back would leave the app rather than go up it.
+    const goBack = () => {
+      if (hasInAppHistory()) router.back();
+      else router.push(href);
+    };
+
     return (
       <button
         type="button"
-        onClick={() => router.back()}
+        onClick={goBack}
         className={`${BACK_HIT_CLASS} ${className}`}
         aria-label={label}
       >
